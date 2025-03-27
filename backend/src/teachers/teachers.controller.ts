@@ -1,11 +1,15 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
+import { TeachersService } from './teachers.service';
 
-@Controller('auth')
+@Controller('teachers')
 export class TeachersController {
-  @Post('signup')
-  createTeacher(@Body() createTeacherDto: CreateTeacherDto) {
-    console.log(createTeacherDto);
-    return 'signup';
+  constructor(private readonly teachersService: TeachersService) {}
+
+  @Post('/signup')
+  createTeacher(@Body() body: CreateTeacherDto) {
+    this.teachersService.create(body);
+    console.log(body);
+    // return 'signup';
   }
 }

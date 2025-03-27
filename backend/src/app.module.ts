@@ -7,6 +7,7 @@ import { Student } from './students/student.entity';
 import { GroupsModule } from './groups/groups.module';
 import { Group } from './groups/group.entity';
 import { TeachersModule } from './teachers/teachers.module';
+import { Teacher } from './teachers/entities/teacher.entity';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { TeachersModule } from './teachers/teachers.module';
       type: 'sqlite',
       database: 'db.sqlite',
       // entities: ['dist/**/*.entity{.ts,.js}'],
-      entities: [Student, Group],
+      entities: [Student, Group, Teacher],
       synchronize: true,
     }),
     StudentsModule,
