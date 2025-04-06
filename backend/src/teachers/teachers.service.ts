@@ -10,4 +10,24 @@ export class TeachersService {
     const teacher = this.repo.create(body);
     return this.repo.save(teacher);
   }
+
+  findOne(id: number) {
+    return this.repo.findOneBy({ id });
+  }
+  findAll() {
+    return this.repo.find();
+  }
+  async update(id: number, body: Partial<Teacher>) {
+    const teacher = await this.repo.findOneBy({ id });
+    if (!teacher) {
+      throw new Error('Teacher not found');
+    }
+    return this.repo.save({
+      ...teacher,
+      ...body,
+    });
+  }
+  remove(id: number) {
+    return this.repo.delete(id);
+  }
 }

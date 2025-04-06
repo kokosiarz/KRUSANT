@@ -9,4 +9,13 @@ export class CreateTeacherDto {
   name: string;
   @IsEmail()
   email: string;
+  logInsert() {
+    console.log('Inserted teacher with id', this.id);
+  }
+  logUpdate() {
+    console.log('Updated teacher with id', this.id);
+  }
+  logRemove() {
+    console.log('Removed teacher with id', this.id);
+  }
 }
