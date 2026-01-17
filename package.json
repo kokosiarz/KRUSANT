@@ -1,0 +1,13 @@
+{
+  "name": "krusant-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:frontend": "yarn workspace frontend start",
+    "dev:backend": "yarn workspace backend start",
+    "build:frontend": "yarn workspace frontend build",
+    "build:backend": "yarn workspace backend build"
+  }
+}
