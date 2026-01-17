@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/auth/roles.enum.ts"],"sourcesContent":["export enum Role {\n  Admin = 'admin',\n  Teacher = 'teacher',\n  Student = 'student',\n}\n"],"names":["Role"],"mappings":";;;;+BAAYA;;;eAAAA;;;AAAL,IAAA,AAAKA,8BAAAA;;;;WAAAA"}
