@@ -1,0 +1,273 @@
+import React, { useEffect, useMemo } from 'react';
+import { Slide } from '@mui/material';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import { useAuth } from '../../hooks/useAuth';
+import { GroupWizardProps, GroupWizardData } from './types';
+import { getSteps, renderStepContent, StepId } from './Steps';
+import { groupTemplateFormStyles, stepDot } from './styles';
+import {
+    createHandleInputChange,
+    createHandleSelectChange,
+    createHandleDateChange,
+    createHandleYearToggle,
+    createHandleSkip,
+    createHandleClose,
+    createHandleSave,
+    createHandleSaveGroup,
+} from './handlers';
+import { mapTemplateToWizardData, mapGroupToWizardData } from './helpers';
+import { useClassDates } from '../../hooks/useClassDates';
+import { useWizardLoading } from '../../hooks/useWizardLoading';
+import { useWizardFormData } from '../../hooks/useWizardFormData';
+import { useWizardValidation } from '../../hooks/useWizardValidation';
+import { useQuery } from '@tanstack/react-query';
+import { roomsApi } from '../../api/endpoints/rooms';
+import { teachersApi } from '../../api/endpoints/teachers';
+import { coursesApi } from '../../api/endpoints/courses';
+import { groupTemplatesApi } from '../../api/endpoints/groupTemplates';
+import { studentsApi } from '../../api/endpoints/students';
+import { useState } from 'react';
+import { groupsApi } from '../../api/endpoints/groups';
+import WizardButtons from './Buttons';
+
+const GroupWizard: React.FC<GroupWizardProps> = ({ open, onClose, mode, groupTemplateId, groupId, onSuccess }) => {
+    const { user } = useAuth();
+    const { loading, setLoading, error, setError, clearError } = useWizardLoading();
+    const { formData, setFormData, resetFormData, getInitialData } = useWizardFormData(user?.teacherId ?? undefined);
+    const { data: rooms = [], isLoading: roomsLoading, error: roomsError } = useQuery({
+        queryKey: ['rooms'],
+        queryFn: roomsApi.getRooms,
+    });
+    const { data: teachers = [], isLoading: teachersLoading, error: teachersError } = useQuery({
+        queryKey: ['teachers'],
+        queryFn: teachersApi.getTeachers,
+    });
+    const { data: courses = [], isLoading: coursesLoading, error: coursesError } = useQuery({
+        queryKey: ['courses'],
+        queryFn: coursesApi.getCourses,
+    });
+    const { data: allTemplates = [], isLoading: templatesLoading, error: templatesError } = useQuery({
+        queryKey: ['groupTemplates'],
+        queryFn: groupTemplatesApi.getGroupTemplates,
+    });
+    const { data: students = [], isLoading: studentsLoading, error: studentsErrorRaw } = useQuery({
+        queryKey: ['students'],
+        queryFn: studentsApi.getStudents,
+    });
+    const studentsError = studentsErrorRaw ? (studentsErrorRaw instanceof Error ? studentsErrorRaw.message : String(studentsErrorRaw)) : null;
+    const { canContinue, getValidationError } = useWizardValidation(formData, allTemplates, groupTemplateId, mode);
+
+    const [currentStep, setCurrentStep] = useState(0);
+    const [quickEditFrom, setQuickEditFrom] = useState<number | null>(null);
+
+    const stepsList = useMemo(() => getSteps(mode, !groupId && !groupTemplateId), [mode, groupId, groupTemplateId]);
+
+    // Load existing template or group
+    useEffect(() => {
+        if (!open) return;
+
+        const load = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                if (mode === 'template' && groupTemplateId) {
+                    const template = await groupTemplatesApi.getGroupTemplateById(groupTemplateId);
+                    setFormData(mapTemplateToWizardData(template));
+                } else if (mode === 'group' && groupId) {
+                    const group = await groupsApi.getGroupById(groupId);
+                    setFormData(mapGroupToWizardData(group));
+                } else {
+                    resetFormData();
+                }
+                setCurrentStep(groupId || groupTemplateId ? stepsList.length - 1 : 0);
+            } catch (err) {
+                const msg = err instanceof Error ? err.message : `Nie udało się wczytać ${mode}`;
+                setError(msg);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        load();
+    }, [groupTemplateId, groupId, open, mode, stepsList.length, setFormData, resetFormData, setLoading, setError]);
+
+    // Auto-select first course
+    useEffect(() => {
+        if (!open || groupTemplateId || !courses.length || formData.courseId) return;
+        const firstCourse = courses[0];
+        setFormData((prev: GroupWizardData) => ({
+            ...prev,
+            courseId: firstCourse.id,
+            templateName: `${firstCourse.name.charAt(0).toUpperCase()}${firstCourse.name.slice(1)}`,
+            cost: firstCourse.cost,
+            unitCost: firstCourse.numberOfHours ? Number((firstCourse.cost / firstCourse.numberOfHours).toFixed(2)) : prev.unitCost,
+            lessonLength: firstCourse.lessonLength ?? prev.lessonLength,
+        }));
+    }, [open, groupTemplateId, courses, formData.courseId, setFormData]);
+
+    const selectedStudents = useMemo(
+        () => students.filter((s) => formData.studentIds.includes(s.id)),
+        [students, formData.studentIds]
+    );
+
+    const {
+        proposedDates,
+        editedClassDates,
+        finalClassDates,
+        handleDateChange: handleClassDateChange,
+        handleDateRemove: handleClassDateRemove,
+    } = useClassDates(formData.startDateTime, formData.courseId, courses);
+
+    const handleClose = createHandleClose({
+        setFormData,
+        setError,
+        setCurrentStep,
+        onClose,
+        buildInitialFormData: getInitialData,
+    });
+
+    const handleContinue = () => {
+        if (!canContinue(stepsList[currentStep])) {
+            const err = getValidationError(stepsList[currentStep]);
+            if (err) setError(err);
+            return;
+        }
+        setError(null as any);
+        if (quickEditFrom !== null) {
+            setCurrentStep(stepsList.length - 1);
+            setQuickEditFrom(null);
+        } else {
+            setCurrentStep((prev) => prev + 1);
+        }
+    };
+
+    const handleTemplateChange = (template: any) => {
+        setFormData((prev) => (!template ? {
+            ...prev,
+            templateId: null,
+            baseTemplateName: '',
+        } : {
+            ...prev,
+            templateId: template.id,
+            baseTemplateName: template.templateName,
+            groupName: template.templateName,
+            templateName: template.templateName,
+            cost: template.cost,
+            unitCost: template.unitCost,
+            lessonLength: template.lessonLength,
+            startHour: template.startHour,
+            color: template.color,
+            roomId: template.roomId,
+            teacherId: template.teacherId,
+            minStartDate: template.minStartDate,
+            maxEndDate: template.maxEndDate,
+        }));
+    };
+
+    const currentStepId = stepsList[currentStep];
+
+    const handleInputChange = createHandleInputChange(setFormData);
+    const handleSelectChange = createHandleSelectChange(setFormData, courses);
+    const handleDateChange = createHandleDateChange(formData, setFormData);
+    const handleYearToggle = createHandleYearToggle(formData, setFormData);
+    const handleSkip = createHandleSkip(setError, setCurrentStep);
+    const handleSaveTemplate = createHandleSave({ formData, allTemplates, groupTemplateId, setLoading, setError, onSuccess, handleClose });
+    const handleSaveGroup = createHandleSaveGroup({ formData, groupId, finalClassDates, courses, setLoading, setError, onSuccess, handleClose });
+    const handleSave = mode === 'template' ? handleSaveTemplate : handleSaveGroup;
+
+    // Escape key handler
+    useEffect(() => {
+        if (!open || loading) return;
+        const handleKeyDown = (e: KeyboardEvent) => e.key === 'Escape' && handleClose();
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [open, loading, handleClose]);
+
+    if (!open) return null;
+
+    return (
+        <Box sx={groupTemplateFormStyles.overlay} onClick={() => !loading && handleClose()}>
+            <Slide direction="up" in={open} timeout={300}>
+                <Box
+                  sx={{
+                    ...groupTemplateFormStyles.container,
+                    ...(formData.color && { border: `2px solid ${formData.color}` }),
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                    {loading ? (
+                        <Box sx={groupTemplateFormStyles.loader}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <>
+                            <Box sx={groupTemplateFormStyles.stepHeader}>
+                                <Box sx={groupTemplateFormStyles.progressRow}>
+                                    {stepsList.map((_, idx) => (
+                                        <Box
+                                            key={idx}
+                                            sx={stepDot(idx === currentStep, idx <= currentStep)}
+                                            onClick={() => idx < currentStep && setCurrentStep(idx)}
+                                        />
+                                    ))}
+                                </Box>
+                            </Box>
+
+                            {error && (
+                                <Alert severity="error" sx={groupTemplateFormStyles.alert} onClose={clearError}>
+                                    {error}
+                                </Alert>
+                            )}
+
+                            <Box sx={groupTemplateFormStyles.content}>
+                                {renderStepContent({
+                                    stepId: currentStepId,
+                                    mode,
+                                    formData,
+                                    courses,
+                                    rooms,
+                                    teachers,
+                                    students,
+                                    selectedStudents,
+                                    studentsLoading,
+                                    studentsError,
+                                    templates: allTemplates,
+                                    handleSelectChange,
+                                    handleInputChange,
+                                    handleDateChange,
+                                    handleYearToggle,
+                                    handleLessonLengthChange: () => {},
+                                    handleStartHourChange: () => {},
+                                    onStudentsChange: () => {},
+                                    onTemplateChange: handleTemplateChange,
+                                    proposedDates: [],
+                                    proposedDateObjects: [],
+                                    handleClassDateChange: () => {},
+                                    handleClassDateRemove: () => {},
+                                    onEditStep: (stepId) => {
+                                        const idx = stepsList.indexOf(stepId as StepId);
+                                        if (idx >= 0) setCurrentStep(idx);
+                                    },
+                                })}
+                            </Box>
+
+                            <WizardButtons
+                                currentStep={currentStep}
+                                totalSteps={stepsList.length}
+                                onBack={() => setCurrentStep((p) => p - 1)}
+                                onContinue={handleContinue}
+                                onSkip={handleSkip}
+                                onSave={handleSave}
+                            />
+                        </>
+                    )}
+                </Box>
+            </Slide>
+        </Box>
+    );
+};
+
+export default GroupWizard;
+

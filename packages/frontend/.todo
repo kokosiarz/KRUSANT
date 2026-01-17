@@ -1,0 +1,57 @@
+przerobić autentykacje, żeby byli "userzy" z róznymi rolami (admin, pracownik, itp)
+dodać mechanikę templatów grup
+
+MAGDA:
+- wpisywanie obecności na zajęciach
+- kto ma zapłacić kiedy
+
+LIFETIME kursanta:
+- kontakt
+- wpis na liste oczekujących
+    - grupa(?)
+    - notatka(?)
+- jak pojawia się miejsce to znowu kontakt - osoba zostaje wpisana do grupy (blokuje miejsce i pojawia się zobowiązanie do zapłaty)
+- wpłata pojedyńcza albo 1 z trzech rat
+
+
+
+
+PAYMENTS:
+ trzeba zrobić tak, żeby przy wpisaniu kursanta do grupy automatycznie tworzyło się zobowiązanie do zapłaty całości lub w ratach
+
+DASHBOARD:
+- kursanci którzy zalegają,
+- kursanci którzy mają zajęcia w danym dniu
+- kursanci którym zbliża się termin płatności
+- kursanci na liście oczekujących
+- zblizające się grupy
+
+GROUP TEMPLATE:
+- kurs
+- minimalny start - dd/mm/rrrr(?)
+- maksymnalny koniec - dd/mm/rrrr(?)
+- dni tygodnia
+- godziny
+- czas trwania zajęć (np. 1.5h)
+
+SPRAWDZANIE OBECNOŚCI:
+- kiedy podczas sprawdzania obecności kogośnie ma to:
+  - wpisanie na inne zajęcia zamiast tych (zużywa jeden token na przeniesienie zajęć)
+  - utworzenie dodatkowego terminu dla grupy - jeżeli termin zmieści się w limicie "maksymnalny koniec"
+  - przepadnięcie zajęć
+  - dopisanie do listy oczekujących (limbo) - później przeniesienie kogoś do grupy z listy oczekujących zjada token na przeniesienie zajęć
+
+
+GRUPY / SEMESTRY
+październik - styczeń
+luty (intensywny)
+marzec - czerwiec
+lipiec (intensywny)
+sierpień (intensywny)
+wrzesień (intensywny)
+
+
+2026/intensywny_luty 
+
+
+

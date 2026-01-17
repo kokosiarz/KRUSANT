@@ -1,0 +1,17 @@
+export enum EStep {
+  Template = 'template',
+  Course = 'course',
+  Name = 'name',
+  Color = 'color',
+  CostBase = 'costBase',
+  CostUnit = 'costUnit',
+  DateStart = 'dateStart',
+  DateEnd = 'dateEnd',
+  LessonLength = 'lessonLength',
+  StartHour = 'startHour',
+  Room = 'room',
+  Teacher = 'teacher',
+  Students = 'students',
+  Classes = 'classes',
+  Summary = 'summary',
+}

@@ -1,0 +1,3081 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns greeting message"
+          }
+        },
+        "summary": "Health check endpoint",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/students": {
+      "get": {
+        "operationId": "StudentsController_getAll",
+        "parameters": [
+          {
+            "name": "active",
+            "required": false,
+            "in": "query",
+            "description": "Filter by active status",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns all students or filtered by active status"
+          }
+        },
+        "summary": "Get all students",
+        "tags": [
+          "students"
+        ]
+      },
+      "post": {
+        "operationId": "StudentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStudentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Student created"
+          }
+        },
+        "summary": "Create new student",
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/with-balance": {
+      "get": {
+        "operationId": "StudentsController_getAllWithBalance",
+        "parameters": [
+          {
+            "name": "active",
+            "required": false,
+            "in": "query",
+            "description": "Filter by active status",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns all students with their financial balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StudentWithBalanceDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get all students with financial balance",
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/search": {
+      "get": {
+        "operationId": "StudentsController_getByEmail",
+        "parameters": [
+          {
+            "name": "email",
+            "required": true,
+            "in": "query",
+            "description": "Student email",
+            "schema": {
+              "example": "student@example.com",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns student"
+          },
+          "404": {
+            "description": "Student not found"
+          }
+        },
+        "summary": "Get student by email",
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/{id}": {
+      "get": {
+        "operationId": "StudentsController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Student ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns student"
+          }
+        },
+        "summary": "Get student by ID",
+        "tags": [
+          "students"
+        ]
+      },
+      "patch": {
+        "operationId": "StudentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Student ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStudentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Student updated"
+          }
+        },
+        "summary": "Update student",
+        "tags": [
+          "students"
+        ]
+      },
+      "delete": {
+        "operationId": "StudentsController_deleteStudent",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Student ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Student deleted"
+          }
+        },
+        "summary": "Delete student",
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/students/batch-upsert": {
+      "post": {
+        "operationId": "StudentsController_batchUpsert",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchUpsertStudentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Students created/updated. Returns count and the processed students."
+          }
+        },
+        "summary": "Batch create or update students by email",
+        "tags": [
+          "students"
+        ]
+      }
+    },
+    "/payments": {
+      "post": {
+        "operationId": "PaymentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a new payment",
+        "tags": [
+          "payments"
+        ]
+      },
+      "get": {
+        "operationId": "PaymentsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of payments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Payment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get all payments",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/student/{studentId}": {
+      "get": {
+        "operationId": "PaymentsController_findByStudent",
+        "parameters": [
+          {
+            "name": "studentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payments for student",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Payment"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get payments by student id",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/payments/{id}": {
+      "get": {
+        "operationId": "PaymentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get payment by id",
+        "tags": [
+          "payments"
+        ]
+      },
+      "put": {
+        "operationId": "PaymentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update payment by id",
+        "tags": [
+          "payments"
+        ]
+      },
+      "delete": {
+        "operationId": "PaymentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment deleted"
+          }
+        },
+        "summary": "Delete payment by id",
+        "tags": [
+          "payments"
+        ]
+      }
+    },
+    "/groups": {
+      "get": {
+        "operationId": "GroupsController_getAll",
+        "parameters": [
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "description": "Filter by active status",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns all groups or filtered by active status"
+          }
+        },
+        "summary": "Get all groups",
+        "tags": [
+          "groups"
+        ]
+      },
+      "post": {
+        "operationId": "GroupsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Group created"
+          }
+        },
+        "summary": "Create new group",
+        "tags": [
+          "groups"
+        ]
+      }
+    },
+    "/groups/{id}": {
+      "get": {
+        "operationId": "GroupsController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Group ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns group"
+          }
+        },
+        "summary": "Get group by ID",
+        "tags": [
+          "groups"
+        ]
+      },
+      "patch": {
+        "operationId": "GroupsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Group ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGroupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Group updated"
+          }
+        },
+        "summary": "Update group",
+        "tags": [
+          "groups"
+        ]
+      },
+      "delete": {
+        "operationId": "GroupsController_deleteGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Group ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Group deleted"
+          }
+        },
+        "summary": "Delete group",
+        "tags": [
+          "groups"
+        ]
+      }
+    },
+    "/groups/batch-upsert": {
+      "post": {
+        "operationId": "GroupsController_batchUpsert",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchUpsertGroupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Groups created/updated. Returns count and the processed groups."
+          }
+        },
+        "summary": "Batch create or update groups by name",
+        "tags": [
+          "groups"
+        ]
+      }
+    },
+    "/teachers": {
+      "get": {
+        "operationId": "TeachersController_getAllTeachers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns all teachers"
+          }
+        },
+        "summary": "Get all teachers",
+        "tags": [
+          "teachers"
+        ]
+      }
+    },
+    "/teachers/signup": {
+      "post": {
+        "operationId": "TeachersController_createTeacher",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeacherDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Teacher created successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        },
+        "summary": "Create new teacher",
+        "tags": [
+          "teachers"
+        ]
+      }
+    },
+    "/teachers/{id}": {
+      "delete": {
+        "operationId": "TeachersController_deleteTeacher",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Teacher ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Teacher deleted successfully"
+          }
+        },
+        "summary": "Delete teacher",
+        "tags": [
+          "teachers"
+        ]
+      }
+    },
+    "/teachers/batch-upsert": {
+      "post": {
+        "operationId": "TeachersController_batchUpsert",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchUpsertTeacherDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Teachers created/updated. Returns count and the processed teachers."
+          }
+        },
+        "summary": "Batch create or update teachers by email",
+        "tags": [
+          "teachers"
+        ]
+      }
+    },
+    "/courses": {
+      "get": {
+        "operationId": "CoursesController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns all courses"
+          }
+        },
+        "summary": "Get all courses",
+        "tags": [
+          "courses"
+        ]
+      },
+      "post": {
+        "operationId": "CoursesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCourseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Course created"
+          }
+        },
+        "summary": "Create new course",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/courses/{id}": {
+      "get": {
+        "operationId": "CoursesController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Course ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns course"
+          }
+        },
+        "summary": "Get course by ID",
+        "tags": [
+          "courses"
+        ]
+      },
+      "patch": {
+        "operationId": "CoursesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Course ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCourseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Course updated"
+          }
+        },
+        "summary": "Update course",
+        "tags": [
+          "courses"
+        ]
+      },
+      "delete": {
+        "operationId": "CoursesController_deleteCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Course ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Course deleted"
+          }
+        },
+        "summary": "Delete course",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/courses/batch-upsert": {
+      "post": {
+        "operationId": "CoursesController_batchUpsert",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchUpsertCourseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Courses created/updated. Returns count and the processed courses."
+          }
+        },
+        "summary": "Batch create or update courses by name",
+        "tags": [
+          "courses"
+        ]
+      }
+    },
+    "/rooms": {
+      "get": {
+        "operationId": "RoomsController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns all rooms"
+          }
+        },
+        "summary": "Get all rooms",
+        "tags": [
+          "rooms"
+        ]
+      },
+      "post": {
+        "operationId": "RoomsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Room created"
+          }
+        },
+        "summary": "Create new room",
+        "tags": [
+          "rooms"
+        ]
+      }
+    },
+    "/rooms/{id}": {
+      "get": {
+        "operationId": "RoomsController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Room ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns room"
+          }
+        },
+        "summary": "Get room by ID",
+        "tags": [
+          "rooms"
+        ]
+      },
+      "patch": {
+        "operationId": "RoomsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Room ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Room updated"
+          }
+        },
+        "summary": "Update room",
+        "tags": [
+          "rooms"
+        ]
+      },
+      "delete": {
+        "operationId": "RoomsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Room ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room deleted"
+          }
+        },
+        "summary": "Delete room",
+        "tags": [
+          "rooms"
+        ]
+      }
+    },
+    "/rooms/batch-upsert": {
+      "post": {
+        "operationId": "RoomsController_batchUpsert",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchUpsertRoomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rooms created/updated. Returns count and the processed rooms."
+          }
+        },
+        "summary": "Batch create or update rooms by name",
+        "tags": [
+          "rooms"
+        ]
+      }
+    },
+    "/classes": {
+      "get": {
+        "operationId": "ClassesController_getAll",
+        "parameters": [
+          {
+            "name": "groupId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by group ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns all classes or filtered by group ID"
+          }
+        },
+        "summary": "Get all classes",
+        "tags": [
+          "classes"
+        ]
+      },
+      "post": {
+        "operationId": "ClassesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Class created"
+          }
+        },
+        "summary": "Create new class",
+        "tags": [
+          "classes"
+        ]
+      }
+    },
+    "/classes/{id}": {
+      "get": {
+        "operationId": "ClassesController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Class ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns class"
+          }
+        },
+        "summary": "Get class by ID",
+        "tags": [
+          "classes"
+        ]
+      },
+      "patch": {
+        "operationId": "ClassesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Class ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Class updated"
+          }
+        },
+        "summary": "Update class",
+        "tags": [
+          "classes"
+        ]
+      },
+      "delete": {
+        "operationId": "ClassesController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Class ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Class deleted"
+          }
+        },
+        "summary": "Delete class",
+        "tags": [
+          "classes"
+        ]
+      }
+    },
+    "/classes/{id}/attendance": {
+      "post": {
+        "operationId": "ClassesController_setAttendance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Class ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Attendance set, returns class and created debits"
+          }
+        },
+        "summary": "Set attendance for a class",
+        "tags": [
+          "classes"
+        ]
+      }
+    },
+    "/classes/batch-upsert": {
+      "post": {
+        "operationId": "ClassesController_batchUpsert",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchUpsertClassDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Classes created/updated. Returns count and the processed classes."
+          }
+        },
+        "summary": "Batch create or update classes by startTime and roomId",
+        "tags": [
+          "classes"
+        ]
+      }
+    },
+    "/debits": {
+      "post": {
+        "operationId": "DebitsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDebitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Debit created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Debit"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a new debit",
+        "tags": [
+          "debits"
+        ]
+      },
+      "get": {
+        "operationId": "DebitsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of debits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Debit"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get all debits",
+        "tags": [
+          "debits"
+        ]
+      }
+    },
+    "/debits/{id}": {
+      "get": {
+        "operationId": "DebitsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Debit found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Debit"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get debit by id",
+        "tags": [
+          "debits"
+        ]
+      },
+      "put": {
+        "operationId": "DebitsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDebitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Debit updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Debit"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update debit by id",
+        "tags": [
+          "debits"
+        ]
+      },
+      "delete": {
+        "operationId": "DebitsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Debit deleted"
+          }
+        },
+        "summary": "Delete debit by id",
+        "tags": [
+          "debits"
+        ]
+      }
+    },
+    "/group-templates": {
+      "get": {
+        "operationId": "GroupTemplatesController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns all group templates"
+          }
+        },
+        "summary": "Get all group templates",
+        "tags": [
+          "group-templates"
+        ]
+      },
+      "post": {
+        "operationId": "GroupTemplatesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Group template created"
+          }
+        },
+        "summary": "Create new group template",
+        "tags": [
+          "group-templates"
+        ]
+      }
+    },
+    "/group-templates/{id}": {
+      "get": {
+        "operationId": "GroupTemplatesController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Group template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns group template"
+          }
+        },
+        "summary": "Get group template by ID",
+        "tags": [
+          "group-templates"
+        ]
+      },
+      "patch": {
+        "operationId": "GroupTemplatesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Group template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGroupTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Group template updated"
+          }
+        },
+        "summary": "Update group template",
+        "tags": [
+          "group-templates"
+        ]
+      },
+      "delete": {
+        "operationId": "GroupTemplatesController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Group template ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Group template deleted"
+          }
+        },
+        "summary": "Delete group template",
+        "tags": [
+          "group-templates"
+        ]
+      }
+    },
+    "/settings": {
+      "get": {
+        "operationId": "SettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "SettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "PassportAuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "teacher@example.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful. Returns user data and sets access token cookie."
+          },
+          "401": {
+            "description": "Unauthorized. Invalid credentials."
+          }
+        },
+        "summary": "Login with email and password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "PassportAuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Logout successful. Clears access token cookie."
+          }
+        },
+        "summary": "Logout current user",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/profile": {
+      "get": {
+        "operationId": "PassportAuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns current user profile."
+          },
+          "401": {
+            "description": "Unauthorized. Valid JWT token required."
+          }
+        },
+        "summary": "Get current user profile",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/backfill-teachers": {
+      "post": {
+        "operationId": "PassportAuthController_backfillTeachers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Backfill executed"
+          }
+        },
+        "summary": "Backfill Users from Teachers (dev only)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "operationId": "PassportAuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "teacher@example.com"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "example": "newpassword123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "summary": "Reset user password by email",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "UsersController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns all users"
+          }
+        },
+        "summary": "Get all users",
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created"
+          }
+        },
+        "summary": "Create new user",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns user"
+          }
+        },
+        "summary": "Get user by ID",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated"
+          }
+        },
+        "summary": "Update user",
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted"
+          }
+        },
+        "summary": "Delete user",
+        "tags": [
+          "users"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "KRUSANT API",
+    "description": "API documentation for KRUSANT backend",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "StudentWithBalanceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "customRate": {
+            "type": "number"
+          },
+          "discount": {
+            "type": "number"
+          },
+          "semester": {
+            "type": "string"
+          },
+          "extraNotes": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "balance": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "phone",
+          "customRate",
+          "discount",
+          "semester",
+          "extraNotes",
+          "active",
+          "balance"
+        ]
+      },
+      "PaymentDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Payment date",
+            "example": "2026-01-05"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Payment amount",
+            "example": 100
+          },
+          "comment": {
+            "type": "string",
+            "description": "Payment comment",
+            "example": "Monthly payment"
+          }
+        },
+        "required": [
+          "date",
+          "amount"
+        ]
+      },
+      "ClassDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Class date",
+            "example": "2026-01-05"
+          },
+          "cost": {
+            "type": "number",
+            "description": "Class cost",
+            "example": 50
+          },
+          "type": {
+            "type": "string",
+            "description": "Class type",
+            "example": "attended",
+            "enum": [
+              "attended",
+              "missed"
+            ]
+          },
+          "semester": {
+            "type": "string",
+            "description": "Semester",
+            "example": "V"
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID",
+            "example": 1
+          }
+        },
+        "required": [
+          "date",
+          "cost",
+          "type",
+          "semester",
+          "teacherId"
+        ]
+      },
+      "DebitDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Debit ID",
+            "example": 1
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Due date",
+            "example": "2026-01-31"
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount",
+            "example": 100
+          },
+          "comment": {
+            "type": "string",
+            "description": "Comment",
+            "example": "January fee"
+          }
+        },
+        "required": [
+          "id",
+          "dueDate",
+          "amount"
+        ]
+      },
+      "CreateStudentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Student name",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "Student email",
+            "example": "john.doe@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Student phone number",
+            "example": "+1234567890"
+          },
+          "payments": {
+            "description": "Payment records",
+            "example": [
+              {
+                "date": "2026-01-05",
+                "amount": 100,
+                "comment": "Monthly payment"
+              }
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentDto"
+            }
+          },
+          "classes": {
+            "description": "Class records",
+            "example": [
+              {
+                "date": "2026-01-05",
+                "cost": 50,
+                "type": "attended",
+                "semester": "V",
+                "teacherId": 1
+              }
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClassDto"
+            }
+          },
+          "debits": {
+            "description": "Debit records",
+            "example": [
+              {
+                "id": 1,
+                "dueDate": "2026-01-31",
+                "amount": 100,
+                "comment": "January fee"
+              }
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DebitDto"
+            }
+          },
+          "customRate": {
+            "type": "number",
+            "description": "Custom rate for this student",
+            "example": 50
+          },
+          "discount": {
+            "type": "number",
+            "description": "Discount percentage",
+            "example": 10
+          },
+          "semester": {
+            "type": "string",
+            "description": "Current semester",
+            "example": "V"
+          },
+          "extraNotes": {
+            "type": "string",
+            "description": "Additional notes",
+            "example": "",
+            "default": ""
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Student active status",
+            "example": true,
+            "default": true
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "payments",
+          "classes",
+          "semester",
+          "extraNotes",
+          "active"
+        ]
+      },
+      "UpdateStudentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Student name",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "Student email",
+            "example": "john.doe@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Student phone number",
+            "example": "+1234567890"
+          },
+          "payments": {
+            "description": "Payment records",
+            "example": [
+              {
+                "date": "2026-01-05",
+                "amount": 100,
+                "comment": "Monthly payment"
+              }
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PaymentDto"
+            }
+          },
+          "classes": {
+            "description": "Class records",
+            "example": [
+              {
+                "date": "2026-01-05",
+                "cost": 50,
+                "type": "attended",
+                "semester": "V",
+                "teacherId": 1
+              }
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClassDto"
+            }
+          },
+          "debits": {
+            "description": "Debit records",
+            "example": [
+              {
+                "id": 1,
+                "dueDate": "2026-01-31",
+                "amount": 100,
+                "comment": "January fee"
+              }
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DebitDto"
+            }
+          },
+          "customRate": {
+            "type": "number",
+            "description": "Custom rate for this student",
+            "example": 50
+          },
+          "discount": {
+            "type": "number",
+            "description": "Discount percentage",
+            "example": 10
+          },
+          "semester": {
+            "type": "string",
+            "description": "Current semester",
+            "example": "V"
+          },
+          "extraNotes": {
+            "type": "string",
+            "description": "Additional notes",
+            "example": "",
+            "default": ""
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Student active status",
+            "example": true,
+            "default": true
+          }
+        }
+      },
+      "BatchUpsertStudentDto": {
+        "type": "object",
+        "properties": {
+          "students": {
+            "description": "Array of students to create or update",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateStudentDto"
+            }
+          }
+        },
+        "required": [
+          "students"
+        ]
+      },
+      "CreatePaymentDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "date",
+            "example": "2026-01-15"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100.5
+          },
+          "comment": {
+            "type": "string",
+            "example": "Some comment"
+          },
+          "proofType": {
+            "type": "string",
+            "enum": [
+              "receipt",
+              "invoice"
+            ],
+            "example": "receipt"
+          },
+          "fiscalized": {
+            "type": "boolean",
+            "example": false
+          },
+          "invoiceId": {
+            "type": "number",
+            "example": 123
+          },
+          "studentId": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "date",
+          "amount",
+          "proofType",
+          "fiscalized",
+          "studentId"
+        ]
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdatePaymentDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "date",
+            "example": "2026-01-15"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100.5
+          },
+          "comment": {
+            "type": "string",
+            "example": "Some comment"
+          },
+          "proofType": {
+            "type": "string",
+            "enum": [
+              "receipt",
+              "invoice"
+            ],
+            "example": "receipt"
+          },
+          "fiscalized": {
+            "type": "boolean",
+            "example": false
+          },
+          "invoiceId": {
+            "type": "number",
+            "example": 123
+          },
+          "studentId": {
+            "type": "number",
+            "example": 1
+          }
+        }
+      },
+      "DateBoundaryDto": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "description": "Day of month",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 31
+          },
+          "month": {
+            "type": "number",
+            "description": "Month (1-12)",
+            "example": 1,
+            "minimum": 1,
+            "maximum": 12
+          },
+          "year": {
+            "type": "number",
+            "description": "Year (optional)",
+            "example": 2026
+          }
+        },
+        "required": [
+          "day",
+          "month"
+        ]
+      },
+      "CreateGroupDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Group name",
+            "example": "Group A"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Group active status",
+            "example": true,
+            "default": true
+          },
+          "studentIds": {
+            "description": "Array of student IDs",
+            "example": [
+              1,
+              2,
+              3
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "classIds": {
+            "description": "Array of class IDs",
+            "example": [
+              1,
+              2,
+              3
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "minStartDate": {
+            "description": "Minimum start date constraint",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateBoundaryDto"
+              }
+            ]
+          },
+          "maxEndDate": {
+            "description": "Maximum end date constraint",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateBoundaryDto"
+              }
+            ]
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID",
+            "example": 1
+          },
+          "cost": {
+            "type": "number",
+            "description": "Total course cost",
+            "example": 3325
+          },
+          "unitCost": {
+            "type": "number",
+            "description": "Cost per unit",
+            "example": 50
+          },
+          "comment": {
+            "type": "string",
+            "description": "Additional comments",
+            "example": "",
+            "default": ""
+          },
+          "colorHex": {
+            "type": "string",
+            "description": "Group color hex for visual identification",
+            "example": "#4CAF50"
+          },
+          "startHour": {
+            "type": "string",
+            "description": "Start hour as time (HH:mm or HH:mm:ss)",
+            "example": "09:00"
+          },
+          "lessonLength": {
+            "type": "string",
+            "description": "Lesson length as time (HH:mm or HH:mm:ss)",
+            "example": "01:00"
+          },
+          "roomId": {
+            "type": "number",
+            "description": "Room ID",
+            "example": 1
+          }
+        },
+        "required": [
+          "name",
+          "teacherId",
+          "cost",
+          "unitCost"
+        ]
+      },
+      "UpdateGroupDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Group name",
+            "example": "Group A"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Group active status",
+            "example": true,
+            "default": true
+          },
+          "studentIds": {
+            "description": "Array of student IDs",
+            "example": [
+              1,
+              2,
+              3
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "classIds": {
+            "description": "Array of class IDs",
+            "example": [
+              1,
+              2,
+              3
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "minStartDate": {
+            "description": "Minimum start date constraint",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateBoundaryDto"
+              }
+            ]
+          },
+          "maxEndDate": {
+            "description": "Maximum end date constraint",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateBoundaryDto"
+              }
+            ]
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID",
+            "example": 1
+          },
+          "cost": {
+            "type": "number",
+            "description": "Total course cost",
+            "example": 3325
+          },
+          "unitCost": {
+            "type": "number",
+            "description": "Cost per unit",
+            "example": 50
+          },
+          "comment": {
+            "type": "string",
+            "description": "Additional comments",
+            "example": "",
+            "default": ""
+          },
+          "colorHex": {
+            "type": "string",
+            "description": "Group color hex for visual identification",
+            "example": "#4CAF50"
+          },
+          "startHour": {
+            "type": "string",
+            "description": "Start hour as time (HH:mm or HH:mm:ss)",
+            "example": "09:00"
+          },
+          "lessonLength": {
+            "type": "string",
+            "description": "Lesson length as time (HH:mm or HH:mm:ss)",
+            "example": "01:00"
+          },
+          "roomId": {
+            "type": "number",
+            "description": "Room ID",
+            "example": 1
+          }
+        }
+      },
+      "BatchUpsertGroupDto": {
+        "type": "object",
+        "properties": {
+          "groups": {
+            "description": "Array of groups to create or update",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateGroupDto"
+            }
+          }
+        },
+        "required": [
+          "groups"
+        ]
+      },
+      "CreateTeacherDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Teacher name",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "description": "Teacher email",
+            "example": "teacher@example.com"
+          }
+        },
+        "required": [
+          "name",
+          "email"
+        ]
+      },
+      "BatchUpsertTeacherDto": {
+        "type": "object",
+        "properties": {
+          "teachers": {
+            "description": "Array of teachers to create or update",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateTeacherDto"
+            }
+          }
+        },
+        "required": [
+          "teachers"
+        ]
+      },
+      "CreateCourseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Course name",
+            "example": "Course A"
+          },
+          "description": {
+            "type": "string",
+            "description": "Course description",
+            "example": "Intensive course description"
+          },
+          "cost": {
+            "type": "number",
+            "description": "Course total cost",
+            "example": 3325
+          },
+          "numberOfHours": {
+            "type": "number",
+            "description": "Total number of hours",
+            "example": 70
+          },
+          "lessonLength": {
+            "type": "string",
+            "description": "Length of each lesson as time (HH:mm or HH:mm:ss)",
+            "example": "02:30"
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Pattern of classes",
+            "example": "workdays",
+            "enum": [
+              "workdays",
+              "weekends",
+              "everyday",
+              "weekly",
+              "biweekly",
+              "monthly"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "cost",
+          "numberOfHours",
+          "lessonLength",
+          "pattern"
+        ]
+      },
+      "UpdateCourseDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Course name",
+            "example": "Course A"
+          },
+          "description": {
+            "type": "string",
+            "description": "Course description",
+            "example": "Intensive course description"
+          },
+          "cost": {
+            "type": "number",
+            "description": "Course total cost",
+            "example": 3325
+          },
+          "numberOfHours": {
+            "type": "number",
+            "description": "Total number of hours",
+            "example": 70
+          },
+          "lessonLength": {
+            "type": "string",
+            "description": "Length of each lesson as time (HH:mm or HH:mm:ss)",
+            "example": "02:30"
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Pattern of classes",
+            "example": "workdays",
+            "enum": [
+              "workdays",
+              "weekends",
+              "everyday",
+              "weekly",
+              "biweekly",
+              "monthly"
+            ]
+          }
+        }
+      },
+      "BatchUpsertCourseDto": {
+        "type": "object",
+        "properties": {
+          "courses": {
+            "description": "Array of courses to create or update",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateCourseDto"
+            }
+          }
+        },
+        "required": [
+          "courses"
+        ]
+      },
+      "CreateRoomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Room name",
+            "example": "Room A"
+          },
+          "capacity": {
+            "type": "number",
+            "description": "Capacity of the room",
+            "example": 20
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateRoomDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Room name",
+            "example": "Room A"
+          },
+          "capacity": {
+            "type": "number",
+            "description": "Capacity of the room",
+            "example": 20
+          }
+        }
+      },
+      "BatchUpsertRoomDto": {
+        "type": "object",
+        "properties": {
+          "rooms": {
+            "description": "Array of rooms to create or update",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateRoomDto"
+            }
+          }
+        },
+        "required": [
+          "rooms"
+        ]
+      },
+      "CreateClassDto": {
+        "type": "object",
+        "properties": {
+          "startTime": {
+            "type": "string",
+            "description": "Class start time (ISO datetime)",
+            "example": "2026-01-06T10:00:00.000Z"
+          },
+          "lessonLength": {
+            "type": "string",
+            "description": "Lesson length as time (HH:mm or HH:mm:ss)",
+            "example": "01:00"
+          },
+          "roomId": {
+            "type": "number",
+            "description": "Room ID",
+            "example": 201
+          },
+          "groupId": {
+            "type": "number",
+            "description": "Group ID",
+            "example": 10
+          },
+          "plannedStudentsIds": {
+            "description": "IDs of planned students",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "attendedStudentsIds": {
+            "description": "IDs of attended students",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID"
+          },
+          "cost": {
+            "type": "number",
+            "description": "Class cost",
+            "example": 120
+          },
+          "comment": {
+            "type": "string",
+            "description": "Optional comment"
+          }
+        },
+        "required": [
+          "startTime",
+          "lessonLength",
+          "cost"
+        ]
+      },
+      "UpdateClassDto": {
+        "type": "object",
+        "properties": {
+          "startTime": {
+            "type": "string",
+            "description": "Class start time (ISO datetime)",
+            "example": "2026-01-06T10:00:00.000Z"
+          },
+          "lessonLength": {
+            "type": "string",
+            "description": "Lesson length as time (HH:mm or HH:mm:ss)",
+            "example": "01:00"
+          },
+          "roomId": {
+            "type": "number",
+            "description": "Room ID",
+            "example": 201
+          },
+          "groupId": {
+            "type": "number",
+            "description": "Group ID",
+            "example": 10
+          },
+          "plannedStudentsIds": {
+            "description": "IDs of planned students",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "attendedStudentsIds": {
+            "description": "IDs of attended students",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID"
+          },
+          "cost": {
+            "type": "number",
+            "description": "Class cost",
+            "example": 120
+          },
+          "comment": {
+            "type": "string",
+            "description": "Optional comment"
+          }
+        }
+      },
+      "BatchUpsertClassDto": {
+        "type": "object",
+        "properties": {
+          "classes": {
+            "description": "Array of classes to create or update",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateClassDto"
+            }
+          }
+        },
+        "required": [
+          "classes"
+        ]
+      },
+      "CreateDebitDto": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "date",
+            "example": "2026-01-15"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100.5
+          },
+          "comment": {
+            "type": "string",
+            "example": "Some comment"
+          },
+          "entitlement": {
+            "type": "string",
+            "example": "Scholarship"
+          },
+          "studentId": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "dueDate",
+          "amount",
+          "studentId"
+        ]
+      },
+      "Debit": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateDebitDto": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "date",
+            "example": "2026-01-15"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100.5
+          },
+          "comment": {
+            "type": "string",
+            "example": "Some comment"
+          },
+          "entitlement": {
+            "type": "string",
+            "example": "Scholarship"
+          },
+          "studentId": {
+            "type": "number",
+            "example": 1
+          }
+        }
+      },
+      "CreateGroupTemplateDto": {
+        "type": "object",
+        "properties": {
+          "templateName": {
+            "type": "string",
+            "description": "Template name",
+            "example": "Evening Regular"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Active status",
+            "example": true,
+            "default": true
+          },
+          "studentIds": {
+            "description": "Student IDs",
+            "example": [
+              1,
+              2
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "classIds": {
+            "description": "Class IDs",
+            "example": [
+              1,
+              2
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID",
+            "example": 1
+          },
+          "cost": {
+            "type": "number",
+            "description": "Total course cost",
+            "example": 3325
+          },
+          "unitCost": {
+            "type": "number",
+            "description": "Cost per unit",
+            "example": 50
+          },
+          "comment": {
+            "type": "string",
+            "description": "Additional comments",
+            "example": ""
+          },
+          "minStartDate": {
+            "description": "Minimum start date constraint",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateBoundaryDto"
+              }
+            ]
+          },
+          "maxEndDate": {
+            "description": "Maximum end date constraint",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateBoundaryDto"
+              }
+            ]
+          },
+          "colorHex": {
+            "type": "string",
+            "description": "Template color hex for visual identification",
+            "example": "#4CAF50"
+          },
+          "startHour": {
+            "type": "string",
+            "description": "Default start time (HH:mm or HH:mm:ss)",
+            "example": "09:00",
+            "format": "time"
+          },
+          "lessonLength": {
+            "type": "string",
+            "description": "Lesson duration as time (HH:mm or HH:mm:ss)",
+            "example": "01:00",
+            "format": "time"
+          },
+          "roomId": {
+            "type": "number",
+            "description": "Room ID",
+            "example": 1
+          },
+          "courseId": {
+            "type": "number",
+            "description": "Course ID",
+            "example": 1
+          }
+        },
+        "required": [
+          "templateName"
+        ]
+      },
+      "UpdateGroupTemplateDto": {
+        "type": "object",
+        "properties": {
+          "templateName": {
+            "type": "string",
+            "description": "Template name",
+            "example": "Evening Regular"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Active status",
+            "example": true,
+            "default": true
+          },
+          "studentIds": {
+            "description": "Student IDs",
+            "example": [
+              1,
+              2
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "classIds": {
+            "description": "Class IDs",
+            "example": [
+              1,
+              2
+            ],
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID",
+            "example": 1
+          },
+          "cost": {
+            "type": "number",
+            "description": "Total course cost",
+            "example": 3325
+          },
+          "unitCost": {
+            "type": "number",
+            "description": "Cost per unit",
+            "example": 50
+          },
+          "comment": {
+            "type": "string",
+            "description": "Additional comments",
+            "example": ""
+          },
+          "minStartDate": {
+            "description": "Minimum start date constraint",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateBoundaryDto"
+              }
+            ]
+          },
+          "maxEndDate": {
+            "description": "Maximum end date constraint",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DateBoundaryDto"
+              }
+            ]
+          },
+          "colorHex": {
+            "type": "string",
+            "description": "Template color hex for visual identification",
+            "example": "#4CAF50"
+          },
+          "startHour": {
+            "type": "string",
+            "description": "Default start time (HH:mm or HH:mm:ss)",
+            "example": "09:00",
+            "format": "time"
+          },
+          "lessonLength": {
+            "type": "string",
+            "description": "Lesson duration as time (HH:mm or HH:mm:ss)",
+            "example": "01:00",
+            "format": "time"
+          },
+          "roomId": {
+            "type": "number",
+            "description": "Room ID",
+            "example": 1
+          },
+          "courseId": {
+            "type": "number",
+            "description": "Course ID",
+            "example": 1
+          }
+        }
+      },
+      "UpdateSettingsDto": {
+        "type": "object",
+        "properties": {
+          "institutionName": {
+            "type": "string",
+            "description": "Institution name"
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code or name"
+          }
+        }
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "password123"
+          },
+          "roles": {
+            "description": "User roles",
+            "example": [
+              "teacher",
+              "admin"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID if linking to teacher profile",
+            "example": 1
+          },
+          "studentId": {
+            "type": "number",
+            "description": "Student ID if linking to student profile",
+            "example": 1
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "User email",
+            "example": "user@example.com"
+          },
+          "password": {
+            "type": "string",
+            "description": "User password",
+            "example": "password123"
+          },
+          "roles": {
+            "description": "User roles",
+            "example": [
+              "teacher",
+              "admin"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "teacherId": {
+            "type": "number",
+            "description": "Teacher ID if linking to teacher profile",
+            "example": 1
+          },
+          "studentId": {
+            "type": "number",
+            "description": "Student ID if linking to student profile",
+            "example": 1
+          }
+        }
+      }
+    }
+  }
+}

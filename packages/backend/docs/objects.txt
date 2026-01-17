@@ -1,0 +1,17 @@
+Group
+-> start, end (ramy czasowe)
+-> members
+-> teacher
+
+Teacher
+-> Groups
+
+Member
+-> paid hours
+-> attended hours
+-> contact info
+-> payments
+    -> paid money
+
+
+    

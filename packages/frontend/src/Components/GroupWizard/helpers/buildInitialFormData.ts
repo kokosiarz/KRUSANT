@@ -1,0 +1,24 @@
+import { GroupWizardData } from '../types';
+
+export const buildInitialFormData = (teacherId?: number): GroupWizardData => ({
+  templateId: undefined,
+  groupName: '',
+  templateName: '',
+  baseTemplateName: '',
+  cost: 0,
+  unitCost: 0,
+  minStartDate: undefined,
+  maxEndDate: undefined,
+  includeYear: false,
+  startHour: '09:00',
+  startDateTime: '',
+  lessonLength: '05:00',
+  roomId: undefined,
+  teacherId: teacherId ?? undefined,
+  isActive: true,
+  comment: '',
+  studentIds: [],
+  classIds: [],
+  courseId: undefined,
+  colorHex: undefined,
+});

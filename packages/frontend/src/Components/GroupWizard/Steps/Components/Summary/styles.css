@@ -1,0 +1,27 @@
+Add right padding only when scrollbar is visible */
+/*  */
+
+.summary-root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.summary-color-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-comment {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
