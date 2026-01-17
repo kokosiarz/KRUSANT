@@ -1,0 +1,46 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    container:
+      image: node:24
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '24'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build frontend
+        run: yarn build:frontend
+
+      - name: Build backend
+        run: yarn build:backend
+
+      - name: Add SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to server with scp
+        env:
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
+        run: |
+          scp -r packages/frontend/build $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/frontend
+          scp -r packages/backend/dist $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/backend
+          
+
