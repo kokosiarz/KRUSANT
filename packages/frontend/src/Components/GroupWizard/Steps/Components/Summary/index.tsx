@@ -94,173 +94,170 @@ const Summary: React.FC<StepSummaryProps> = ({
     const mode = formData.mode || 'create-group';
     const steps = getStepList(mode);
 
-    return (
-        <Box className="summary-root">
-            <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="h6">{copy.title}</Typography>
-                {formData.colorHex && (
-                    <Box className="summary-color-dot" style={{ backgroundColor: formData.colorHex }} />
-                )}
-            </Stack>
-            <Divider />
-            <br/>
-            <Stack spacing={1.5}>
-                {steps.map(({ step }: { step: string }) => {
-                    if (!stepFieldMap.hasOwnProperty(step)) return null;
-                    const value = stepFieldMap[step];
-                    // Show all fields, indicate if not set
-                    const isUnset =
-                        value === null ||
-                        value === undefined ||
-                        (Array.isArray(value) && value.length === 0) ||
-                        (typeof value === 'string' && value.trim() === '');
-                    // Custom rendering for some fields
-                    // Pencil always jumps to the step for this field
-                    const pencilHandler = () => onEditStep && onEditStep(step);
-                    switch (step) {
-                        case 'course':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.course}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'name':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.name}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'groupName':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>Grupa:</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'baseTemplateName':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>Szablon bazowy:</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'color':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>Kolor:</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'costBase':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.cost}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : formatCurrency(value, currency)}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'costUnit':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.unitCost}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : formatCurrency(value, currency)}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'dateStart':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.minStart}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : formatDateBoundary(value)}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'dateEnd':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.maxEnd || 'Data końca do:'}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : formatDateBoundary(value)}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'lessonLength':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.lessonLength}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : formatLessonLength(value)}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'startHour':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.startHour}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'room':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.room}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'teacher':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>{copy.fields.teacher}</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'students':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>Kursanci:</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : Array.isArray(value) ? value.length : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        case 'classes':
-                            return (
-                                <Box className="summary-row" key={step}>
-                                    <Typography variant="body1"><strong>Zajęcia:</strong> {isUnset ? <span style={{color:'gray'}}>nie ustawiono</span> : Array.isArray(value) ? value.length : value}</Typography>
-                                    <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
-                                </Box>
-                            );
-                        default:
-                            return null;
-                    }
-                })}
-                {/* Always show comment if set */}
-                {formData.comment && (
-                    <Box className="summary-comment">
-                        <Typography variant="body1"><strong>{copy.fields.comment}</strong></Typography>
-                        <TextField
-                            fullWidth
-                            multiline
-                            minRows={2}
-                            name="comment"
-                            value={formData.comment || ''}
-                            onChange={onCommentChange}
-                            placeholder="Dodaj komentarz"
-                            size="small"
-                        />
-                    </Box>
-                )}
-                {/* Always show status if set */}
-                {typeof formData.isActive === 'boolean' && (
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="body1"><strong>Status:</strong> {formData.isActive ? 'Aktywna' : 'Nieaktywna'}</Typography>
-                    </Box>
-                )}
-                {/* Always show startDateTime if set */}
-                {formData.startDateTime && (
-                    <Box className="summary-row">
-                        <Typography variant="body1"><strong>Start zajęć:</strong> {formData.startDateTime}</Typography>
-                        {onEditStep && (
-                            <IconButton size="small" color="primary" onClick={() => onEditStep('dateStart')}><EditIcon fontSize="small" /></IconButton>
-                        )}
-                    </Box>
-                )}
-            </Stack>
-        </Box>
-    );
+return (
+    <Box className="summary-root">
+        {/* <Stack direction="row" spacing={1} alignItems="center"> */}
+        {/* Typography variant="h6">{copy.title}</Typography> */}
+        {/* </Stack> */}
+        <Stack spacing={1.5}>
+            {steps.map(({ step }: { step: string }) => {
+                if (!stepFieldMap.hasOwnProperty(step)) return null;
+                const value = stepFieldMap[step];
+                // Show all fields, indicate if not set
+                const isUnset =
+                    value === null ||
+                    value === undefined ||
+                    (Array.isArray(value) && value.length === 0) ||
+                    (typeof value === 'string' && value.trim() === '');
+                // Custom rendering for some fields
+                // Pencil always jumps to the step for this field
+                const pencilHandler = () => onEditStep && onEditStep(step);
+                switch (step) {
+                    case 'course':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.course}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : value}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'name':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.name}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> :
+
+                                    value} </Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'groupName':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>Grupa:</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : value}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'baseTemplateName':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>Szablon bazowy:</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : value}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'color':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>Kolor:</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : <span style={{ color: value }}>{value}</span> }</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'costBase':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.cost}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : formatCurrency(value, currency)}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'costUnit':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.unitCost}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : formatCurrency(value, currency)}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'dateStart':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.minStart}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : formatDateBoundary(value)}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'dateEnd':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.maxEnd || 'Data końca do:'}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : formatDateBoundary(value)}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'lessonLength':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.lessonLength}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : formatLessonLength(value)}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'startHour':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.startHour}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : value}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'room':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.room}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : value}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'teacher':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>{copy.fields.teacher}</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : value}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'students':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>Kursanci:</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : Array.isArray(value) ? value.length : value}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    case 'classes':
+                        return (
+                            <Box className="summary-row" key={step}>
+                                <Typography variant="body1"><strong>Zajęcia:</strong> {isUnset ? <span style={{ color: 'gray' }}>nie ustawiono</span> : Array.isArray(value) ? value.length : value}</Typography>
+                                <IconButton size="small" color="primary" onClick={pencilHandler}><EditIcon fontSize="small" /></IconButton>
+                            </Box>
+                        );
+                    default:
+                        return null;
+                }
+            })}
+            {/* Always show comment if set */}
+            {formData.comment && (
+                <Box className="summary-comment">
+                    <Typography variant="body1"><strong>{copy.fields.comment}</strong></Typography>
+                    <TextField
+                        fullWidth
+                        multiline
+                        minRows={2}
+                        name="comment"
+                        value={formData.comment || ''}
+                        onChange={onCommentChange}
+                        placeholder="Dodaj komentarz"
+                        size="small"
+                    />
+                </Box>
+            )}
+            {/* Always show status if set */}
+            {typeof formData.isActive === 'boolean' && (
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="body1"><strong>Status:</strong> {formData.isActive ? 'Aktywna' : 'Nieaktywna'}</Typography>
+                </Box>
+            )}
+            {/* Always show startDateTime if set */}
+            {formData.startDateTime && (
+                <Box className="summary-row">
+                    <Typography variant="body1"><strong>Start zajęć:</strong> {formData.startDateTime}</Typography>
+                    {onEditStep && (
+                        <IconButton size="small" color="primary" onClick={() => onEditStep('dateStart')}><EditIcon fontSize="small" /></IconButton>
+                    )}
+                </Box>
+            )}
+        </Stack>
+    </Box>
+);
 };
 
 export default Summary;

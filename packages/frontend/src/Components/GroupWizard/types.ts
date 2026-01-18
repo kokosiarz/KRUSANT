@@ -23,6 +23,7 @@ export interface GroupData {
   studentIds: Array<number>;
   classIds: Array<number>;
   colorHex?: string;
+  numberOfHours?: number;
 }
 
 export interface TemplateData {
@@ -40,6 +41,7 @@ export interface TemplateData {
   comment: string;
   courseId?: number;
   colorHex?: string;
+  numberOfHours?: number;
 }
 
 export type GroupWizardData = GroupData & TemplateData;

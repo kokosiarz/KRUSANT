@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ClassCreationDialog from './Components/ClassCreationDialog';
+import ClassEditDialog from './Components/ClassEditDialog';
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
@@ -16,6 +16,7 @@ import plLocale from '@fullcalendar/core/locales/pl';
 
 
 import type { Class as ClassItem } from '../../../api/endpoints/classes';
+import ClassCreationDialog from './Components/ClassCreateDialog';
 
 const fetchClasses = async (): Promise<ClassItem[]> => {
   return classesApi.getClasses();
@@ -29,24 +30,26 @@ const Classes: React.FC = () => {
 
   const events = useClassEventsWithNames(classes);
 
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [creationDialogOpen, setCreationDialogOpen] = useState(false);
   const [dialogDate, setDialogDate] = useState<string | undefined>(undefined);
   const [editingClassId, setEditingClassId] = useState<number | undefined>(undefined);
 
   const handleDateClick = (info: any) => {
     setDialogDate(info.date.toISOString());
-    setDialogOpen(true);
+    setCreationDialogOpen(true);
   };
 
   const handleDialogClose = () => {
     setEditingClassId(undefined);
-    setDialogOpen(false);
+    setEditDialogOpen(false);
     setDialogDate(undefined);
+    setCreationDialogOpen(false);
   };
 
   const handleEventClick = (info: any) => {
     setEditingClassId(info.event.id);
-    setDialogOpen(true);
+    setEditDialogOpen(true);
   };
 
   return (
@@ -76,7 +79,8 @@ const Classes: React.FC = () => {
                 nowIndicator={true}
               />
             </StyledCalendarWrapper>
-            <ClassCreationDialog open={dialogOpen} onClose={handleDialogClose} initialDate={dialogDate} classId={editingClassId}/>
+            <ClassEditDialog open={editDialogOpen} onClose={handleDialogClose} classId={editingClassId || 0} />
+            <ClassCreationDialog open={creationDialogOpen} onClose={handleDialogClose} initialDate={dialogDate} />
           </Box>
         </LoadingErrorHandler>
       </Paper>

@@ -2282,6 +2282,11 @@
             "type": "number",
             "description": "Room ID",
             "example": 1
+          },
+          "numberOfHours": {
+            "type": "number",
+            "description": "Number of hours for the group",
+            "example": 40
           }
         },
         "required": [
@@ -2387,6 +2392,11 @@
             "type": "number",
             "description": "Room ID",
             "example": 1
+          },
+          "numberOfHours": {
+            "type": "number",
+            "description": "Number of hours for the group",
+            "example": 40
           }
         }
       },
@@ -2878,6 +2888,11 @@
             "type": "number",
             "description": "Course ID",
             "example": 1
+          },
+          "numberOfHours": {
+            "type": "number",
+            "description": "Number of hours for the group template",
+            "example": 40
           }
         },
         "required": [
@@ -2984,6 +2999,11 @@
             "type": "number",
             "description": "Course ID",
             "example": 1
+          },
+          "numberOfHours": {
+            "type": "number",
+            "description": "Number of hours for the group template",
+            "example": 40
           }
         }
       },

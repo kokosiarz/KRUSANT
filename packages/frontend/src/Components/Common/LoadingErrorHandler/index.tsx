@@ -2,8 +2,8 @@ import React from 'react';
 import { Box, CircularProgress, Alert } from '@mui/material';
 
 interface Props {
-  loading: boolean;
-  error: string | undefined | null;
+  loading?: boolean;
+  error?: string | undefined | null;
   children: React.ReactNode;
 }
 

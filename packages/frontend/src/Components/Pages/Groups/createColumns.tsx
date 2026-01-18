@@ -57,6 +57,7 @@ export function createColumns(
     { id: 'classIds', label: 'Zajęcia', render: (group: Group) => group.classIds?.length ?? 0 },
     { id: 'cost', label: 'Koszt', render: (group: Group) => `${group.cost?.toFixed?.(2) ?? '-'} ${currency}` },
     { id: 'unitCost', label: 'Koszt jednostkowy (h)', render: (group: Group) => `${group.unitCost?.toFixed?.(2) ?? '-'} ${currency}` },
+    { id: 'numberOfHours', label: 'Liczba godzin', render: (group: Group) => group.numberOfHours ?? '-' },
     { id: 'teacherId', label: 'Nauczyciel', render: (group: Group) => getTeacherName(group.teacherId) },
     { id: 'roomId', label: 'Sala', render: (group: Group) => getRoomName(group.roomId) },
     { id: 'minStartDate', label: 'Min. data startu', render: (group: Group) => group.minStartDate ? `${group.minStartDate.day}.${group.minStartDate.month}${group.minStartDate.year ? '.' + group.minStartDate.year : ''}` : '-' },

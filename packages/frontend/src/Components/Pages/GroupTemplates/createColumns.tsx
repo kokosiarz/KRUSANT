@@ -40,6 +40,11 @@ export const createColumns = (
     render: (t) => (t.unitCost?.toFixed ? `${t.unitCost.toFixed(2)} ${currency}` : t.unitCost),
   },
   {
+    id: 'numberOfHours',
+    label: 'Liczba godzin',
+    render: (t) => t.numberOfHours ?? '-',
+  },
+  {
     id: 'studentIds',
     label: 'Kursanci',
     render: (t) => t.studentIds?.length ?? 0,

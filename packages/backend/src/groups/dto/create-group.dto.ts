@@ -147,4 +147,10 @@ export class CreateGroupDto {
   @IsOptional()
   @IsNumber()
   roomId?: number;
+  
+  @ApiPropertyOptional({ description: 'Number of hours for the group', example: 40 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  numberOfHours?: number;
 }

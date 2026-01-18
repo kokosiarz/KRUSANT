@@ -152,4 +152,10 @@ export class CreateGroupTemplateDto {
   @IsOptional()
   @IsNumber()
   courseId?: number;
+
+  @ApiPropertyOptional({ description: 'Number of hours for the group template', example: 40 })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  numberOfHours?: number;
 }

@@ -38,6 +38,9 @@ export class Group {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   unitCost: number;
 
+  @Column({ type: 'integer', nullable: true })
+  numberOfHours?: number | null;
+
   @Column({ type: 'int', nullable: true })
   roomId?: number | null;
 

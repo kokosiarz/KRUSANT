@@ -28,4 +28,5 @@ export interface GroupTemplate {
   lessonLength?: string;
   roomId?: number;
   courseId?: number;
+  numberOfHours?: number;
 }

@@ -38,6 +38,9 @@ export class GroupTemplate {
   @Column({ type: 'text', nullable: true, default: null })
   colorHex?: string | null;
 
+  @Column({ type: 'integer', nullable: true })
+  numberOfHours?: number | null;
+
   @Column({ type: 'time', nullable: true })
   startHour?: string | null;
 

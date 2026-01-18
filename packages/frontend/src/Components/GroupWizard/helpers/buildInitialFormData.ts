@@ -21,4 +21,5 @@ export const buildInitialFormData = (teacherId?: number): GroupWizardData => ({
   classIds: [],
   courseId: undefined,
   colorHex: undefined,
+  numberOfHours: undefined,
 });

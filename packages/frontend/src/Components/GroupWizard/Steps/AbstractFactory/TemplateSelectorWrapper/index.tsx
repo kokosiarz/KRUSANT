@@ -27,6 +27,7 @@ export const TemplateSelectorWrapper: React.FC = () => {
       cost: selectedTemplate?.cost !== undefined ? selectedTemplate.cost : formData.cost,
       unitCost: selectedTemplate?.unitCost !== undefined ? selectedTemplate.unitCost : formData.unitCost,
       colorHex: selectedTemplate?.colorHex ? selectedTemplate.colorHex : formData.colorHex,
+      numberOfHours: selectedTemplate?.numberOfHours !== undefined ? selectedTemplate.numberOfHours : formData.numberOfHours,
     });
   };
 

@@ -22,4 +22,5 @@ export interface Group {
   roomId?: number;
   startHour?: string;
   lessonLength?: string;
+  numberOfHours?: number;
 }
