@@ -35,6 +35,7 @@ export const duplicateEntity = async <T extends { id: number; [key: string]: any
   let counter = 2;
 
   // Check if name exists and increment counter if needed
+  // eslint-disable-next-line no-loop-func
   while (allExistingEntities.some((e) => e[nameField] === newName)) {
     counter++;
     newName = `${fullEntity[nameField]} (${counter})`;

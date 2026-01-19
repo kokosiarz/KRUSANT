@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { GroupData, TemplateData } from '../types';
 import { GroupWizardData } from '../types';
 import { buildInitialFormData } from '../helpers/buildInitialFormData';
 

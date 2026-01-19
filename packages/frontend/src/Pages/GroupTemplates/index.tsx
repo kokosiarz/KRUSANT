@@ -113,7 +113,7 @@ const GroupTemplates: React.FC = () => {
         setDuplicating(false);
       }
     },
-    [groupTemplates, refetch, groupTemplatesApi]
+    [groupTemplates, refetch]
   );
 
   const handleFormClose = () => {

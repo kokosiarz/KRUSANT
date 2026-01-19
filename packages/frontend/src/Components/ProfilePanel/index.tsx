@@ -28,7 +28,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
     const isAdmin = userRoles.includes('admin');
     const isTeacher = userRoles.includes('teacher');
     const canManageCourses = isAdmin || isTeacher;
-    const canManageGroups = isAdmin || isTeacher;
+    // const canManageGroups = isAdmin || isTeacher;
 
     const handleLogout = async () => {
         try {
