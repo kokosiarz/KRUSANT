@@ -21,6 +21,7 @@ interface BatchClassFormProps {
   occurrencesCount: number;
   setOccurrencesCount: (v: number) => void;
   occurrences: string[];
+  setOccurrences: (v: string[]) => void;
   handleGenerateOccurrences: () => void;
   handleOccurrenceDelete: (idx: number) => void;
   setCustomDialogOpen: (v: boolean) => void;
@@ -39,6 +40,7 @@ const BatchClassForm: React.FC<BatchClassFormProps> = ({
   occurrencesCount,
   setOccurrencesCount,
   occurrences,
+  setOccurrences,
   handleGenerateOccurrences,
   handleOccurrenceDelete,
   setCustomDialogOpen,
@@ -92,7 +94,11 @@ const BatchClassForm: React.FC<BatchClassFormProps> = ({
         <Button variant="contained" onClick={handleGenerateOccurrences}>Generuj terminy</Button>
         <OccurrenceList
           occurrences={occurrences}
-          onEdit={() => {}}
+          onEdit={(idx, newDate) => {
+            const updated = [...occurrences];
+            updated[idx] = newDate;
+            setOccurrences(updated);
+          }}
           onDelete={handleOccurrenceDelete}
         />
       </>

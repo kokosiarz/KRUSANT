@@ -141,6 +141,7 @@ export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, 
               occurrencesCount={occurrencesCount}
               setOccurrencesCount={setOccurrencesCount}
               occurrences={occurrences}
+              setOccurrences={setOccurrences}
               handleGenerateOccurrences={handleGenerateOccurrences}
               handleOccurrenceDelete={idx => setOccurrences(occurrences.filter((_, i) => i !== idx))}
               setCustomDialogOpen={setCustomDialogOpen}
