@@ -2,7 +2,6 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
-import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import { Course } from '../../../../../api/types/course';
@@ -88,9 +87,6 @@ const Summary: React.FC<StepSummaryProps> = ({
     // Get current steps from config
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { getStepList } = require('../../../config');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { EStep } = require('../../types');
-    // Try to get mode from formData or fallback
     const mode = formData.mode || 'create-group';
     const steps = getStepList(mode);
 

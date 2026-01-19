@@ -38,14 +38,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     onError: (error: ApiClientError) => setError(error.message),
   });
 
-  const registerMutation = useMutation({
-    mutationFn: authApi.register,
-    onSuccess: (data) => {
-      queryClient.setQueryData(['currentUser'], data.user);
-      setError(null);
-    },
-    onError: (error: ApiClientError) => setError(error.message),
-  });
+  // const registerMutation = useMutation({
+  //   mutationFn: authApi.register,
+  //   onSuccess: (data) => {
+  //     queryClient.setQueryData(['currentUser'], data.user);
+  //     setError(null);
+  //   },
+  //   onError: (error: ApiClientError) => setError(error.message),
+  // });
 
   const logoutMutation = useMutation({
     mutationFn: authApi.logout,

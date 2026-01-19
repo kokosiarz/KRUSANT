@@ -5,7 +5,7 @@ import ColorPicker from '../../Components/ColorPicker';
 import LoadingErrorHandler from '@/Components/Common/LoadingErrorHandler';
 
 export const ColorPickerWrapper : React.FC = () => {
-    const { mode, id } = useGroupWizard();
+    const { mode } = useGroupWizard();
     const { formData, setFormData } = useGroupWizardData();
     const setColorHex = (newColorHex: string) => setFormData({ ...formData, colorHex: newColorHex });
 

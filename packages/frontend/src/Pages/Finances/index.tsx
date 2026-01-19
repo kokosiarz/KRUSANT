@@ -18,7 +18,7 @@ const Finances: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'payment' | 'debit'>('all');
   const [addPaymentOpen, setAddPaymentOpen] = useState(false);
   const [addDebitOpen, setAddDebitOpen] = useState(false);
-  const { data: entries = [], isLoading, error, refetch } = useFinanceEntries();
+  const { data: entries = [], isLoading, error } = useFinanceEntries();
   const queryClient = useQueryClient();
 
   const addPaymentMutation = useMutation({

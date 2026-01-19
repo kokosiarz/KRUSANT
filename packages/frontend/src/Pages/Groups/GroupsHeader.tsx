@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, ToggleButton, ToggleButtonGroup, Button } from '@mui/material';
+import { Box, ToggleButton, ToggleButtonGroup, Button } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
 interface Props {

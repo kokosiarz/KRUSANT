@@ -18,7 +18,7 @@ import SummaryWrapper from './SummaryWrapper';
 
 export const getStepComponent = (mode: EMode, step: {step: EStep, isMandatory: boolean, cost?: number, setCost?: (value: number) => void, currency?: string}) => {
     const isGroupMode = mode === EMode.CreateGroup || mode === EMode.EditGroup;
-    const isTemplateMode = mode === EMode.CreateTemplate || mode === EMode.EditTemplate;
+    // const isTemplateMode = mode === EMode.CreateTemplate || mode === EMode.EditTemplate;
     switch (step.step) {
         case EStep.Name:
             return isGroupMode ? <GroupNameInputWrapper /> : <TemplateNameInputWrapper />;

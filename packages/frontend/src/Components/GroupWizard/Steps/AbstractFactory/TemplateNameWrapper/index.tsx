@@ -4,7 +4,7 @@ import React from 'react';
 import NameInput from '../../Components/NameInput';
 
 export const TemplateNameInputWrapper: React.FC = () => {
-    const { mode, id } = useGroupWizard();
+    const { mode } = useGroupWizard();
     const { formData, setFormData } = useGroupWizardData();
     const setName = (newName: string) => setFormData({ ...formData, templateName: newName });
     const name = formData.templateName || "";

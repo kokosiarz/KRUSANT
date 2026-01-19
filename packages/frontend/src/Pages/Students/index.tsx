@@ -1,25 +1,22 @@
 import React, { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
-import Link from '@mui/material/Link';
 import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import CommonTable from '@/Components/Common/Table';
 import { studentsApi } from '../../api/endpoints/students';
 import { useQuery } from '@tanstack/react-query';
 import { StudentWithBalance } from './types';
-import { useAuth } from '../../hooks/useAuth';
+// import { useAuth } from '../../hooks/useAuth';
 import StudentForm from '../../Components/StudentForm';
 import { useSettings } from '../../context/Settings';
 import { createColumns } from './createColumns';
 
 export const Students: React.FC = () => {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [filters, setFilters] = useState<string[]>(['active']);
   const [formOpen, setFormOpen] = useState<boolean>(false);
   const [editingStudentId, setEditingStudentId] = useState<number | undefined>(undefined);

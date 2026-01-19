@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
-import { DateCalendar, PickersDayProps } from '@mui/x-date-pickers';
+import { DateCalendar } from '@mui/x-date-pickers';
 import dayjs, { Dayjs } from 'dayjs';
 
 interface OccurrenceDateDialogProps {
