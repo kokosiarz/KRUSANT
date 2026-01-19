@@ -101,4 +101,12 @@ export class ClassesController {
   async batchUpsert(@Body() batchDto: BatchUpsertClassDto) {
     return await this.classesService.batchUpsert(batchDto.classes);
   }
+
+  @ApiOperation({ summary: 'Batch create classes' })
+  @ApiBody({ type: [CreateClassDto] })
+  @ApiResponse({ status: 201, description: 'Classes created' })
+  @Post('batch')
+  async batchCreate(@Body() classes: CreateClassDto[]) {
+    return await this.classesService.batchCreate(classes);
+  }
 }

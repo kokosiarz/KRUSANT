@@ -42,6 +42,14 @@ export const classesApi = {
   updateClass: async (id: number, data: Partial<CreateClassRequest>): Promise<Class> => {
     return api.patch<Class>(`/classes/${id}`, data);
   },
+
+  /**
+   * Batch create classes
+   * @param data Array of CreateClassRequest
+   */
+  batchCreateClasses: async (data: CreateClassRequest[]): Promise<Class[]> => {
+    return api.post<Class[]>('/classes/batch', data);
+  },
   deleteClass: async (id: number): Promise<void> => {
     return api.delete<void>(`/classes/${id}`);
   },

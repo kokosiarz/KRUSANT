@@ -137,7 +137,16 @@ export class ClassesService {
         created++;
       }
     }
-
     return { created, updated, classes: results };
+  }
+
+  async batchCreate(classes: CreateClassDto[]): Promise<ClassEntity[]> {
+    const created: ClassEntity[] = [];
+    for (const classDto of classes) {
+      const newClass = this.classRepository.create(classDto);
+      const savedClass = await this.classRepository.save(newClass);
+      created.push(savedClass);
+    }
+    return created;
   }
 }

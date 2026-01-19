@@ -145,6 +145,15 @@ let ClassesService = class ClassesService {
             classes: results
         };
     }
+    async batchCreate(classes) {
+        const created = [];
+        for (const classDto of classes){
+            const newClass = this.classRepository.create(classDto);
+            const savedClass = await this.classRepository.save(newClass);
+            created.push(savedClass);
+        }
+        return created;
+    }
     constructor(classRepository, debitsService, groupsService){
         this.classRepository = classRepository;
         this.debitsService = debitsService;

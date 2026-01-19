@@ -1154,6 +1154,34 @@
         ]
       }
     },
+    "/classes/batch": {
+      "post": {
+        "operationId": "ClassesController_batchCreate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/CreateClassDto"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Classes created"
+          }
+        },
+        "summary": "Batch create classes",
+        "tags": [
+          "classes"
+        ]
+      }
+    },
     "/debits": {
       "post": {
         "operationId": "DebitsController_create",

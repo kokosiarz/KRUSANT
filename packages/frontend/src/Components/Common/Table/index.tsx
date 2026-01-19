@@ -49,6 +49,7 @@ function CommonTable<T extends { id: string | number }>({
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, width: '100%' }}>
         <DataGrid
+          showToolbar
           rows={rows}
           columns={gridColumns}
           disableRowSelectionOnClick

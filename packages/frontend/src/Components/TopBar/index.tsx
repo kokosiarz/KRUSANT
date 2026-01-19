@@ -10,7 +10,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuIcon from '@mui/icons-material/Menu';
 import { TopBarProps } from './types';
 import { useAuth } from '../../hooks/useAuth';
-import Menu from '../Menu';
+import Menu from '../../Menu';
 import ProfilePanel from '../ProfilePanel';
 
 const TopBar: React.FC<TopBarProps> = ({ mode, onToggleTheme, onPageChange }) => {

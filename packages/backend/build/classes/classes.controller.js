@@ -54,6 +54,9 @@ let ClassesController = class ClassesController {
     async batchUpsert(batchDto) {
         return await this.classesService.batchUpsert(batchDto.classes);
     }
+    async batchCreate(classes) {
+        return await this.classesService.batchCreate(classes);
+    }
     constructor(classesService){
         this.classesService = classesService;
     }
@@ -209,6 +212,27 @@ _ts_decorate([
     ]),
     _ts_metadata("design:returntype", Promise)
 ], ClassesController.prototype, "batchUpsert", null);
+_ts_decorate([
+    (0, _swagger.ApiOperation)({
+        summary: 'Batch create classes'
+    }),
+    (0, _swagger.ApiBody)({
+        type: [
+            _createclassdto.CreateClassDto
+        ]
+    }),
+    (0, _swagger.ApiResponse)({
+        status: 201,
+        description: 'Classes created'
+    }),
+    (0, _common.Post)('batch'),
+    _ts_param(0, (0, _common.Body)()),
+    _ts_metadata("design:type", Function),
+    _ts_metadata("design:paramtypes", [
+        Array
+    ]),
+    _ts_metadata("design:returntype", Promise)
+], ClassesController.prototype, "batchCreate", null);
 ClassesController = _ts_decorate([
     (0, _swagger.ApiTags)('classes'),
     (0, _common.Controller)('classes'),
