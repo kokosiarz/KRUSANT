@@ -10,12 +10,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import CommonTable from '@/Components/Common/Table';
-import { studentsApi } from '../../../api/endpoints/students';
+import { studentsApi } from '../../api/endpoints/students';
 import { useQuery } from '@tanstack/react-query';
 import { StudentWithBalance } from './types';
-import { useAuth } from '../../../hooks/useAuth';
-import StudentForm from '../../StudentForm';
-import { useSettings } from '../../../context/Settings';
+import { useAuth } from '../../hooks/useAuth';
+import StudentForm from '../../Components/StudentForm';
+import { useSettings } from '../../context/Settings';
 import { createColumns } from './createColumns';
 
 export const Students: React.FC = () => {

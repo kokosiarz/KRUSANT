@@ -1,16 +1,16 @@
-import { teachersApi } from '../../../api/endpoints/teachers';
-import { roomsApi } from '../../../api/endpoints/rooms';
-import { studentsApi } from '../../../api/endpoints/students';
+import { teachersApi } from '../../api/endpoints/teachers';
+import { roomsApi } from '../../api/endpoints/rooms';
+import { studentsApi } from '../../api/endpoints/students';
 import React, { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
-import { groupsApi } from '../../../api/endpoints/groups';
+import { groupsApi } from '../../api/endpoints/groups';
 import { useQuery } from '@tanstack/react-query';
 import { Group } from './types';
-import { useSettings } from '../../../context/Settings';
-import GroupWizard from '../../GroupWizard';
-import LoadingErrorHandler from '../../Common/LoadingErrorHandler';
+import { useSettings } from '../../context/Settings';
+import GroupWizard from '../../Components/GroupWizard';
+import LoadingErrorHandler from '../../Components/Common/LoadingErrorHandler';
 import GroupsHeader from './GroupsHeader';
-import { EMode } from '../../GroupWizard/types';
+import { EMode } from '../../Components/GroupWizard/types';
 import CommonTable from '@/Components/Common/Table';
 import { createColumns } from './createColumns';
 

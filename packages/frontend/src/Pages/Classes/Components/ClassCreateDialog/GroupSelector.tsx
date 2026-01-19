@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
-import type { Group } from '@/Components/Pages/Groups/types';
+import type { Group } from '@/Pages/Groups/types';
 import { groupsApi } from '@/api/endpoints/groups';
 
 interface GroupSelectorProps {

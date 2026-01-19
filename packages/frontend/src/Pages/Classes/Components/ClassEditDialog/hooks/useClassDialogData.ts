@@ -3,7 +3,7 @@ import { teachersApi } from "@/api/endpoints/teachers";
 import { roomsApi } from "@/api/endpoints/rooms";
 import { classesApi } from "@/api/endpoints/classes";
 import { groupsApi } from "@/api/endpoints/groups";
-import type { Group } from "@/Components/Pages/Groups/types";
+import type { Group } from "@/Pages/Groups/types";
 import type { Class as ClassItem } from "@/api/endpoints/classes";
 
 export function useClassDialogData(classId?: number) {

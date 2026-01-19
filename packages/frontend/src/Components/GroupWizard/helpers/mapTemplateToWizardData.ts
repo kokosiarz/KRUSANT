@@ -1,5 +1,5 @@
 import { GroupWizardData } from '../types';
-import { GroupTemplate } from '../../Pages/GroupTemplates/types';
+import { GroupTemplate } from '../../../Pages/GroupTemplates/types';
 
 export const mapTemplateToWizardData = (template: GroupTemplate): GroupWizardData => ({
   templateName: template.templateName,

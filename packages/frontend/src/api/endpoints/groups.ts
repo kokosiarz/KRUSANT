@@ -1,5 +1,5 @@
 import api from '../client';
-import { Group, DateBoundary } from '../../Components/Pages/Groups/types';
+import { Group, DateBoundary } from '../../Pages/Groups/types';
 
 export interface CreateGroupRequest {
     startHour?: string;

@@ -8,8 +8,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import SaveIcon from '@mui/icons-material/Save';
-import { settingsApi } from '../../../api/endpoints/settings';
-import { useSettings } from '../../../context/Settings';
+import { settingsApi } from '../../api/endpoints/settings';
+import { useSettings } from '../../context/Settings';
 
 const Administration: React.FC = () => {
   const { settings, reload } = useSettings();

@@ -1,5 +1,5 @@
 import { GroupWizardData } from '../types';
-import { Group } from '../../Pages/Groups/types';
+import { Group } from '../../../Pages/Groups/types';
 
 export const mapGroupToWizardData = (group: Group): GroupWizardData => ({
   templateId: undefined,

@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useClassDialogData } from './hooks/useClassDialogData';
 import { CreateClassRequest, classesApi } from '@/api/endpoints/classes';
 import _ from 'lodash';
-import type { Group } from '@/Components/Pages/Groups/types';
+import type { Group } from '@/Pages/Groups/types';
 import type { Class as ClassItem } from '@/api/endpoints/classes';
 import PresenceCheckerTab from './PresenceCheckerTab';
 import { calculateCost } from './utils';

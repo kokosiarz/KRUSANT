@@ -1,5 +1,5 @@
 import api from '../client';
-import { Student, StudentWithBalance } from '../../Components/Pages/Students/types';
+import { Student, StudentWithBalance } from '../../Pages/Students/types';
 
 export interface CreateStudentRequest {
   name: string;

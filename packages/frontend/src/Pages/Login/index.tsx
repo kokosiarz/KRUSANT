@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, Paper, Typography } from '@mui/material';
-import { useAuth } from '../../../hooks/useAuth';
-import LoginForm from '../../Common/LoginForm';
+import { useAuth } from '../../hooks/useAuth';
+import LoginForm from '../../Components/Common/LoginForm';
 
 
 const Login: React.FC = () => {

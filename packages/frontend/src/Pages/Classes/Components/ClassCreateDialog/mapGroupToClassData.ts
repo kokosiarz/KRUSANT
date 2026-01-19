@@ -1,5 +1,5 @@
 import type { Class as ClassItem } from '@/api/endpoints/classes';
-import type { Group } from '@/Components/Pages/Groups/types';
+import type { Group } from '@/Pages/Groups/types';
 
 export function mapGroupToClassData(group: Group, date: string, hour: string): Partial<ClassItem> {
   // Example mapping logic, adjust as needed

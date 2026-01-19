@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { MenuItem, Select, FormControl, InputLabel, CircularProgress } from '@mui/material';
 import { groupsApi } from '@/api/endpoints/groups';
-import type { Group } from '@/Components/Pages/Groups/types';
+import type { Group } from '@/Pages/Groups/types';
 
 interface GroupSelectorProps {
   value?: number;

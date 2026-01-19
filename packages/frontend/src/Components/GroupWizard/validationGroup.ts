@@ -1,4 +1,4 @@
-import { Group } from '../Pages/Groups/types';
+import { Group } from '../../Pages/Groups/types';
 
 export const isGroupNameEmpty = (groupName: string): boolean => {
   return !groupName.trim();

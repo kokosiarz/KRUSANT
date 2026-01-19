@@ -5,17 +5,17 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import Box from '@mui/material/Box';
-import LoadingErrorHandler from '../../Common/LoadingErrorHandler';
+import LoadingErrorHandler from '../../Components/Common/LoadingErrorHandler';
 
 import { useQuery } from '@tanstack/react-query';
-import { classesApi } from '../../../api/endpoints/classes';
+import { classesApi } from '../../api/endpoints/classes';
 import { Paper } from '@mui/material';
 import { StyledCalendarWrapper } from './styles';
 import { useClassEventsWithNames } from './hooks/useClassEventsWithNames';
 import plLocale from '@fullcalendar/core/locales/pl';
 
 
-import type { Class as ClassItem } from '../../../api/endpoints/classes';
+import type { Class as ClassItem } from '../../api/endpoints/classes';
 import ClassCreationDialog from './Components/ClassCreateDialog';
 
 const fetchClasses = async (): Promise<ClassItem[]> => {

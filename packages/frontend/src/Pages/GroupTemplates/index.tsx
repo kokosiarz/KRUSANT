@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { groupTemplatesApi } from '../../../api/endpoints/groupTemplates';
+import { groupTemplatesApi } from '../../api/endpoints/groupTemplates';
 import { useQuery } from '@tanstack/react-query';
-import { duplicateTemplate } from '../../../api/services/duplicateService';
+import { duplicateTemplate } from '../../api/services/duplicateService';
 import { GroupTemplate } from './types';
-import GroupWizard from '../../GroupWizard';
+import GroupWizard from '../../Components/GroupWizard';
 import { createColumns } from './createColumns';
-import { useSettings } from '../../../context/Settings';
-import { EMode } from '../../GroupWizard/types';
+import { useSettings } from '../../context/Settings';
+import { EMode } from '../../Components/GroupWizard/types';
 import LoadingErrorHandler from '@/Components/Common/LoadingErrorHandler';
 import DeleteItemDialog from '@/Components/Common/DeleteItemDialog';
 import HeaderButtons from './Components/HeaderButtons';

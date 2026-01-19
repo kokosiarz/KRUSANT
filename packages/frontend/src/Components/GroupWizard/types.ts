@@ -1,4 +1,4 @@
-import { DateBoundary } from '../Pages/GroupTemplates/types';
+import { DateBoundary } from '../../Pages/GroupTemplates/types';
 
 export enum EMode {
   CreateTemplate = 'create-template',

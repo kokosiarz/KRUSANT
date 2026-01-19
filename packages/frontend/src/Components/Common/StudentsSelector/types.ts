@@ -1,4 +1,4 @@
-import { Student } from '@pages/Students/types';
+import { Student } from '@/Pages/Students/types';
 
 export interface StudentsSelectorProps {
   studentIds: number[];

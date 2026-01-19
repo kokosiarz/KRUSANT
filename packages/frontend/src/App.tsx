@@ -7,17 +7,17 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import './App.css';
 import TopBar from './Components/TopBar';
-import Login from './Components/Pages/Login';
-import Students from './Components/Pages/Students';
-import Groups from './Components/Pages/Groups';
-import Administration from './Components/Pages/Administration';
-import TemplatesSettings from './Components/Pages/Settings/Pages/TemplatesSettings';
+import Login from './Pages/Login';
+import Students from './Pages/Students';
+import Groups from './Pages/Groups';
+import Administration from './Pages/Administration';
+import TemplatesSettings from './Pages/Settings/Pages/TemplatesSettings';
 import { createAppTheme } from './theme';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
-import Classes from './Components/Pages/Classes';
-import Dashboard from './Components/Pages/Dashboard';
-import Finances from './Components/Pages/Finances';
+import Classes from './Pages/Classes';
+import Dashboard from './Pages/Dashboard';
+import Finances from './Pages/Finances';
 
 
 type ColorMode = 'light' | 'dark';

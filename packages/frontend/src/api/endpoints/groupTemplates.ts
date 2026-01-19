@@ -1,5 +1,5 @@
 import api from '../client';
-import { GroupTemplate, DateBoundary } from '../../Components/Pages/GroupTemplates/types';
+import { GroupTemplate, DateBoundary } from '../../Pages/GroupTemplates/types';
 
 export interface CreateGroupTemplateRequest {
   templateName: string;

@@ -5,7 +5,7 @@ import { Group } from './types';
 
 import type { Teacher } from '@/api/endpoints/teachers';
 import type { Room } from '@/api/types/room';
-import type { Student } from '@/Components/Pages/Students/types';
+import type { Student } from '@/Pages/Students/types';
 
 export function createColumns(
   handleEditGroup: (groupId: number) => void,
@@ -60,8 +60,8 @@ export function createColumns(
     { id: 'numberOfHours', label: 'Liczba godzin', render: (group: Group) => group.numberOfHours ?? '-' },
     { id: 'teacherId', label: 'Nauczyciel', render: (group: Group) => getTeacherName(group.teacherId) },
     { id: 'roomId', label: 'Sala', render: (group: Group) => getRoomName(group.roomId) },
-    { id: 'minStartDate', label: 'Min. data startu', render: (group: Group) => group.minStartDate ? `${group.minStartDate.day}.${group.minStartDate.month}${group.minStartDate.year ? '.' + group.minStartDate.year : ''}` : '-' },
-    { id: 'maxEndDate', label: 'Max. data końca', render: (group: Group) => group.maxEndDate ? `${group.maxEndDate.day}.${group.maxEndDate.month}${group.maxEndDate.year ? '.' + group.maxEndDate.year : ''}` : '-' },
+    { id: 'minStartDate', label: 'Min. data startu', render: (group: Group) => group.minStartDate ? `${group.minStartDate.day.toString().padStart(2, '0')}.${group.minStartDate.month.toString().padStart(2, '0')}${group.minStartDate.year ? '.' + group.minStartDate.year : ''}` : '-' },
+    { id: 'maxEndDate', label: 'Max. data końca', render: (group: Group) => group.maxEndDate ? `${group.maxEndDate.day.toString().padStart(2, '0')}.${group.maxEndDate.month.toString().padStart(2, '0')}${group.maxEndDate.year ? '.' + group.maxEndDate.year : ''}` : '-' },
     // removed colorHex column
     // { id: 'baseTemplateName', label: 'Szablon', render: (group: Group) => group.baseTemplateName ?? '-' },
     // { id: 'courseId', label: 'Kurs', render: (group: Group) => group.courseId ?? '-' },

@@ -25,7 +25,7 @@
       "@api/*": ["src/api/*"],
       "@components/*": ["src/Components/*"],
       "@common/*": ["src/Components/Common/*"],
-      "@pages/*": ["src/Components/Pages/*"],
+      "@pages/*": ["src/Pages/*"],
       "@hooks/*": ["src/hooks/*"],
       "@utils/*": ["src/utils/*"]
     }
