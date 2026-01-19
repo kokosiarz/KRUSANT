@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { List, ListItem, ListItemText, IconButton, ListItemSecondaryAction } from '@mui/material';
+import { List, ListItem, ListItemText, IconButton, ListItemSecondaryAction, Button } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { CalendarIcon } from '@mui/x-date-pickers';
-import OccurrenceDateDialog from './OccurrenceDateDialog';
-
+import OccurrenceDateDialog from '../OccurrenceDateDialog';
 
 interface OccurrenceListProps {
   occurrences: string[]; // ISO strings
@@ -11,32 +10,49 @@ interface OccurrenceListProps {
   onDelete: (index: number) => void;
 }
 
-
 const OccurrenceList: React.FC<OccurrenceListProps> = ({ occurrences, onEdit, onDelete }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [addMode, setAddMode] = useState(false);
 
   const handleOpenDialog = (idx: number) => {
     setEditingIdx(idx);
+    setAddMode(false);
+    setDialogOpen(true);
+  };
+
+  const handleAddOccurrence = () => {
+    setEditingIdx(null);
+    setAddMode(true);
     setDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setEditingIdx(null);
+    setAddMode(false);
   };
 
   const handleDateChange = (newDate: string) => {
-    if (editingIdx !== null) {
+    if (addMode) {
+      // Add new occurrence if not already present
+      if (!occurrences.some(d => d.slice(0, 10) === newDate.slice(0, 10))) {
+        onEdit(occurrences.length, newDate);
+      }
+    } else if (editingIdx !== null) {
       onEdit(editingIdx, newDate);
     }
     handleCloseDialog();
   };
 
-  // Mark all other dates as taken (except the one being edited)
+  // Mark all other dates as taken (except the one being edited or adding)
   const takenDates = (editingIdx !== null)
     ? occurrences.filter((_, i) => i !== editingIdx).map(d => d.slice(0, 10))
-    : [];
+    : occurrences.map(d => d.slice(0, 10));
+
+  // For add mode, pick today as default
+  const todayIso = new Date().toISOString();
+  const dialogValue = addMode ? todayIso : (editingIdx !== null ? occurrences[editingIdx] : todayIso);
 
   return (
     <>
@@ -60,10 +76,13 @@ const OccurrenceList: React.FC<OccurrenceListProps> = ({ occurrences, onEdit, on
           </ListItem>
         ))}
       </List>
-      {editingIdx !== null && (
+      <Button onClick={handleAddOccurrence} variant="outlined" sx={{ mt: 1 }}>
+        Dodaj termin
+      </Button>
+      {dialogOpen && (
         <OccurrenceDateDialog
           open={dialogOpen}
-          value={occurrences[editingIdx]}
+          value={dialogValue}
           takenDates={takenDates}
           onChange={handleDateChange}
           onClose={handleCloseDialog}

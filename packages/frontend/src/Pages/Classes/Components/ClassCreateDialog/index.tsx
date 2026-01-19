@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import {
-  Dialog, DialogContent, Button, DialogActions, DialogTitle
+  Dialog, DialogContent, Button, DialogActions, DialogTitle,
+  Box
 } from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -10,14 +11,14 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import LoadingErrorHandler from '@/Components/Common/LoadingErrorHandler';
 import dayjs, { Dayjs } from 'dayjs';
 import { generateOccurrences } from './generateOccurrences';
-import CustomDaysDialog from './CustomDaysDialog';
-import ConfirmationDialog from './ConfirmationDialog';
+import CustomDaysDialog from '../CustomDaysDialog';
+import ConfirmationDialog from '../ConfirmationDialog';
 import { mapGroupToClassData } from './mapGroupToClassData';
 import { classesApi } from '@/api/endpoints/classes';
 import { useQueryClient } from '@tanstack/react-query';
 import 'dayjs/locale/pl';
-import BatchClassForm from './BatchClassForm';
-import GroupSelector from './GroupSelector';
+import BatchClassForm from '../BatchClassForm';
+import GroupSelector from '../GroupSelector';
 
 interface ClassCreationDialogProps {
   open: boolean;
@@ -127,34 +128,37 @@ export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, 
         <DialogTitle>Tworzenie zajęć</DialogTitle>
         <LoadingErrorHandler loading={isLoading} >
           <DialogContent>
-            <GroupSelector value={selectedGroup} onChange={setSelectedGroup} />
-            <BatchClassForm
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              selectedHour={selectedHour}
-              setSelectedHour={setSelectedHour}
-              reocurrance={reocurrance}
-              setReocurrance={setReocurrance}
-              reocurranceOptions={reocurranceOptions}
-              skipHolidays={skipHolidays}
-              setSkipHolidays={setSkipHolidays}
-              occurrencesCount={occurrencesCount}
-              setOccurrencesCount={setOccurrencesCount}
-              occurrences={occurrences}
-              setOccurrences={setOccurrences}
-              handleGenerateOccurrences={handleGenerateOccurrences}
-              handleOccurrenceDelete={idx => setOccurrences(occurrences.filter((_, i) => i !== idx))}
-              setCustomDialogOpen={setCustomDialogOpen}
-            />
-            {/* Custom days dialog */}
-            <CustomDaysDialog
-              open={customDialogOpen}
-              weekDays={weekDays}
-              customDays={customDays}
-              onToggle={handleCustomDayToggle}
-              onClose={() => setCustomDialogOpen(false)}
-            />
+            <Box mt={1}>
+              <GroupSelector value={selectedGroup} onChange={setSelectedGroup} />
+              <BatchClassForm
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                selectedHour={selectedHour}
+                setSelectedHour={setSelectedHour}
+                reocurrance={reocurrance}
+                setReocurrance={setReocurrance}
+                reocurranceOptions={reocurranceOptions}
+                skipHolidays={skipHolidays}
+                setSkipHolidays={setSkipHolidays}
+                occurrencesCount={occurrencesCount}
+                setOccurrencesCount={setOccurrencesCount}
+                occurrences={occurrences}
+                setOccurrences={setOccurrences}
+                handleGenerateOccurrences={handleGenerateOccurrences}
+                handleOccurrenceDelete={idx => setOccurrences(occurrences.filter((_, i) => i !== idx))}
+                setCustomDialogOpen={setCustomDialogOpen}
+              />
+              {/* Custom days dialog */}
+              <CustomDaysDialog
+                open={customDialogOpen}
+                weekDays={weekDays}
+                customDays={customDays}
+                onToggle={handleCustomDayToggle}
+                onClose={() => setCustomDialogOpen(false)}
+              />
+            </Box>
           </DialogContent>
+
           <DialogActions>
             <Button onClick={handleClose}>Anuluj</Button>
             <Button onClick={handleSave} variant="contained" color="primary" disabled={!selectedGroup || occurrences.length === 0}>
