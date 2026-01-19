@@ -18,16 +18,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '24'
-          cache: 'yarn'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: yarn install
+        run: npm --workspaces install
 
       - name: Build frontend
-        run: yarn build:frontend
+        run: npm --workspace frontend run build
 
       - name: Build backend
-        run: yarn build:backend
+        run: npm --workspace backend run build
 
       - name: Add SSH key
         uses: webfactory/ssh-agent@v0.9.0
