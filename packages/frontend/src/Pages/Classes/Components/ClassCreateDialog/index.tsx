@@ -11,14 +11,14 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import LoadingErrorHandler from '@/Components/Common/LoadingErrorHandler';
 import dayjs, { Dayjs } from 'dayjs';
 import { generateOccurrences } from './generateOccurrences';
-import CustomDaysDialog from '../CustomDaysDialog';
-import ConfirmationDialog from '../ConfirmationDialog';
+import CustomDaysDialog from './Components/CustomDaysDialog';
+import ConfirmationDialog from './Components/ConfirmationDialog';
 import { mapGroupToClassData } from './mapGroupToClassData';
 import { classesApi } from '@/api/endpoints/classes';
 import { useQueryClient } from '@tanstack/react-query';
 import 'dayjs/locale/pl';
 import BatchClassForm from '../BatchClassForm';
-import GroupSelector from '../GroupSelector';
+import GroupSelector from './Components/GroupSelector';
 
 interface ClassCreationDialogProps {
   open: boolean;
