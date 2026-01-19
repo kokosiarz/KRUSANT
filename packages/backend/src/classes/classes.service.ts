@@ -90,10 +90,22 @@ export class ClassesService {
         (d) => d.studentId === studentId && d.classId === classEntity.id,
       );
       if (!alreadyExists) {
+        // Fetch student to get discount
+        const studentRepo = this.classRepository.manager.getRepository('Student');
+        const student = await studentRepo.findOne({ where: { id: studentId } });
+        let amount = classEntity.cost;
+        if (
+          student &&
+          typeof student.discount === 'number' &&
+          !isNaN(student.discount)
+        ) {
+          amount =
+            (Number(classEntity.cost) * (100 - Number(student.discount))) / 100;
+        }
         const debit = await this.debitsService.create({
           studentId,
           classId: classEntity.id,
-          amount: classEntity.cost,
+          amount,
           dueDate: classEntity.startTime
             ? new Date(classEntity.startTime)
             : new Date(),

@@ -1,12 +1,12 @@
 import React from 'react';
 import { useTheme } from '@mui/material/styles';
 import { useQuery } from '@tanstack/react-query';
-import { groupsApi } from '../../../api/endpoints/groups';
-import { roomsApi } from '../../../api/endpoints/rooms';
+import { groupsApi } from '../../../../../api/endpoints/groups';
+import { roomsApi } from '../../../../../api/endpoints/rooms';
 import { EventInput } from '@fullcalendar/core';
 
 
-import type { Class as ClassItem } from '../../../api/endpoints/classes';
+import type { Class as ClassItem } from '../../../../../api/endpoints/classes';
 import { HHmmToMinutes } from '@/utils/HHmmToMinutes';
 
 export function useClassEventsWithNames(classes: ClassItem[]): EventInput[] {

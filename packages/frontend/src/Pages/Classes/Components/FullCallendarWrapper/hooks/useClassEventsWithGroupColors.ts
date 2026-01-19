@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTheme } from '@mui/material/styles';
 import { useQuery } from '@tanstack/react-query';
-import { groupsApi } from '../../../api/endpoints/groups';
+import { groupsApi } from '../../../../../api/endpoints/groups';
 import { EventInput } from '@fullcalendar/core';
 
 type ClassItem = {
