@@ -44,9 +44,9 @@ const Groups: React.FC = () => {
     setFormParams({ open: true, mode: EMode.CreateGroup });
   };
 
-  const handleEditGroup = (groupId: number) => {
+  const handleEditGroup = React.useCallback((groupId: number) => {
     setFormParams({ open: true, groupId, mode: EMode.EditGroup });
-  };
+  }, []);
 
   const handleFormClose = () => {
     setFormParams({ open: false, groupId: undefined, mode: EMode.CreateGroup });
