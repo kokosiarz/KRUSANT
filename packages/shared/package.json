@@ -4,4 +4,8 @@
   "main": "index.ts",
   "types": "index.ts",
   "license": "MIT"
+  ,
+  "scripts": {
+    "lint": "eslint . --ext .ts --fix"
+  }
 }

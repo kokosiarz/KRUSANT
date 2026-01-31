@@ -1,4 +1,3 @@
-// @ts-check
 import { defineConfig } from 'eslint-define-config';
 
 export default defineConfig({
@@ -8,7 +7,6 @@ export default defineConfig({
   ],
   parserOptions: {
     project: './tsconfig.json',
-    tsconfigRootDir: import.meta.dirname,
   },
   settings: {
     'import/resolver': {
@@ -16,9 +14,6 @@ export default defineConfig({
     },
   },
   rules: {
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-floating-promises': 'warn',
-    '@typescript-eslint/no-unsafe-argument': 'warn',
-    // Add or override more rules as needed
+    // Override Airbnb rules for shared code if needed
   },
 });

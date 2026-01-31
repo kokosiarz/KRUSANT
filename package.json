@@ -9,5 +9,19 @@
     "dev:backend": "npm --workspace backend start",
     "build:frontend": "npm --workspace frontend build",
     "build:backend": "npm --workspace backend build"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.53.1",
+    "@typescript-eslint/parser": "^8.53.1",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26"
+  },
+  "devDependencies": {
+    "eslint-define-config": "^2.1.0"
   }
 }
