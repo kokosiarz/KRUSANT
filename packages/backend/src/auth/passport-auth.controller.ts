@@ -8,11 +8,14 @@ import {
   UseGuards,
   Request,
   Response,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { PassportJwtAuthGuard } from './guards/passport-jwt.guard';
 import { PassportLocalGuard } from './guards/passport-local.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -118,5 +121,31 @@ export class PassportAuthController {
   @Post('reset-password')
   async resetPassword(@Body() body: { email: string; newPassword: string }) {
     return this.authService.resetPassword(body.email, body.newPassword);
+  }
+
+  @ApiOperation({ summary: 'Login with Google OAuth' })
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(@Req() req) {
+    // This route initiates the Google OAuth flow
+  }
+
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req, @Res() res) {
+    const signInData = await this.authService.validateGoogleUser(req.user);
+    const token = await this.authService.getToken(signInData);
+
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    });
+
+    // Redirect to frontend after successful login
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    res.redirect(`${frontendUrl}/dashboard`);
   }
 }

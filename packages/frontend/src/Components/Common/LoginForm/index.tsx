@@ -5,6 +5,8 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import GoogleIcon from '@mui/icons-material/Google';
 import { useAuth } from '../../../hooks/useAuth';
 import { LoginFormProps } from './types';
 
@@ -22,6 +24,11 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
     } catch (err) {
       // Error handled by AuthContext
     }
+  };
+
+  const handleGoogleLogin = () => {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+    window.location.href = `${apiBaseUrl}/auth/google`;
   };
 
   return (
@@ -56,6 +63,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           />
           <Button type="submit" variant="contained" size="large" fullWidth>
             Zaloguj
+          </Button>
+          
+          <Divider sx={{ my: 2 }}>lub</Divider>
+          
+          <Button
+            variant="outlined"
+            size="large"
+            fullWidth
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleLogin}
+            sx={{
+              textTransform: 'none',
+              borderColor: '#4285f4',
+              color: '#4285f4',
+              '&:hover': {
+                borderColor: '#357ae8',
+                backgroundColor: 'rgba(66, 133, 244, 0.04)',
+              },
+            }}
+          >
+            Zaloguj przez Google
           </Button>
         </Stack>
       </Box>

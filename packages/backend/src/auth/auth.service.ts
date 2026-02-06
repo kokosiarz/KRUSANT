@@ -87,6 +87,43 @@ export class AuthService {
     return accessToken;
   }
 
+  async validateGoogleUser(profile: {
+    googleId: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    picture: string;
+  }): Promise<SignInData> {
+    // Check if user exists by email
+    let user = await this.usersService.findByEmail(profile.email);
+    
+    if (!user) {
+      // Create new user with Google profile
+      user = await this.usersService.create({
+        email: profile.email,
+        roles: [Role.Teacher], // Default role, adjust as needed
+        teacherId: null,
+        studentId: null,
+      });
+    }
+
+    // Derive name: prefer teacher profile name if linked, else use Google name
+    let name = `${profile.firstName} ${profile.lastName}`;
+    if (user.teacherId) {
+      const teacher = await this.teachersService.findOneById(user.teacherId);
+      if (teacher?.name) name = teacher.name;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name,
+      roles: user.roles ?? [],
+      teacherId: user.teacherId ?? null,
+      studentId: user.studentId ?? null,
+    };
+  }
+
   async resetPassword(
     email: string,
     newPassword: string,

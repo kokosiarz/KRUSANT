@@ -1608,6 +1608,36 @@
         ]
       }
     },
+    "/auth/google": {
+      "get": {
+        "operationId": "PassportAuthController_googleAuth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Login with Google OAuth",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/google/callback": {
+      "get": {
+        "operationId": "PassportAuthController_googleAuthRedirect",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Google OAuth callback",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/users": {
       "get": {
         "operationId": "UsersController_getAll",
