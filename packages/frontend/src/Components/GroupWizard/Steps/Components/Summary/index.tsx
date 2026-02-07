@@ -8,6 +8,7 @@ import { Course } from '../../../../../api/types/course';
 import { Room } from '../../../../../api/types/room';
 import { useSettings } from '../../../../../context/Settings';
 import { copy } from './copy';
+import { getStepList } from '../../../config';
 
 import TextField from '@mui/material/TextField';
 import './styles.css';
@@ -84,9 +85,6 @@ const Summary: React.FC<StepSummaryProps> = ({
         summary: null,
     };
 
-    // Get current steps from config
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { getStepList } = require('../../../config');
     const mode = formData.mode || 'create-group';
     const steps = getStepList(mode);
 
