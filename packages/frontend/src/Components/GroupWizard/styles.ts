@@ -18,11 +18,11 @@ export const groupTemplateFormStyles: Record<string, SxProps<Theme>> = {
     backgroundColor: 'background.paper',
     borderRadius: 3,
     boxShadow: 24,
-    width: '90%',
-    maxWidth: 500,
-    minHeight: 800, // Ensures consistent height
-    height: 800,    // Fixed height for all steps
-    p: 4,
+    width: '92%',
+    maxWidth: 600,
+    minHeight: 520,
+    height: 'auto',
+    p: { xs: 2, sm: 4 },
     position: 'relative',
     maxHeight: '90vh',
     overflowY: 'auto',
