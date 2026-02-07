@@ -13,10 +13,13 @@ import GroupsHeader from './GroupsHeader';
 import { EMode } from '../../Components/GroupWizard/types';
 import CommonTable from '@/Components/Common/Table';
 import { createColumns } from './createColumns';
+import DeleteItemDialog from '@/Components/Common/DeleteItemDialog';
 
 const Groups: React.FC = () => {
   const [filters, setFilters] = useState<string[]>(['active']);
   const [formParams, setFormParams] = useState<{ open: boolean; mode: EMode; groupId?: number }>({ open: false, mode: EMode.EditGroup });
+  const [deleteParams, setDeleteParams] = useState<{ open: boolean; groupId?: number }>({ open: false });
+  const [deleting, setDeleting] = useState(false);
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers'],
     queryFn: teachersApi.getTeachers,
@@ -48,6 +51,10 @@ const Groups: React.FC = () => {
     setFormParams({ open: true, groupId, mode: EMode.EditGroup });
   }, []);
 
+  const handleDeleteGroup = React.useCallback((groupId: number) => {
+    setDeleteParams({ open: true, groupId });
+  }, []);
+
   const handleFormClose = () => {
     setFormParams({ open: false, groupId: undefined, mode: EMode.CreateGroup });
   };
@@ -56,20 +63,50 @@ const Groups: React.FC = () => {
     refetch();
   };
 
+  const handleDeleteCancel = () => {
+    if (deleting) return;
+    setDeleteParams({ open: false, groupId: undefined });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteParams.groupId) return;
+    setDeleting(true);
+    try {
+      await groupsApi.deleteGroup(deleteParams.groupId);
+      setDeleteParams({ open: false, groupId: undefined });
+      refetch();
+    } finally {
+      setDeleting(false);
+    }
+  };
+
 
   const columns = useMemo(
-    () => createColumns(handleEditGroup, currency, teachers, rooms, students),
-    [handleEditGroup, currency, teachers, rooms, students]
+    () => createColumns(handleEditGroup, handleDeleteGroup, currency, teachers, rooms, students),
+    [handleEditGroup, handleDeleteGroup, currency, teachers, rooms, students]
   );
 
+  const groupToDelete = deleteParams.groupId
+    ? groups.find((group) => group.id === deleteParams.groupId)
+    : undefined;
+
   const dialogs = (
-    <GroupWizard
-      mode={formParams.mode}
-      open={formParams.open}
-      onClose={handleFormClose}
-      id={formParams.groupId}
-      onSuccess={handleFormSuccess}
-    />
+    <>
+      <GroupWizard
+        mode={formParams.mode}
+        open={formParams.open}
+        onClose={handleFormClose}
+        id={formParams.groupId}
+        onSuccess={handleFormSuccess}
+      />
+      <DeleteItemDialog
+        open={deleteParams.open}
+        itemName={groupToDelete?.name || 'grupę'}
+        deleting={deleting}
+        onCancel={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+      />
+    </>
   );
 
   const headerButtons = (

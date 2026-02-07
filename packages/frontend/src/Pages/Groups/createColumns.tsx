@@ -1,6 +1,7 @@
 import React from 'react';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { Group } from './types';
 
 import type { Teacher } from '@/api/endpoints/teachers';
@@ -9,6 +10,7 @@ import type { Student } from '@/Pages/Students/types';
 
 export function createColumns(
   handleEditGroup: (groupId: number) => void,
+  handleDeleteGroup: (groupId: number) => void,
   currency: string,
   teachers: Teacher[],
   rooms: Room[],
@@ -72,9 +74,14 @@ export function createColumns(
       id: 'actions',
       label: 'Akcje',
       render: (group: Group) => (
-        <IconButton size="small" onClick={() => handleEditGroup(group.id)} color="primary">
-          <EditIcon fontSize="small" />
-        </IconButton>
+        <span style={{ display: 'inline-flex', gap: 4 }}>
+          <IconButton size="small" onClick={() => handleEditGroup(group.id)} color="primary">
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" onClick={() => handleDeleteGroup(group.id)} color="error">
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </span>
       ),
     },
   ];
