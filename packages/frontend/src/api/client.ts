@@ -1,6 +1,14 @@
 import { ApiResponse } from './types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+const envBaseUrl = import.meta.env.VITE_API_BASE_URL as string | undefined;
+const defaultBaseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3002';
+const RAW_API_BASE_URL = envBaseUrl || defaultBaseUrl;
+const normalizedBaseUrl = RAW_API_BASE_URL.replace(/\/+$/, '');
+const API_BASE_URL = normalizedBaseUrl.endsWith('/api')
+  ? normalizedBaseUrl
+  : `${normalizedBaseUrl}/api`;
+
+export { API_BASE_URL };
 
 export class ApiClientError extends Error {
   constructor(

@@ -27,8 +27,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   const handleGoogleLogin = () => {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
-    window.location.href = `${apiBaseUrl}/auth/google`;
+    window.location.href = '/api/auth/google';
   };
 
   return (

@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/": {
+    "/api": {
       "get": {
         "operationId": "AppController_getHello",
         "parameters": [],
@@ -16,7 +16,7 @@
         ]
       }
     },
-    "/students": {
+    "/api/students": {
       "get": {
         "operationId": "StudentsController_getAll",
         "parameters": [
@@ -68,7 +68,7 @@
         ]
       }
     },
-    "/students/with-balance": {
+    "/api/students/with-balance": {
       "get": {
         "operationId": "StudentsController_getAllWithBalance",
         "parameters": [
@@ -107,7 +107,7 @@
         ]
       }
     },
-    "/students/search": {
+    "/api/students/search": {
       "get": {
         "operationId": "StudentsController_getByEmail",
         "parameters": [
@@ -136,7 +136,7 @@
         ]
       }
     },
-    "/students/{id}": {
+    "/api/students/{id}": {
       "get": {
         "operationId": "StudentsController_getOne",
         "parameters": [
@@ -217,7 +217,7 @@
         ]
       }
     },
-    "/students/batch-upsert": {
+    "/api/students/batch-upsert": {
       "post": {
         "operationId": "StudentsController_batchUpsert",
         "parameters": [],
@@ -242,7 +242,7 @@
         ]
       }
     },
-    "/payments": {
+    "/api/payments": {
       "post": {
         "operationId": "PaymentsController_create",
         "parameters": [],
@@ -297,7 +297,7 @@
         ]
       }
     },
-    "/payments/student/{studentId}": {
+    "/api/payments/student/{studentId}": {
       "get": {
         "operationId": "PaymentsController_findByStudent",
         "parameters": [
@@ -331,7 +331,7 @@
         ]
       }
     },
-    "/payments/{id}": {
+    "/api/payments/{id}": {
       "get": {
         "operationId": "PaymentsController_findOne",
         "parameters": [
@@ -423,7 +423,7 @@
         ]
       }
     },
-    "/groups": {
+    "/api/groups": {
       "get": {
         "operationId": "GroupsController_getAll",
         "parameters": [
@@ -475,7 +475,7 @@
         ]
       }
     },
-    "/groups/{id}": {
+    "/api/groups/{id}": {
       "get": {
         "operationId": "GroupsController_getOne",
         "parameters": [
@@ -556,7 +556,7 @@
         ]
       }
     },
-    "/groups/batch-upsert": {
+    "/api/groups/batch-upsert": {
       "post": {
         "operationId": "GroupsController_batchUpsert",
         "parameters": [],
@@ -581,7 +581,7 @@
         ]
       }
     },
-    "/teachers": {
+    "/api/teachers": {
       "get": {
         "operationId": "TeachersController_getAllTeachers",
         "parameters": [],
@@ -596,7 +596,7 @@
         ]
       }
     },
-    "/teachers/signup": {
+    "/api/teachers/signup": {
       "post": {
         "operationId": "TeachersController_createTeacher",
         "parameters": [],
@@ -624,7 +624,7 @@
         ]
       }
     },
-    "/teachers/{id}": {
+    "/api/teachers/{id}": {
       "delete": {
         "operationId": "TeachersController_deleteTeacher",
         "parameters": [
@@ -649,7 +649,7 @@
         ]
       }
     },
-    "/teachers/batch-upsert": {
+    "/api/teachers/batch-upsert": {
       "post": {
         "operationId": "TeachersController_batchUpsert",
         "parameters": [],
@@ -674,7 +674,7 @@
         ]
       }
     },
-    "/courses": {
+    "/api/courses": {
       "get": {
         "operationId": "CoursesController_getAll",
         "parameters": [],
@@ -712,7 +712,7 @@
         ]
       }
     },
-    "/courses/{id}": {
+    "/api/courses/{id}": {
       "get": {
         "operationId": "CoursesController_getOne",
         "parameters": [
@@ -793,7 +793,7 @@
         ]
       }
     },
-    "/courses/batch-upsert": {
+    "/api/courses/batch-upsert": {
       "post": {
         "operationId": "CoursesController_batchUpsert",
         "parameters": [],
@@ -818,7 +818,7 @@
         ]
       }
     },
-    "/rooms": {
+    "/api/rooms": {
       "get": {
         "operationId": "RoomsController_getAll",
         "parameters": [],
@@ -856,7 +856,7 @@
         ]
       }
     },
-    "/rooms/{id}": {
+    "/api/rooms/{id}": {
       "get": {
         "operationId": "RoomsController_getOne",
         "parameters": [
@@ -937,7 +937,7 @@
         ]
       }
     },
-    "/rooms/batch-upsert": {
+    "/api/rooms/batch-upsert": {
       "post": {
         "operationId": "RoomsController_batchUpsert",
         "parameters": [],
@@ -962,7 +962,7 @@
         ]
       }
     },
-    "/classes": {
+    "/api/classes": {
       "get": {
         "operationId": "ClassesController_getAll",
         "parameters": [
@@ -1010,7 +1010,7 @@
         ]
       }
     },
-    "/classes/{id}": {
+    "/api/classes/{id}": {
       "get": {
         "operationId": "ClassesController_getOne",
         "parameters": [
@@ -1091,7 +1091,7 @@
         ]
       }
     },
-    "/classes/{id}/attendance": {
+    "/api/classes/{id}/attendance": {
       "post": {
         "operationId": "ClassesController_setAttendance",
         "parameters": [
@@ -1129,7 +1129,7 @@
         ]
       }
     },
-    "/classes/batch-upsert": {
+    "/api/classes/batch-upsert": {
       "post": {
         "operationId": "ClassesController_batchUpsert",
         "parameters": [],
@@ -1154,7 +1154,7 @@
         ]
       }
     },
-    "/classes/batch": {
+    "/api/classes/batch": {
       "post": {
         "operationId": "ClassesController_batchCreate",
         "parameters": [],
@@ -1182,7 +1182,7 @@
         ]
       }
     },
-    "/debits": {
+    "/api/debits": {
       "post": {
         "operationId": "DebitsController_create",
         "parameters": [],
@@ -1237,7 +1237,7 @@
         ]
       }
     },
-    "/debits/{id}": {
+    "/api/debits/{id}": {
       "get": {
         "operationId": "DebitsController_findOne",
         "parameters": [
@@ -1329,7 +1329,7 @@
         ]
       }
     },
-    "/group-templates": {
+    "/api/group-templates": {
       "get": {
         "operationId": "GroupTemplatesController_getAll",
         "parameters": [],
@@ -1367,7 +1367,7 @@
         ]
       }
     },
-    "/group-templates/{id}": {
+    "/api/group-templates/{id}": {
       "get": {
         "operationId": "GroupTemplatesController_getOne",
         "parameters": [
@@ -1448,7 +1448,7 @@
         ]
       }
     },
-    "/settings": {
+    "/api/settings": {
       "get": {
         "operationId": "SettingsController_get",
         "parameters": [],
@@ -1484,7 +1484,7 @@
         ]
       }
     },
-    "/auth/login": {
+    "/api/auth/login": {
       "post": {
         "operationId": "PassportAuthController_login",
         "parameters": [],
@@ -1522,7 +1522,7 @@
         ]
       }
     },
-    "/auth/logout": {
+    "/api/auth/logout": {
       "post": {
         "operationId": "PassportAuthController_logout",
         "parameters": [],
@@ -1537,7 +1537,7 @@
         ]
       }
     },
-    "/auth/profile": {
+    "/api/auth/profile": {
       "get": {
         "operationId": "PassportAuthController_getProfile",
         "parameters": [],
@@ -1555,7 +1555,7 @@
         ]
       }
     },
-    "/auth/backfill-teachers": {
+    "/api/auth/backfill-teachers": {
       "post": {
         "operationId": "PassportAuthController_backfillTeachers",
         "parameters": [],
@@ -1570,7 +1570,7 @@
         ]
       }
     },
-    "/auth/reset-password": {
+    "/api/auth/reset-password": {
       "post": {
         "operationId": "PassportAuthController_resetPassword",
         "parameters": [],
@@ -1608,7 +1608,7 @@
         ]
       }
     },
-    "/auth/google": {
+    "/api/auth/google": {
       "get": {
         "operationId": "PassportAuthController_googleAuth",
         "parameters": [],
@@ -1623,7 +1623,7 @@
         ]
       }
     },
-    "/auth/google/callback": {
+    "/api/auth/google/callback": {
       "get": {
         "operationId": "PassportAuthController_googleAuthRedirect",
         "parameters": [],
@@ -1638,7 +1638,7 @@
         ]
       }
     },
-    "/users": {
+    "/api/users": {
       "get": {
         "operationId": "UsersController_getAll",
         "parameters": [],
@@ -1676,7 +1676,7 @@
         ]
       }
     },
-    "/users/{id}": {
+    "/api/users/{id}": {
       "get": {
         "operationId": "UsersController_getOne",
         "parameters": [

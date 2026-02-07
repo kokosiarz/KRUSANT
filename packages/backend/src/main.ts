@@ -12,16 +12,22 @@ async function bootstrap() {
     abortOnError: false,
   });
 
+  app.set('trust proxy', 1);
+
   app.enableCors({
     origin: [
       'http://localhost:3001',
-      'http://83.168.71.6:3001'
+      'http://83.168.71.6:3001',
+      'http://krusant.szkolazlotnictwa.pl',
+      'https://krusant.szkolazlotnictwa.pl',
     ],
     credentials: true,
   });
 
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+
+  app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
     .setTitle('KRUSANT API')
@@ -30,7 +36,7 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document);
+  SwaggerModule.setup('docs', app, document, { useGlobalPrefix: true });
 
   // Export OpenAPI schema to JSON file
   fs.writeFileSync('./openapi.json', JSON.stringify(document, null, 2));
@@ -40,7 +46,7 @@ async function bootstrap() {
   await app.listen(3002);
 
   console.log(`Application is running on: ${await app.getUrl()}`);
-  console.log(`Swagger docs available at: ${await app.getUrl()}/docs`);
+  console.log(`Swagger docs available at: ${await app.getUrl()}/api/docs`);
 }
 
 bootstrap().catch((err) => {
