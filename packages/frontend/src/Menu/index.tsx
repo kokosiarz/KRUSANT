@@ -51,6 +51,7 @@ const Menu: React.FC<MenuProps> = ({ open, onClose, onPageChange }) => {
       items: [
         { label: 'Szablony', page: 'Szablony', roles: ['admin', 'teacher'], icon: <LayersIcon /> },
         { label: 'Finanse', page: 'Finanse', roles: ['admin', 'teacher'], icon: <PaidIcon /> },
+        { label: 'Użytkownicy', page: 'Użytkownicy', roles: ['admin'], icon: <PeopleIcon /> },
         { label: 'Administracja', page: 'Administracja', roles: ['admin'], icon: <SettingsIcon /> },
       ],
     },

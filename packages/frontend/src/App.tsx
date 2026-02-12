@@ -9,6 +9,7 @@ import Students from './Pages/Students';
 import Groups from './Pages/Groups';
 import Administration from './Pages/Administration';
 import TemplatesSettings from './Pages/Settings/Pages/TemplatesSettings';
+import UsersManagement from './Pages/UsersManagement';
 import { createAppTheme } from './theme';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
@@ -40,6 +41,8 @@ function AppContent() {
         return <Administration />;
       case 'Szablony':
         return <TemplatesSettings />;
+      case 'Użytkownicy':
+        return <UsersManagement />;
       case 'Classes':
         return <Classes />;
       case 'Finanse':
