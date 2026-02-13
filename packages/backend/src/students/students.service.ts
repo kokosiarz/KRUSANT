@@ -27,22 +27,15 @@ export class StudentsService {
       .addSelect('student.semester', 'semester')
       .addSelect('student.extraNotes', 'extraNotes')
       .addSelect('student.active', 'active')
-      .addSelect('COALESCE(SUM(payment.amount), 0) - COALESCE(SUM(debit.amount), 0)', 'balance')
-      .from(Student, 'student')
-      .leftJoin('debits', 'debit', 'debit.studentId = student.id')
-      .leftJoin('payment', 'payment', 'payment.studentId = student.id');
+      .addSelect(
+        `COALESCE((SELECT SUM(p.amount) FROM payment p WHERE p."studentId" = student.id), 0)` +
+        ` - COALESCE((SELECT SUM(d.amount) FROM debits d WHERE d."studentId" = student.id), 0)`,
+        'balance',
+      )
+      .from(Student, 'student');
     if (active !== undefined) {
       qb.where('student.active = :active', { active });
     }
-    qb.groupBy('student.id');
-    qb.addGroupBy('student.name');
-    qb.addGroupBy('student.email');
-    qb.addGroupBy('student.phone');
-    qb.addGroupBy('student.customRate');
-    qb.addGroupBy('student.discount');
-    qb.addGroupBy('student.semester');
-    qb.addGroupBy('student.extraNotes');
-    qb.addGroupBy('student.active');
     const result = await qb.getRawMany<StudentWithBalanceDto>();
     return result;
   }

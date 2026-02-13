@@ -1647,6 +1647,11 @@
             "description": "Returns all users"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Get all users",
         "tags": [
           "users"
@@ -1670,6 +1675,11 @@
             "description": "User created"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Create new user",
         "tags": [
           "users"
@@ -1695,6 +1705,11 @@
             "description": "Returns user"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Get user by ID",
         "tags": [
           "users"
@@ -1728,6 +1743,11 @@
             "description": "User updated"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Update user",
         "tags": [
           "users"
@@ -1751,7 +1771,52 @@
             "description": "User deleted"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Delete user",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/users/{id}/reset-password": {
+      "post": {
+        "operationId": "UsersController_resetPassword",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reset user password",
         "tags": [
           "users"
         ]
@@ -3153,6 +3218,19 @@
             "example": 1
           }
         }
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "description": "New password for the user",
+            "example": "newPassword123"
+          }
+        },
+        "required": [
+          "newPassword"
+        ]
       }
     }
   }

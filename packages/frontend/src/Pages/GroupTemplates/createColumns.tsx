@@ -39,11 +39,11 @@ export const createColumns = (
     label: 'Koszt jednostkowy (h)',
     render: (t) => (t.unitCost?.toFixed ? `${t.unitCost.toFixed(2)} ${currency}` : t.unitCost),
   },
-  {
-    id: 'numberOfHours',
-    label: 'Liczba godzin',
-    render: (t) => t.numberOfHours ?? '-',
-  },
+  // {
+  //   id: 'numberOfHours',
+  //   label: 'Liczba godzin',
+  //   render: (t) => t.numberOfHours ?? '-',
+  // },
   {
     id: 'studentIds',
     label: 'Kursanci',
