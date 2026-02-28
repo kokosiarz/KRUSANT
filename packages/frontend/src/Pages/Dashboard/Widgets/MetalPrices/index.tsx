@@ -207,6 +207,7 @@ export default function MetalPricesWidget() {
             { label: 'Au 999', multiplier: 1 },
             { label: 'Au 585', multiplier: 0.585 },
             { label: 'Au 333', multiplier: 0.333 },
+            { label: 'Lut', multiplier: 0.6 },
           ]}
         />
 

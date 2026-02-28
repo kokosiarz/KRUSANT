@@ -5,5 +5,4 @@ export interface ProfilePanelProps {
   onClose: () => void;
   mode: ColorMode;
   onToggleTheme: () => void;
-  onPageChange: (page: string) => void;
 }

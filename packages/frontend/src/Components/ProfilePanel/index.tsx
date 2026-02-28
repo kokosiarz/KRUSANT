@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -20,15 +21,15 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import { ProfilePanelProps } from './types';
 import { useAuth } from '../../hooks/useAuth';
 
-const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onToggleTheme, onPageChange }) => {
+const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onToggleTheme }) => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [settingsOpen, setSettingsOpen] = useState(false);
 
     const userRoles = user?.roles?.map(role => role.toLowerCase()) ?? [];
     const isAdmin = userRoles.includes('admin');
     const isTeacher = userRoles.includes('teacher');
     const canManageCourses = isAdmin || isTeacher;
-    // const canManageGroups = isAdmin || isTeacher;
 
     const handleLogout = async () => {
         try {
@@ -39,8 +40,8 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
         }
     };
 
-    const handleSettingsClick = (section: string) => {
-        onPageChange(`Ustawienia:${section}`);
+    const handleSettingsClick = (path: string) => {
+        navigate(path);
         setSettingsOpen(false);
         onClose();
     };
@@ -122,14 +123,14 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
                         <List component="div" disablePadding>
                             <ListItemButton
                                 sx={{ pl: 4, py: 1.5 }}
-                                onClick={() => handleSettingsClick('Wygląd')}
+                                onClick={() => handleSettingsClick('/settings/appearance')}
                             >
                                 <ListItemText primary="Wygląd" />
                             </ListItemButton>
                             {canManageCourses && (
                                 <ListItemButton
                                     sx={{ pl: 4, py: 1.5 }}
-                                    onClick={() => handleSettingsClick('Kursy')}
+                                    onClick={() => handleSettingsClick('/settings/courses')}
                                 >
                                     <ListItemText primary="Kursy" />
                                 </ListItemButton>

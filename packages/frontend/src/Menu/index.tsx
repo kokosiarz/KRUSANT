@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -21,38 +22,38 @@ import { useAuth } from '@hooks/useAuth';
 export type MenuProps = {
   open: boolean;
   onClose: () => void;
-  onPageChange: (page: string) => void;
 };
 
-const Menu: React.FC<MenuProps> = ({ open, onClose, onPageChange }) => {
+const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const roles = user?.roles?.map((role: string) => role.toLowerCase()) ?? [];
 
-  type MenuItem = { label: string; page: string; roles?: string[]; icon?: React.ReactNode };
+  type MenuItem = { label: string; path: string; roles?: string[]; icon?: React.ReactNode };
   type MenuSection = { title: string; items: MenuItem[]; roles?: string[] };
 
   const sections: MenuSection[] = [
     {
       title: 'Ogólne',
       items: [
-        { label: 'Dashboard', page: 'Dashboard', icon: <DashboardIcon /> },
+        { label: 'Dashboard', path: '/', icon: <DashboardIcon /> },
       ],
     },
     {
       title: 'Dydaktyka',
       items: [
-        { label: 'Zajęcia', page: 'Classes', roles: ['admin', 'teacher'], icon: <SchoolIcon /> },        
-        { label: 'Kursanci', page: 'Kursanci', roles: ['admin', 'teacher'], icon: <PeopleIcon /> },
-        { label: 'Grupy', page: 'Grupy', roles: ['admin', 'teacher'], icon: <GroupsIcon /> },
+        { label: 'Zajęcia', path: '/classes', roles: ['admin', 'teacher'], icon: <SchoolIcon /> },
+        { label: 'Kursanci', path: '/students', roles: ['admin', 'teacher'], icon: <PeopleIcon /> },
+        { label: 'Grupy', path: '/groups', roles: ['admin', 'teacher'], icon: <GroupsIcon /> },
       ],
     },
     {
       title: 'Administracja',
       items: [
-        { label: 'Szablony', page: 'Szablony', roles: ['admin', 'teacher'], icon: <LayersIcon /> },
-        { label: 'Finanse', page: 'Finanse', roles: ['admin', 'teacher'], icon: <PaidIcon /> },
-        { label: 'Użytkownicy', page: 'Użytkownicy', roles: ['admin'], icon: <PeopleIcon /> },
-        { label: 'Administracja', page: 'Administracja', roles: ['admin'], icon: <SettingsIcon /> },
+        { label: 'Szablony', path: '/templates', roles: ['admin', 'teacher'], icon: <LayersIcon /> },
+        { label: 'Finanse', path: '/finances', roles: ['admin', 'teacher'], icon: <PaidIcon /> },
+        { label: 'Użytkownicy', path: '/users', roles: ['admin'], icon: <PeopleIcon /> },
+        { label: 'Administracja', path: '/administration', roles: ['admin'], icon: <SettingsIcon /> },
       ],
     },
     {
@@ -76,8 +77,8 @@ const Menu: React.FC<MenuProps> = ({ open, onClose, onPageChange }) => {
     return section.items.some((item) => canViewItem(item.roles));
   };
 
-  const handleMenuItemClick = (page: string) => {
-    onPageChange(page);
+  const handleMenuItemClick = (path: string) => {
+    navigate(path);
     onClose();
   };
 
@@ -122,7 +123,7 @@ const Menu: React.FC<MenuProps> = ({ open, onClose, onPageChange }) => {
                   <ListItemButton
                     key={item.label}
                     sx={{ py: 1.5, px: 2 }}
-                    onClick={() => handleMenuItemClick(item.page)}
+                    onClick={() => handleMenuItemClick(item.path)}
                   >
                     {item.icon && (
                       <ListItemIcon sx={{ minWidth: 36 }}>

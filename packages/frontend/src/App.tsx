@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
@@ -23,36 +24,8 @@ type ColorMode = 'light' | 'dark';
 function AppContent() {
   const { isAuthenticated } = useAuth();
   const [mode, setMode] = useState<ColorMode>('dark');
-  const [currentPage, setCurrentPage] = useState<string>('Dashboard');
   const theme = useMemo(() => createAppTheme(mode), [mode]);
   const toggleMode = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
-
-  const handlePageChange = (page: string) => {
-    setCurrentPage(page);
-  };
-
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'Kursanci':
-        return <Students />;
-      case 'Grupy':
-        return <Groups />;
-      case 'Administracja':
-        return <Administration />;
-      case 'Szablony':
-        return <TemplatesSettings />;
-      case 'Użytkownicy':
-        return <UsersManagement />;
-      case 'Classes':
-        return <Classes />;
-      case 'Finanse':
-        return <Finances />;
-      case 'Dashboard':
-        return <Dashboard />;
-      default:
-        return <Dashboard />;
-    }
-  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -61,9 +34,19 @@ function AppContent() {
         <Login />
       ) : (
         <Box className="App">
-          <TopBar mode={mode} onToggleTheme={toggleMode} onPageChange={handlePageChange} />
+          <TopBar mode={mode} onToggleTheme={toggleMode} />
           <Box component="main" sx={{ flexGrow: 1, width: '100%' }}>
-            {renderPage()}
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/students" element={<Students />} />
+              <Route path="/groups" element={<Groups />} />
+              <Route path="/classes" element={<Classes />} />
+              <Route path="/finances" element={<Finances />} />
+              <Route path="/templates" element={<TemplatesSettings />} />
+              <Route path="/users" element={<UsersManagement />} />
+              <Route path="/administration" element={<Administration />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </Box>
         </Box>
       )}

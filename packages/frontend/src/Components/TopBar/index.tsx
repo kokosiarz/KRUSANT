@@ -5,7 +5,6 @@ import IconButton from '@mui/material/IconButton';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-// import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
 import MenuIcon from '@mui/icons-material/Menu';
 import { TopBarProps } from './types';
@@ -13,7 +12,7 @@ import { useAuth } from '../../hooks/useAuth';
 import Menu from '../../Menu';
 import ProfilePanel from '../ProfilePanel';
 
-const TopBar: React.FC<TopBarProps> = ({ mode, onToggleTheme, onPageChange }) => {
+const TopBar: React.FC<TopBarProps> = ({ mode, onToggleTheme }) => {
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -25,13 +24,12 @@ const TopBar: React.FC<TopBarProps> = ({ mode, onToggleTheme, onPageChange }) =>
 
   return (
     <>
-      <Menu open={isMenuOpen} onClose={handleMenuClose} onPageChange={onPageChange} />
-      <ProfilePanel 
-        open={isProfileOpen} 
-        onClose={handleProfileClose} 
+      <Menu open={isMenuOpen} onClose={handleMenuClose} />
+      <ProfilePanel
+        open={isProfileOpen}
+        onClose={handleProfileClose}
         mode={mode}
         onToggleTheme={onToggleTheme}
-        onPageChange={onPageChange}
       />
 
       <AppBar position="static" elevation={0} color="primary">

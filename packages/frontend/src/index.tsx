@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 
 
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import ErrorBoundary from './Components/Common/ErrorBoundary';
 import reportWebVitals from './reportWebVitals';
@@ -32,7 +33,9 @@ root.render(
       <QueryClientProvider client={queryClient}>
         <SettingsProvider>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <App />
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
           </LocalizationProvider>
         </SettingsProvider>
       </QueryClientProvider>
