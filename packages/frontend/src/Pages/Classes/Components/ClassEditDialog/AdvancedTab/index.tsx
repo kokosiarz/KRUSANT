@@ -21,10 +21,12 @@ interface AdvancedTabProps {
 }
 
 export const AdvancedTab: React.FC<AdvancedTabProps> = ({ formClassData, onFieldChange, teacherList, roomsList, active }) => < Box
-    display={active ? "flex" : "none"}
-    flexDirection="column"
-    gap={2}
-    mt={1} >
+    sx={{
+      display: active ? "flex" : "none",
+      flexDirection: "column",
+      gap: 2,
+      mt: 1,
+    }} >
     <GroupSelector value={formClassData.groupId} onChange={value => onFieldChange('groupId', value)} />
     <DateTimePicker
         label="Data i godzina"

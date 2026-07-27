@@ -30,7 +30,7 @@ import { Debit } from './debits/debit.entity';
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      type: 'sqlite',
+      type: 'better-sqlite3',
       database: 'db.sqlite',
       // entities: ['dist/**/*.entity{.ts,.js}'],
       entities: [

@@ -31,7 +31,7 @@ export const PresenceCheckerTab: React.FC<PresenceCheckerTabProps> = ({
     );
 
     return (
-        <Box display={active ? 'block' : 'none'}>
+        <Box sx={{ display: active ? 'block' : 'none' }}>
             <StudentsSelector
                 studentIds={studentsToApprove || []}
                 setStudentIds={setStudentsToApprove}

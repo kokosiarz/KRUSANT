@@ -99,7 +99,7 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
         }}
       >
         <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" fontWeight={700}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Menu
           </Typography>
                   <IconButton onClick={onClose}>
@@ -132,7 +132,7 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
                     )}
                     <ListItemText
                       primary={item.label}
-                      primaryTypographyProps={{ fontWeight: 500 }}
+                      slotProps={{ primary: { sx: { fontWeight: 500 } } }}
                     />
                   </ListItemButton>
                 ))}

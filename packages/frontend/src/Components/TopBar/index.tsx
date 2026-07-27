@@ -40,7 +40,7 @@ const TopBar: React.FC<TopBarProps> = ({ mode, onToggleTheme }) => {
 
           <Box sx={{ flexGrow: 1 }} />
 
-          <Stack direction="row" spacing={1.5} alignItems="center">
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <Tooltip title="Profil">
               <IconButton onClick={handleProfileOpen} sx={{ p: 0.5 }}>
                 <Avatar

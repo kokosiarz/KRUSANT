@@ -80,7 +80,7 @@ const MetalCard = ({ metal, title, accentColor, purities }: MetalCardProps) => {
     >
       <CardContent sx={{ p: 3 }}>
         {/* Header */}
-        <Stack direction="row" alignItems="center" spacing={1.5} mb={2.5}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2.5 }}>
           <Box
             sx={{
               width: 8,

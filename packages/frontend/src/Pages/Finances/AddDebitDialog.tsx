@@ -71,7 +71,7 @@ const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit
           onChange={e => setDueDate(e.target.value)}
           fullWidth
           margin="normal"
-          InputLabelProps={{ shrink: true }}
+          slotProps={{ inputLabel: { shrink: true } }}
         />
         <TextField
           label="Komentarz"

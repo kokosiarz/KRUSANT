@@ -18,10 +18,10 @@ export class Student {
   @Column({ nullable: true })
   phone: string;
 
-  @OneToMany(() => Debit, (debit) => debit.student)
+  @OneToMany(() => Debit, (debit) => debit.studentId)
   debits: Debit[];
 
-  @OneToMany(() => Payment, (payment) => payment.student)
+  @OneToMany(() => Payment, (payment) => payment.studentId)
   payments: Payment[];
 
   @ManyToMany(() => ClassEntity, (classEntity) => classEntity.attendedStudentsIds)

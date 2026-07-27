@@ -20,9 +20,9 @@ const StudentsSelector: React.FC<StudentsSelectorProps> = ({ studentIds, setStud
       onChange={(_e, vals) => setStudentIds(vals.map(s => s.id))}
       loading={!!isLoading}
       getOptionLabel={(option) => option.name || option.email || `Kursant ${option.id}`}
-      renderTags={(selected, getTagProps) =>
+      renderValue={(selected, getItemProps) =>
         selected.map((option, index) => {
-          const tagProps = getTagProps({ index });
+          const tagProps = getItemProps({ index });
           const { key, ...restTagProps } = tagProps;
           return (
             <Chip

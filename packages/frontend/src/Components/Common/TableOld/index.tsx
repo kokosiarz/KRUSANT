@@ -62,7 +62,7 @@ function CommonTable<T>({
             {rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} align="center" sx={{ py: 4 }}>
-                  <Typography color="text.secondary" fontStyle="italic">
+                  <Typography color="text.secondary" sx={{ fontStyle: 'italic' }}>
                     {emptyMessage}
                   </Typography>
                 </TableCell>

@@ -5,7 +5,7 @@ import { Debit } from './debits/debit.entity';
 import { Payment } from './payments/payment.entity';
 
 export const AppDataSource = new DataSource({
-  type: 'sqlite', // change to your db type if needed
+  type: 'better-sqlite3', // change to your db type if needed
   database: '../db.sqlite', // adjust path if needed
   entities: [Group, Student, Debit, Payment], // add all your entities here
   migrations: ['src/migrations/*.ts'],

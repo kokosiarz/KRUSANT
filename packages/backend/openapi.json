@@ -2200,7 +2200,8 @@
         "type": "object",
         "properties": {
           "date": {
-            "type": "date",
+            "type": "string",
+            "format": "date",
             "example": "2026-01-15"
           },
           "amount": {
@@ -2248,7 +2249,8 @@
         "type": "object",
         "properties": {
           "date": {
-            "type": "date",
+            "type": "string",
+            "format": "date",
             "example": "2026-01-15"
           },
           "amount": {
@@ -2856,7 +2858,8 @@
         "type": "object",
         "properties": {
           "dueDate": {
-            "type": "date",
+            "type": "string",
+            "format": "date",
             "example": "2026-01-15"
           },
           "amount": {
@@ -2890,7 +2893,8 @@
         "type": "object",
         "properties": {
           "dueDate": {
-            "type": "date",
+            "type": "string",
+            "format": "date",
             "example": "2026-01-15"
           },
           "amount": {

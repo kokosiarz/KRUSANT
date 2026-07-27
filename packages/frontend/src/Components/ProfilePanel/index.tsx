@@ -72,13 +72,13 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
                     >
                         {user?.name?.charAt(0).toUpperCase() || '?'}
                     </Avatar>
-                    <Typography variant="h6" fontWeight={700} gutterBottom>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>
                         {user?.name || 'Gość'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                         {user?.email || 'Brak adresu e-mail'}
                     </Typography>
-                    <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1, flexWrap: 'wrap' }}>
+                    <Stack direction="row" spacing={1} sx={{ justifyContent: 'center', mt: 1, flexWrap: 'wrap' }}>
                         {(user?.roles ?? []).length > 0 ? (
                             (user?.roles ?? []).map((role) => (
                                 <Chip key={role} label={role} size="small" variant="outlined"/>

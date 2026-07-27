@@ -3,7 +3,7 @@ import { IsString, IsNumber, IsOptional, IsBoolean, IsIn, IsDateString } from 'c
 
 export class CreatePaymentDto {
 
-  @ApiProperty({ type: 'date', example: '2026-01-15' })
+  @ApiProperty({ type: 'string', format: 'date', example: '2026-01-15' })
   @IsDateString()
   date: string;
 

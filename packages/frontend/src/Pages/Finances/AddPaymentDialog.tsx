@@ -80,7 +80,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSu
           onChange={e => setDate(e.target.value)}
           fullWidth
           margin="normal"
-          InputLabelProps={{ shrink: true }}
+          slotProps={{ inputLabel: { shrink: true } }}
         />
         <FormControl fullWidth margin="normal">
           <InputLabel id="proof-type-label">Typ dowodu</InputLabel>

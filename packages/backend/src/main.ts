@@ -12,7 +12,7 @@ async function bootstrap() {
     abortOnError: false,
   });
 
-  app.set('trust proxy', 1);
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
   app.enableCors({
     origin: [

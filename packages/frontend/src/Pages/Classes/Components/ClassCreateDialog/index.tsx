@@ -128,7 +128,7 @@ export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, 
         <DialogTitle>Tworzenie zajęć</DialogTitle>
         <LoadingErrorHandler loading={isLoading} >
           <DialogContent>
-            <Box mt={1}>
+            <Box sx={{ mt: 1 }}>
               <GroupSelector value={selectedGroup} onChange={setSelectedGroup} />
               <BatchClassForm
                 selectedDate={selectedDate}

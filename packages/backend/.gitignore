@@ -3,6 +3,7 @@ dist
 build
 node_modules
 *.sqlite
+db-backups/
 .webpack
 *.ods
 openapi.json

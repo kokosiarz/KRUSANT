@@ -3,7 +3,7 @@ import { IsDateString, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateDebitDto {
 
-  @ApiProperty({ type: 'date', example: '2026-01-15' })
+  @ApiProperty({ type: 'string', format: 'date', example: '2026-01-15' })
   @IsDateString()
   dueDate: Date;
 

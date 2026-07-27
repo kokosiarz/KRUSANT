@@ -72,7 +72,7 @@ const GenerateOccurrencesDialog: React.FC<GenerateOccurrencesDialogProps> = ({
         type="number"
         value={occurrencesCount}
         onChange={e => setOccurrencesCount(Number(e.target.value))}
-        inputProps={{ min: 1, max: 100 }}
+        slotProps={{ htmlInput: { min: 1, max: 100 } }}
         fullWidth
         sx={{ mt: 2 }}
       />
