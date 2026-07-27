@@ -48,15 +48,31 @@ export function createColumns(
   ];
 
   if (showBalance) {
-    columns.splice(4, 0, {
-      id: 'balance',
-      label: 'Saldo',
-      render: (student: StudentWithBalance) => (
-        <span style={{ fontWeight: 'bold', color: student.balance < 0 ? 'red' : 'inherit' }}>
-          {student.balance.toFixed(2)} {currency}
-        </span>
-      ),
-    });
+    columns.splice(
+      4,
+      0,
+      {
+        id: 'balance',
+        label: 'Saldo',
+        render: (student: StudentWithBalance) => (
+          <span style={{ fontWeight: 'bold', color: student.balance < 0 ? 'red' : 'inherit' }}>
+            {student.balance.toFixed(2)} {currency}
+          </span>
+        ),
+      },
+      {
+        id: 'lessonsLeft',
+        label: 'Pozostałe zajęcia (szac.)',
+        render: (student: StudentWithBalance) =>
+          student.lessonsLeft == null ? (
+            '-'
+          ) : (
+            <span style={{ color: student.lessonsLeft <= 0 ? 'red' : 'inherit' }}>
+              {student.lessonsLeft}
+            </span>
+          ),
+      },
+    );
   }
 
   columns.push({

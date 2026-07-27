@@ -38,4 +38,6 @@ export interface StudentWithBalance {
   extraNotes: string;
   active: boolean;
   balance: number;
+  unitCost?: number | null;
+  lessonsLeft?: number | null;
 }

@@ -32,12 +32,28 @@ export class StudentsService {
         ` - COALESCE((SELECT SUM(d.amount) FROM debits d WHERE d."studentId" = student.id), 0)`,
         'balance',
       )
+      .addSelect(
+        `(SELECT g.unitCost FROM "group" g, json_each(g.studentIds) je` +
+        ` WHERE je.value = student.id AND g.isActive = 1 LIMIT 1)`,
+        'groupUnitCost',
+      )
       .from(Student, 'student');
     if (active !== undefined) {
       qb.where('student.active = :active', { active });
     }
-    const result = await qb.getRawMany<StudentWithBalanceDto>();
-    return result;
+    const rows = await qb.getRawMany<
+      StudentWithBalanceDto & { groupUnitCost: number | null }
+    >();
+    return rows.map(({ groupUnitCost, ...row }) => {
+      const baseRate = row.customRate ?? groupUnitCost ?? null;
+      const unitCost =
+        baseRate != null && row.discount
+          ? baseRate * (1 - Number(row.discount) / 100)
+          : baseRate;
+      const lessonsLeft =
+        unitCost && unitCost > 0 ? Math.floor(row.balance / unitCost) : null;
+      return { ...row, unitCost, lessonsLeft };
+    });
   }
 
   async findAll(active?: boolean): Promise<Student[]> {
