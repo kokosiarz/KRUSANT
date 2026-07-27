@@ -1855,9 +1855,6 @@
           "phone": {
             "type": "string"
           },
-          "customRate": {
-            "type": "number"
-          },
           "discount": {
             "type": "number"
           },
@@ -1875,7 +1872,7 @@
           },
           "unitCost": {
             "type": "object",
-            "description": "Effective per-lesson rate used to estimate lessonsLeft (customRate, or the active group's unitCost, with discount applied)"
+            "description": "Effective per-lesson rate used to estimate lessonsLeft (the student's active group's unitCost, with discount applied)"
           },
           "lessonsLeft": {
             "type": "object",
@@ -1887,7 +1884,6 @@
           "name",
           "email",
           "phone",
-          "customRate",
           "discount",
           "semester",
           "extraNotes",
@@ -2058,11 +2054,6 @@
               "$ref": "#/components/schemas/DebitDto"
             }
           },
-          "customRate": {
-            "type": "number",
-            "description": "Custom rate for this student",
-            "example": 50
-          },
           "discount": {
             "type": "number",
             "description": "Discount percentage",
@@ -2161,11 +2152,6 @@
             "items": {
               "$ref": "#/components/schemas/DebitDto"
             }
-          },
-          "customRate": {
-            "type": "number",
-            "description": "Custom rate for this student",
-            "example": 50
           },
           "discount": {
             "type": "number",

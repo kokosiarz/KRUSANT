@@ -7,7 +7,6 @@ export interface CreateStudentRequest {
   phone?: string;
   payments: any[];
   classes: any[];
-  customRate?: number;
   discount?: number;
   semester: string;
   extraNotes: string;
@@ -20,7 +19,6 @@ export interface UpdateStudentRequest {
   phone?: string;
   payments?: any[];
   classes?: any[];
-  customRate?: number;
   discount?: number;
   semester?: string;
   extraNotes?: string;

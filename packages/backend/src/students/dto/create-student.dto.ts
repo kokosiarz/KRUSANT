@@ -109,15 +109,6 @@ export class CreateStudentDto {
   @Type(() => DebitDto)
   debits?: DebitDto[];
 
-  @ApiPropertyOptional({
-    description: 'Custom rate for this student',
-    example: 50.0,
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  customRate?: number;
-
   @ApiPropertyOptional({ description: 'Discount percentage', example: 10.0 })
   @IsOptional()
   @IsNumber()

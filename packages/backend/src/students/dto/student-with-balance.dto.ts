@@ -14,9 +14,6 @@ export class StudentWithBalanceDto {
   phone?: string;
 
   @ApiProperty()
-  customRate?: number;
-
-  @ApiProperty()
   discount?: number;
 
   @ApiProperty()
@@ -31,7 +28,7 @@ export class StudentWithBalanceDto {
   @ApiProperty()
   balance: number;
 
-  @ApiProperty({ description: 'Effective per-lesson rate used to estimate lessonsLeft (customRate, or the active group\'s unitCost, with discount applied)' })
+  @ApiProperty({ description: 'Effective per-lesson rate used to estimate lessonsLeft (the student\'s active group\'s unitCost, with discount applied)' })
   unitCost?: number | null;
 
   @ApiProperty({ description: 'Estimated number of lessons still covered by the current balance (balance / unitCost, floored). Null when no rate could be determined.' })

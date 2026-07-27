@@ -28,9 +28,6 @@ export class Student {
   @JoinTable()
   classes: ClassEntity[];
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  customRate: number;
-
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   discount: number;
 

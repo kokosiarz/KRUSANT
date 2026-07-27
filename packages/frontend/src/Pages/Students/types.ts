@@ -19,7 +19,6 @@ export interface Student {
   phone: string;
   payments: Payment[];
   classes: Class[];
-  customRate: number | null;
   discount: number | null;
   semester: string;
   extraNotes: string;
@@ -32,7 +31,6 @@ export interface StudentWithBalance {
   name: string;
   email: string;
   phone?: string;
-  customRate?: number;
   discount?: number;
   semester: string;
   extraNotes: string;

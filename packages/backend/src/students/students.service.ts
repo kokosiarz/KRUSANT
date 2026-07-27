@@ -22,7 +22,6 @@ export class StudentsService {
       .addSelect('student.name', 'name')
       .addSelect('student.email', 'email')
       .addSelect('student.phone', 'phone')
-      .addSelect('student.customRate', 'customRate')
       .addSelect('student.discount', 'discount')
       .addSelect('student.semester', 'semester')
       .addSelect('student.extraNotes', 'extraNotes')
@@ -45,7 +44,7 @@ export class StudentsService {
       StudentWithBalanceDto & { groupUnitCost: number | null }
     >();
     return rows.map(({ groupUnitCost, ...row }) => {
-      const baseRate = row.customRate ?? groupUnitCost ?? null;
+      const baseRate = groupUnitCost ?? null;
       const unitCost =
         baseRate != null && row.discount
           ? baseRate * (1 - Number(row.discount) / 100)
