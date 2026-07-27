@@ -215,7 +215,7 @@ export default function MetalPricesWidget() {
           metal="silver"
           title="Srebro"
           accentColor={theme.palette.mode === 'dark' ? '#A8A8A8' : '#6B6B6B'}
-          purities={[{ label: 'Ag 999', multiplier: 1 }]}
+          purities={[{ label: 'Ag 925', multiplier: 1 }]}
         />
       </Stack>
     </Box>

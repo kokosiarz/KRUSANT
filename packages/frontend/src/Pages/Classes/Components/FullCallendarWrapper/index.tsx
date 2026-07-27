@@ -7,6 +7,7 @@ import { useClassEventsWithNames } from './hooks/useClassEventsWithNames';
 import plLocale from '@fullcalendar/core/locales/pl';
 import { Class } from '@/api/endpoints/classes';
 import { EventClickArg } from '@fullcalendar/core';
+import EventContent from './EventContent';
 
 interface FullCalendarWrapperProps {
     classes: Class[];
@@ -45,6 +46,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                 dateClick={handleDateClick}
                 eventDragStop={onEventDragStop}
                 nowIndicator={true}
+                eventContent={(arg) => <EventContent timeText={arg.timeText} event={arg.event} />}
             />
         </StyledCalendarWrapper>
     );
