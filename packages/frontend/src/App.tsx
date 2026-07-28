@@ -6,6 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import './App.css';
 import TopBar from './Components/TopBar';
+import RequireRole from './Components/RequireRole';
 import Login from './Pages/Login';
 import Students from './Pages/Students';
 import Groups from './Pages/Groups';
@@ -43,13 +44,62 @@ function AppContent() {
           <Box component="main" sx={{ flexGrow: 1, width: '100%' }}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/students" element={<Students />} />
-              <Route path="/groups" element={<Groups />} />
-              <Route path="/classes" element={<Classes />} />
-              <Route path="/finances" element={<Finances />} />
-              <Route path="/templates" element={<TemplatesSettings />} />
-              <Route path="/users" element={<UsersManagement />} />
-              <Route path="/administration" element={<Administration />} />
+              <Route
+                path="/students"
+                element={
+                  <RequireRole roles={['admin', 'teacher']}>
+                    <Students />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/groups"
+                element={
+                  <RequireRole roles={['admin', 'teacher']}>
+                    <Groups />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/classes"
+                element={
+                  <RequireRole roles={['admin', 'teacher']}>
+                    <Classes />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/finances"
+                element={
+                  <RequireRole roles={['admin']}>
+                    <Finances />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/templates"
+                element={
+                  <RequireRole roles={['admin']}>
+                    <TemplatesSettings />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <RequireRole roles={['admin']}>
+                    <UsersManagement />
+                  </RequireRole>
+                }
+              />
+              <Route
+                path="/administration"
+                element={
+                  <RequireRole roles={['admin']}>
+                    <Administration />
+                  </RequireRole>
+                }
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>

@@ -50,8 +50,8 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
     {
       title: 'Administracja',
       items: [
-        { label: 'Szablony', path: '/templates', roles: ['admin', 'teacher'], icon: <LayersIcon /> },
-        { label: 'Finanse', path: '/finances', roles: ['admin', 'teacher'], icon: <PaidIcon /> },
+        { label: 'Szablony', path: '/templates', roles: ['admin'], icon: <LayersIcon /> },
+        { label: 'Finanse', path: '/finances', roles: ['admin'], icon: <PaidIcon /> },
         { label: 'Użytkownicy', path: '/users', roles: ['admin'], icon: <PeopleIcon /> },
         { label: 'Administracja', path: '/administration', roles: ['admin'], icon: <SettingsIcon /> },
       ],
