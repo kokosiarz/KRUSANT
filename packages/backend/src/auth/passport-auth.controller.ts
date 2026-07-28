@@ -11,6 +11,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { PassportJwtAuthGuard } from './guards/passport-jwt.guard';
 import { PassportLocalGuard } from './guards/passport-local.guard';
@@ -45,6 +46,7 @@ export class PassportAuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @UseGuards(PassportLocalGuard)
   async login(@Request() request, @Response({ passthrough: true }) response) {
     const token = await this.authService.getToken(request.user);

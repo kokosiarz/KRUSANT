@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { StudentsModule } from './students/students.module';
@@ -22,6 +23,7 @@ import { entities } from './entities';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: 'db.sqlite',
@@ -45,6 +47,9 @@ import { entities } from './entities';
   providers: [
     AppService,
     AuthService,
+    // Ordered first so a hammered login gets rate-limited before it even
+    // reaches the auth/roles guards.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: PassportJwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
