@@ -15,9 +15,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 // cascade-delete the very group_students/group_classes rows this migration
 // depends on (verified empirically). Never dropping/recreating "group"
 // itself sidesteps that footgun entirely.
-export class GroupMembershipJoinTables1785271000000
-  implements MigrationInterface
-{
+export class GroupMembershipJoinTables1785271000000 implements MigrationInterface {
   name = 'GroupMembershipJoinTables1785271000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

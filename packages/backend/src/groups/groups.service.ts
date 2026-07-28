@@ -1,6 +1,16 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, DeepPartial, EntityManager, In, Repository } from 'typeorm';
+import {
+  DataSource,
+  DeepPartial,
+  EntityManager,
+  In,
+  Repository,
+} from 'typeorm';
 import { Group } from './group.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -132,16 +142,18 @@ export class GroupsService {
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Group);
       if (Object.keys(rest).length > 0) {
-        await repo.update(id, rest as DeepPartial<Group>);
+        await repo.update(id, rest);
       }
       await this.syncMembership(manager, id, studentIds, classIds);
       return this.loadOneWithMembership(repo, id);
     });
   }
 
-  async batchUpsert(
-    groups: CreateGroupDto[],
-  ): Promise<{ created: number; updated: number; items: GroupWithMembership[] }> {
+  async batchUpsert(groups: CreateGroupDto[]): Promise<{
+    created: number;
+    updated: number;
+    items: GroupWithMembership[];
+  }> {
     const patched: CreateGroupDto[] = [];
     for (const groupDto of groups) {
       const patchedDto = await this.applyCourseDefaults(groupDto);
@@ -154,9 +166,7 @@ export class GroupsService {
 
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Group);
-      const names = patched
-        .map((g) => g.name)
-        .filter((n): n is string => !!n);
+      const names = patched.map((g) => g.name).filter((n): n is string => !!n);
       const existing = names.length
         ? await repo.find({ where: { name: In(names) } })
         : [];
@@ -170,7 +180,9 @@ export class GroupsService {
         const match = dto.name ? existingByName.get(dto.name) : undefined;
         let saved: Group;
         if (match) {
-          saved = await repo.save(repo.merge(match, rest as DeepPartial<Group>));
+          saved = await repo.save(
+            repo.merge(match, rest as DeepPartial<Group>),
+          );
           updated++;
         } else {
           saved = await repo.save(repo.create(rest as DeepPartial<Group>));

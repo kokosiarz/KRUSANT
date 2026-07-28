@@ -1,5 +1,11 @@
-import { NotFoundException } from '@nestjs/common';
-import { DeepPartial, FindOptionsWhere, In, Repository } from 'typeorm';
+import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  DeepPartial,
+  FindOptionsWhere,
+  In,
+  QueryFailedError,
+  Repository,
+} from 'typeorm';
 
 export interface BaseCrudOptions<TEntity> {
   /** Used in the NotFoundException message, e.g. "Room 4 not found". */
@@ -45,7 +51,19 @@ export abstract class BaseCrudService<TEntity extends { id: number }> {
   }
 
   async remove(id: number): Promise<void> {
-    await this.repository.delete(id);
+    try {
+      await this.repository.delete(id);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        /FOREIGN KEY constraint failed/i.test(error.message)
+      ) {
+        throw new ConflictException(
+          `Cannot delete ${this.options.entityName} ${id}: it is still referenced by other records.`,
+        );
+      }
+      throw error;
+    }
   }
 
   /**
