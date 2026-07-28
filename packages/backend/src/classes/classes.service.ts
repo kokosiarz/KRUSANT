@@ -1,4 +1,9 @@
-import { Injectable, Inject, forwardRef, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  forwardRef,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 import { ClassEntity } from './class.entity';
@@ -70,7 +75,9 @@ export class ClassesService {
     attendedStudentsIds: number[],
   ): Promise<{ class: ClassEntity; createdDebits: Debit[] }> {
     const cleanAttendedIds = Array.isArray(attendedStudentsIds)
-      ? attendedStudentsIds.map(Number).filter((v) => typeof v === 'number' && !isNaN(v))
+      ? attendedStudentsIds
+          .map(Number)
+          .filter((v) => typeof v === 'number' && !isNaN(v))
       : [];
 
     return this.dataSource.transaction(async (manager) => {
@@ -99,17 +106,25 @@ export class ClassesService {
 
       // One query for every debit already tied to this class, instead of the
       // whole debits table re-fetched once per attending student.
-      const existingDebits = await debitRepo.find({ where: { classId: classEntity.id } });
-      const existingByStudentId = new Map(existingDebits.map((d) => [d.studentId, d]));
+      const existingDebits = await debitRepo.find({
+        where: { classId: classEntity.id },
+      });
+      const existingByStudentId = new Map(
+        existingDebits.map((d) => [d.studentId, d]),
+      );
 
       // A student un-marked after previously being marked present should have
       // the debit that marking created removed, not left behind forever.
-      const toRemove = existingDebits.filter((d) => !cleanAttendedIds.includes(d.studentId));
+      const toRemove = existingDebits.filter(
+        (d) => !cleanAttendedIds.includes(d.studentId),
+      );
       if (toRemove.length > 0) {
         await debitRepo.remove(toRemove);
       }
 
-      const studentIdsNeedingDebits = cleanAttendedIds.filter((sid) => !existingByStudentId.has(sid));
+      const studentIdsNeedingDebits = cleanAttendedIds.filter(
+        (sid) => !existingByStudentId.has(sid),
+      );
       const students = studentIdsNeedingDebits.length
         ? await studentRepo.find({ where: { id: In(studentIdsNeedingDebits) } })
         : [];
@@ -119,14 +134,21 @@ export class ClassesService {
       for (const studentId of studentIdsNeedingDebits) {
         const student = studentById.get(studentId);
         let amount = classEntity.cost;
-        if (student && typeof student.discount === 'number' && !isNaN(student.discount)) {
-          amount = (Number(classEntity.cost) * (100 - Number(student.discount))) / 100;
+        if (
+          student &&
+          typeof student.discount === 'number' &&
+          !isNaN(student.discount)
+        ) {
+          amount =
+            (Number(classEntity.cost) * (100 - Number(student.discount))) / 100;
         }
         const debit = debitRepo.create({
           studentId,
           classId: classEntity.id,
           amount,
-          dueDate: classEntity.startTime ? new Date(classEntity.startTime) : new Date(),
+          dueDate: classEntity.startTime
+            ? new Date(classEntity.startTime)
+            : new Date(),
           entitlement: `${groupName} @ ${new Date(classEntity.startTime).toLocaleString('pl-PL')}`,
         });
         createdDebits.push(await debitRepo.save(debit));

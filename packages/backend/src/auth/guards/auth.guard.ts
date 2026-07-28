@@ -25,8 +25,8 @@ export class AuthGuard implements CanActivate {
         teacherId?: number | null;
         studentId?: number | null;
       }>(accessToken);
-      request.user = { 
-        id: tokenPayload.sub, 
+      request.user = {
+        id: tokenPayload.sub,
         email: tokenPayload.email,
         roles: tokenPayload.roles ?? [],
         teacherId: tokenPayload.teacherId ?? null,

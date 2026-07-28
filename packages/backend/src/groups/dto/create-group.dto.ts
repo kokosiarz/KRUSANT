@@ -51,7 +51,8 @@ export class CreateGroupDto {
   courseId?: number;
 
   @ApiPropertyOptional({
-    description: 'Group name (defaults to the course name if courseId is given)',
+    description:
+      'Group name (defaults to the course name if courseId is given)',
     example: 'Group A',
   })
   @IsOptional()
@@ -167,8 +168,11 @@ export class CreateGroupDto {
   @IsOptional()
   @IsNumber()
   roomId?: number;
-  
-  @ApiPropertyOptional({ description: 'Number of hours for the group', example: 40 })
+
+  @ApiPropertyOptional({
+    description: 'Number of hours for the group',
+    example: 40,
+  })
   @IsOptional()
   @IsInt()
   @Min(0)

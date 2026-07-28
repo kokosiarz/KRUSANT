@@ -69,7 +69,10 @@ export class ClassesController {
   @ApiBody({ type: UpdateClassDto })
   @ApiResponse({ status: 200, description: 'Class updated' })
   @Patch(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateClassDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateClassDto,
+  ) {
     return await this.classesService.update(id, body);
   }
 
@@ -85,7 +88,10 @@ export class ClassesController {
   @ApiOperation({ summary: 'Set attendance for a class' })
   @ApiParam({ name: 'id', description: 'Class ID' })
   @ApiBody({ type: [Number] })
-  @ApiResponse({ status: 200, description: 'Attendance set, returns class and created debits' })
+  @ApiResponse({
+    status: 200,
+    description: 'Attendance set, returns class and created debits',
+  })
   @Roles(Role.Admin, Role.Teacher) // marking attendance is a normal teaching-day task, not an admin one
   @Post(':id/attendance')
   async setAttendance(

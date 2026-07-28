@@ -57,7 +57,10 @@ export class GroupTemplatesController {
   @ApiBody({ type: UpdateGroupTemplateDto })
   @ApiResponse({ status: 200, description: 'Group template updated' })
   @Patch(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateGroupTemplateDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateGroupTemplateDto,
+  ) {
     return await this.groupTemplatesService.update(id, body);
   }
 

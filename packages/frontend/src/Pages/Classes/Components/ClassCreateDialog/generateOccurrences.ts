@@ -11,12 +11,12 @@ export function generateOccurrences(
   occurrencesCount: number,
   skipHolidays: boolean = true
 ): string[] {
-  let occ: string[] = [];
+  const occ: string[] = [];
   let d = selectedDate.hour(selectedHour.hour()).minute(selectedHour.minute());
   let count = 0;
   while (occ.length < occurrencesCount) {
     const dayOfWeek = d.day();
-    let add = false;
+    let add: boolean;
     switch (reocurrance) {
       case 'none':
         add = occ.length === 0;

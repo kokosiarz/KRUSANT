@@ -17,8 +17,11 @@ export class GroupTemplatesService {
   }
 
   async findOne(id: number): Promise<GroupTemplate> {
-    const template = await this.groupTemplateRepository.findOne({ where: { id } });
-    if (!template) throw new NotFoundException(`Group template ${id} not found`);
+    const template = await this.groupTemplateRepository.findOne({
+      where: { id },
+    });
+    if (!template)
+      throw new NotFoundException(`Group template ${id} not found`);
     return template;
   }
 

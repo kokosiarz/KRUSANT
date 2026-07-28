@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, Delete, Put } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseIntPipe,
+  Delete,
+  Put,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { Payment } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
@@ -23,7 +38,11 @@ export class PaymentsController {
 
   @Get()
   @ApiOperation({ summary: 'Get all payments' })
-  @ApiResponse({ status: 200, description: 'List of payments', type: [Payment] })
+  @ApiResponse({
+    status: 200,
+    description: 'List of payments',
+    type: [Payment],
+  })
   findAll() {
     return this.paymentsService.findAll();
   }
@@ -31,7 +50,11 @@ export class PaymentsController {
   @Get('student/:studentId')
   @ApiOperation({ summary: 'Get payments by student id' })
   @ApiParam({ name: 'studentId', type: Number })
-  @ApiResponse({ status: 200, description: 'Payments for student', type: [Payment] })
+  @ApiResponse({
+    status: 200,
+    description: 'Payments for student',
+    type: [Payment],
+  })
   findByStudent(@Param('studentId', ParseIntPipe) studentId: number) {
     return this.paymentsService.findByStudent(studentId);
   }
@@ -49,7 +72,10 @@ export class PaymentsController {
   @ApiParam({ name: 'id', type: Number })
   @ApiBody({ type: UpdatePaymentDto })
   @ApiResponse({ status: 200, description: 'Payment updated', type: Payment })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateData: UpdatePaymentDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateData: UpdatePaymentDto,
+  ) {
     return this.paymentsService.update(id, updateData);
   }
 

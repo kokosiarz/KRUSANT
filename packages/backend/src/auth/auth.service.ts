@@ -34,10 +34,10 @@ export class AuthService {
       const teacher = await this.teachersService.findOneById(user.teacherId);
       if (teacher?.name) name = teacher.name;
     }
-    return { 
-      id: user.id, 
-      email: user.email, 
-      name, 
+    return {
+      id: user.id,
+      email: user.email,
+      name,
       roles: user.roles ?? [],
       teacherId: user.teacherId ?? null,
       studentId: user.studentId ?? null,
@@ -66,7 +66,7 @@ export class AuthService {
   }): Promise<SignInData> {
     // Check if user exists by email
     let user = await this.usersService.findByEmail(profile.email);
-    
+
     if (!user) {
       // Create new user with Google profile
       user = await this.usersService.create({
@@ -93,5 +93,4 @@ export class AuthService {
       studentId: user.studentId ?? null,
     };
   }
-
 }

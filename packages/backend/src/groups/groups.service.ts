@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './group.entity';
@@ -15,15 +19,20 @@ export class GroupsService {
     private courseRepository: Repository<Course>,
   ) {}
 
-  private async applyCourseDefaults(dto: CreateGroupDto): Promise<CreateGroupDto> {
+  private async applyCourseDefaults(
+    dto: CreateGroupDto,
+  ): Promise<CreateGroupDto> {
     if (!dto.courseId) return dto;
-    const course = await this.courseRepository.findOne({ where: { id: dto.courseId } });
+    const course = await this.courseRepository.findOne({
+      where: { id: dto.courseId },
+    });
     if (!course) {
       throw new BadRequestException('Course not found');
     }
     const patched: CreateGroupDto = { ...dto };
     if (!patched.name) patched.name = course.name;
-    if (patched.cost === undefined || patched.cost === null) patched.cost = Number(course.cost);
+    if (patched.cost === undefined || patched.cost === null)
+      patched.cost = Number(course.cost);
     if (patched.unitCost === undefined || patched.unitCost === null) {
       const hours = Number(course.numberOfHours);
       const cost = Number(course.cost);

@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsEmail, IsArray, IsOptional, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsArray,
+  IsOptional,
+  IsNumber,
+} from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ description: 'User email', example: 'user@example.com' })
@@ -10,18 +16,28 @@ export class CreateUserDto {
   @IsString()
   password: string;
 
-  @ApiPropertyOptional({ description: 'User roles', example: ['teacher','admin'], type: [String] })
+  @ApiPropertyOptional({
+    description: 'User roles',
+    example: ['teacher', 'admin'],
+    type: [String],
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   roles?: string[];
 
-  @ApiPropertyOptional({ description: 'Teacher ID if linking to teacher profile', example: 1 })
+  @ApiPropertyOptional({
+    description: 'Teacher ID if linking to teacher profile',
+    example: 1,
+  })
   @IsOptional()
   @IsNumber()
   teacherId?: number;
 
-  @ApiPropertyOptional({ description: 'Student ID if linking to student profile', example: 1 })
+  @ApiPropertyOptional({
+    description: 'Student ID if linking to student profile',
+    example: 1,
+  })
   @IsOptional()
   @IsNumber()
   studentId?: number;

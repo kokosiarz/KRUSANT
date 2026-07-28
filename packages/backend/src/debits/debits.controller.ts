@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Put, Delete, Param, ParseIntPipe, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  ParseIntPipe,
+  Body,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { DebitsService } from './debits.service';
 import { Debit } from './debit.entity';
 import { CreateDebitDto } from './dto/create-debit.dto';
@@ -41,7 +56,10 @@ export class DebitsController {
   @ApiParam({ name: 'id', type: Number })
   @ApiBody({ type: UpdateDebitDto })
   @ApiResponse({ status: 200, description: 'Debit updated', type: Debit })
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateData: UpdateDebitDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateData: UpdateDebitDto,
+  ) {
     return this.debitsService.update(id, updateData);
   }
 

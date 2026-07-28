@@ -28,12 +28,12 @@ export class StudentsService {
       .addSelect('student.active', 'active')
       .addSelect(
         `COALESCE((SELECT SUM(p.amount) FROM payment p WHERE p."studentId" = student.id), 0)` +
-        ` - COALESCE((SELECT SUM(d.amount) FROM debits d WHERE d."studentId" = student.id), 0)`,
+          ` - COALESCE((SELECT SUM(d.amount) FROM debits d WHERE d."studentId" = student.id), 0)`,
         'balance',
       )
       .addSelect(
         `(SELECT g.unitCost FROM "group" g, json_each(g.studentIds) je` +
-        ` WHERE je.value = student.id AND g.isActive = 1 LIMIT 1)`,
+          ` WHERE je.value = student.id AND g.isActive = 1 LIMIT 1)`,
         'groupUnitCost',
       )
       .from(Student, 'student');

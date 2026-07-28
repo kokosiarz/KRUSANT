@@ -1,5 +1,23 @@
-import { Body, Controller, Param, ParseIntPipe, Get, Post, Patch, Delete, UseGuards, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Param,
+  ParseIntPipe,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  UseGuards,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -62,7 +80,10 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated' })
   @Roles(Role.Admin)
   @Patch(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateUserDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateUserDto,
+  ) {
     const user = await this.usersService.update(id, body);
     if (!user) throw new NotFoundException('User not found');
     const { passwordHash, ...result } = user;
@@ -75,7 +96,10 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Password reset' })
   @Roles(Role.Admin)
   @Post(':id/reset-password')
-  async resetPassword(@Param('id', ParseIntPipe) id: number, @Body() body: ResetPasswordDto) {
+  async resetPassword(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: ResetPasswordDto,
+  ) {
     await this.usersService.setPassword(id, body.newPassword);
     return { message: 'Password reset successfully' };
   }

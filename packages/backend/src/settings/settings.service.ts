@@ -15,7 +15,11 @@ export class SettingsService {
     // Ensure a single settings row exists (id = 1)
     let current = await this.repo.findOne({ where: { id: 1 } });
     if (!current) {
-      current = this.repo.create({ id: 1, institutionName: 'Institution', currency: 'PLN' });
+      current = this.repo.create({
+        id: 1,
+        institutionName: 'Institution',
+        currency: 'PLN',
+      });
       await this.repo.save(current);
     }
     return current;

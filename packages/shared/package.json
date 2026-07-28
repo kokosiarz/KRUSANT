@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "main": "index.ts",
   "types": "index.ts",
-  "license": "MIT"
-  ,
+  "license": "MIT",
   "scripts": {
-    "lint": "eslint . --ext .ts --fix"
+    "lint": "eslint . --fix"
   }
 }

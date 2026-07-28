@@ -95,7 +95,7 @@ return (
         {/* </Stack> */}
         <Stack spacing={1.5}>
             {steps.map(({ step }: { step: string }) => {
-                if (!stepFieldMap.hasOwnProperty(step)) return null;
+                if (!Object.prototype.hasOwnProperty.call(stepFieldMap, step)) return null;
                 const value = stepFieldMap[step];
                 // Show all fields, indicate if not set
                 const isUnset =

@@ -71,7 +71,10 @@ export class GroupsController {
   @ApiBody({ type: UpdateGroupDto })
   @ApiResponse({ status: 200, description: 'Group updated' })
   @Patch(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() group: UpdateGroupDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() group: UpdateGroupDto,
+  ) {
     return await this.groupsService.update(id, group);
   }
 

@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import { randomBytes, scrypt as scryptCallback, timingSafeEqual, ScryptOptions } from 'crypto';
+import {
+  randomBytes,
+  scrypt as scryptCallback,
+  timingSafeEqual,
+  ScryptOptions,
+} from 'crypto';
 
 // Pinned explicitly (these match Node's current scrypt defaults) so a future
 // change to Node's defaults can't silently change what a stored hash means.
@@ -10,7 +15,12 @@ const SCRYPT_OPTIONS: ScryptOptions = { N: 16384, r: 8, p: 1 };
 const SCRYPT_KEYLEN = 32;
 const SALT_BYTES = 16;
 
-function scrypt(password: string, salt: string, keylen: number, options: ScryptOptions): Promise<Buffer> {
+function scrypt(
+  password: string,
+  salt: string,
+  keylen: number,
+  options: ScryptOptions,
+): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     scryptCallback(password, salt, keylen, options, (err, derivedKey) => {
       if (err) reject(err);
@@ -38,16 +48,30 @@ export class UsersService {
     return this.usersRepo.find();
   }
 
-  async create(params: { 
-    email: string; 
-    password?: string; 
-    roles?: string[]; 
+  async create(params: {
+    email: string;
+    password?: string;
+    roles?: string[];
     teacherId?: number | null;
     studentId?: number | null;
   }): Promise<User> {
-    const { email, password, roles = [], teacherId = null, studentId = null } = params;
-    const passwordHash = password ? await this.hashPassword(password) : await this.hashPassword(this.generateTempPassword());
-    const user = this.usersRepo.create({ email, passwordHash, roles: roles, teacherId, studentId });
+    const {
+      email,
+      password,
+      roles = [],
+      teacherId = null,
+      studentId = null,
+    } = params;
+    const passwordHash = password
+      ? await this.hashPassword(password)
+      : await this.hashPassword(this.generateTempPassword());
+    const user = this.usersRepo.create({
+      email,
+      passwordHash,
+      roles: roles,
+      teacherId,
+      studentId,
+    });
     return this.usersRepo.save(user);
   }
 
@@ -56,20 +80,25 @@ export class UsersService {
     await this.usersRepo.update(userId, { passwordHash });
   }
 
-  async update(userId: number, params: { 
-    email?: string; 
-    password?: string; 
-    roles?: string[]; 
-    teacherId?: number | null;
-    studentId?: number | null;
-  }): Promise<User> {
+  async update(
+    userId: number,
+    params: {
+      email?: string;
+      password?: string;
+      roles?: string[];
+      teacherId?: number | null;
+      studentId?: number | null;
+    },
+  ): Promise<User> {
     const updates: any = {};
     if (params.email) updates.email = params.email;
-    if (params.password) updates.passwordHash = await this.hashPassword(params.password);
-    if (params.roles !== undefined) updates.roles = params.roles.map(r => r.toLowerCase());
+    if (params.password)
+      updates.passwordHash = await this.hashPassword(params.password);
+    if (params.roles !== undefined)
+      updates.roles = params.roles.map((r) => r.toLowerCase());
     if (params.teacherId !== undefined) updates.teacherId = params.teacherId;
     if (params.studentId !== undefined) updates.studentId = params.studentId;
-    
+
     await this.usersRepo.update(userId, updates);
     return this.findById(userId);
   }
@@ -83,7 +112,12 @@ export class UsersService {
     const [salt, storedHashHex] = user.passwordHash.split('.');
     if (!salt || !storedHashHex) return false;
     const storedHash = Buffer.from(storedHashHex, 'hex');
-    const hash = await scrypt(password, salt, storedHash.length, SCRYPT_OPTIONS);
+    const hash = await scrypt(
+      password,
+      salt,
+      storedHash.length,
+      SCRYPT_OPTIONS,
+    );
     if (hash.length !== storedHash.length) return false;
     return timingSafeEqual(hash, storedHash);
   }

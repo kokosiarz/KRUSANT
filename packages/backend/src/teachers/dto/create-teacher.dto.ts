@@ -9,7 +9,7 @@ export class CreateTeacherDto {
   @IsString()
   @IsNotEmpty()
   name: string;
-  
+
   @ApiProperty({ description: 'Teacher email', example: 'teacher@example.com' })
   @IsEmail()
   email: string;

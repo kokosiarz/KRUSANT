@@ -1,19 +1,8 @@
-import { defineConfig } from 'eslint-define-config';
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
 
-export default defineConfig({
-  extends: [
-    'airbnb-base',
-    'airbnb-typescript/base',
-  ],
-  parserOptions: {
-    project: './tsconfig.json',
-  },
-  settings: {
-    'import/resolver': {
-      typescript: {},
-    },
-  },
-  rules: {
-    // Override Airbnb rules for shared code if needed
-  },
-});
+export default tseslint.config(
+  { ignores: ['node_modules/**'] },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+);

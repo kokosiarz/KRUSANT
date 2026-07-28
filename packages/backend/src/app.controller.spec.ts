@@ -15,7 +15,9 @@ describe('AppController', () => {
   describe('getHello', () => {
     it('should return "Nothing to be seen here. Move along."', () => {
       const appController = app.get(AppController);
-      expect(appController.getHello()).toBe('Nothing to be seen here. Move along.');
+      expect(appController.getHello()).toBe(
+        'Nothing to be seen here. Move along.',
+      );
     });
   });
 });

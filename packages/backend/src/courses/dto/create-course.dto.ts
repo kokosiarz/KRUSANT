@@ -24,7 +24,10 @@ export class CreateCourseDto {
   @Min(0)
   numberOfHours: number;
 
-  @ApiProperty({ description: 'Length of each lesson as time (HH:mm or HH:mm:ss)', example: '02:30' })
+  @ApiProperty({
+    description: 'Length of each lesson as time (HH:mm or HH:mm:ss)',
+    example: '02:30',
+  })
   @IsString()
   lessonLength: string;
 
@@ -35,10 +38,5 @@ export class CreateCourseDto {
   })
   @IsIn(['workdays', 'weekends', 'everyday', 'weekly', 'biweekly', 'monthly'])
   pattern:
-    | 'workdays'
-    | 'weekends'
-    | 'everyday'
-    | 'weekly'
-    | 'biweekly'
-    | 'monthly';
+    'workdays' | 'weekends' | 'everyday' | 'weekly' | 'biweekly' | 'monthly';
 }

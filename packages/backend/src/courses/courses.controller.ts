@@ -58,7 +58,10 @@ export class CoursesController {
   @ApiBody({ type: UpdateCourseDto })
   @ApiResponse({ status: 200, description: 'Course updated' })
   @Patch(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() course: UpdateCourseDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() course: UpdateCourseDto,
+  ) {
     return await this.coursesService.update(id, course);
   }
 

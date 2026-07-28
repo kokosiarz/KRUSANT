@@ -24,7 +24,10 @@ export class PaymentDto {
   @Min(0)
   amount: number;
 
-  @ApiPropertyOptional({ description: 'Payment comment', example: 'Monthly payment' })
+  @ApiPropertyOptional({
+    description: 'Payment comment',
+    example: 'Monthly payment',
+  })
   @IsOptional()
   @IsString()
   comment?: string;
@@ -40,7 +43,11 @@ export class ClassDto {
   @Min(0)
   cost: number;
 
-  @ApiProperty({ description: 'Class type', example: 'attended', enum: ['attended', 'missed'] })
+  @ApiProperty({
+    description: 'Class type',
+    example: 'attended',
+    enum: ['attended', 'missed'],
+  })
   @IsEnum(['attended', 'missed'])
   type: 'attended' | 'missed';
 
@@ -75,7 +82,9 @@ export class CreateStudentDto {
 
   @ApiProperty({
     description: 'Payment records',
-    example: [{ date: '2026-01-05', amount: 100.0, comment: 'Monthly payment' }],
+    example: [
+      { date: '2026-01-05', amount: 100.0, comment: 'Monthly payment' },
+    ],
     default: [],
     type: [PaymentDto],
   })
@@ -86,7 +95,15 @@ export class CreateStudentDto {
 
   @ApiProperty({
     description: 'Class records',
-    example: [{ date: '2026-01-05', cost: 50.0, type: 'attended', semester: 'V', teacherId: 1 }],
+    example: [
+      {
+        date: '2026-01-05',
+        cost: 50.0,
+        type: 'attended',
+        semester: 'V',
+        teacherId: 1,
+      },
+    ],
     default: [],
     type: [ClassDto],
   })
@@ -98,7 +115,7 @@ export class CreateStudentDto {
   @ApiPropertyOptional({
     description: 'Debit records',
     example: [
-      { id: 1, dueDate: '2026-01-31', amount: 100.0, comment: 'January fee' }
+      { id: 1, dueDate: '2026-01-31', amount: 100.0, comment: 'January fee' },
     ],
     default: [],
     type: [DebitDto],
@@ -123,7 +140,11 @@ export class CreateStudentDto {
   @IsString()
   extraNotes: string;
 
-  @ApiProperty({ description: 'Student active status', example: true, default: true })
+  @ApiProperty({
+    description: 'Student active status',
+    example: true,
+    default: true,
+  })
   @IsBoolean()
   active: boolean;
 }

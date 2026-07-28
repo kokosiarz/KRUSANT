@@ -1,9 +1,18 @@
-
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsNumber, Min, IsDateString, IsOptional, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  Min,
+  IsDateString,
+  IsOptional,
+  IsArray,
+} from 'class-validator';
 
 export class CreateClassDto {
-  @ApiProperty({ description: 'Class start time (ISO datetime)', example: '2026-01-06T10:00:00.000Z' })
+  @ApiProperty({
+    description: 'Class start time (ISO datetime)',
+    example: '2026-01-06T10:00:00.000Z',
+  })
   @IsDateString()
   startTime: string;
 
@@ -24,12 +33,18 @@ export class CreateClassDto {
   @IsNumber()
   groupId?: number;
 
-  @ApiPropertyOptional({ type: [Number], description: 'IDs of planned students' })
+  @ApiPropertyOptional({
+    type: [Number],
+    description: 'IDs of planned students',
+  })
   @IsOptional()
   @IsArray()
   plannedStudentsIds?: number[];
 
-  @ApiPropertyOptional({ type: [Number], description: 'IDs of attended students' })
+  @ApiPropertyOptional({
+    type: [Number],
+    description: 'IDs of attended students',
+  })
   @IsOptional()
   @IsArray()
   attendedStudentsIds?: number[];

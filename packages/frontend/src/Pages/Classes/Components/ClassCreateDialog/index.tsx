@@ -56,7 +56,7 @@ export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, 
       setSelectedDate(newDayjs);
       setSelectedHour((newDayjs.hour() === 0 && newDayjs.minute() === 0) ? newDayjs.hour(9).minute(0) : newDayjs);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [initialDate, open]);
   const [reocurrance, setReocurrance] = useState('everyday');
   const [customDays, setCustomDays] = useState<number[]>([]); // 0=Sunday, 1=Monday...

@@ -59,7 +59,9 @@ export class StudentsController {
   @Roles(Role.Admin, Role.Teacher)
   @Get('with-balance')
   async getAllWithBalance(@Query('active') active?: 'true' | 'false') {
-    return await this.studentsService.findAllWithBalance(parseActiveFilter(active));
+    return await this.studentsService.findAllWithBalance(
+      parseActiveFilter(active),
+    );
   }
 
   @ApiOperation({ summary: 'Get student by email' })
@@ -98,7 +100,10 @@ export class StudentsController {
   @ApiBody({ type: UpdateStudentDto })
   @ApiResponse({ status: 200, description: 'Student updated' })
   @Patch(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() student: UpdateStudentDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() student: UpdateStudentDto,
+  ) {
     return await this.studentsService.update(id, student);
   }
 

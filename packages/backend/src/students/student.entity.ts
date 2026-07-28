@@ -1,5 +1,13 @@
-
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { Debit } from '../debits/debit.entity';
 import { Payment } from '../payments/payment.entity';
 import { ClassEntity } from '../classes/class.entity';
@@ -24,7 +32,10 @@ export class Student {
   @OneToMany(() => Payment, (payment) => payment.studentId)
   payments: Payment[];
 
-  @ManyToMany(() => ClassEntity, (classEntity) => classEntity.attendedStudentsIds)
+  @ManyToMany(
+    () => ClassEntity,
+    (classEntity) => classEntity.attendedStudentsIds,
+  )
   @JoinTable()
   classes: ClassEntity[];
 

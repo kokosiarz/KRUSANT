@@ -58,7 +58,10 @@ export class RoomsController {
   @ApiBody({ type: UpdateRoomDto })
   @ApiResponse({ status: 200, description: 'Room updated' })
   @Patch(':id')
-  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRoomDto) {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateRoomDto,
+  ) {
     return await this.roomsService.update(id, body);
   }
 
