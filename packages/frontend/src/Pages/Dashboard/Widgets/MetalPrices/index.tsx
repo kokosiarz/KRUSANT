@@ -59,7 +59,7 @@ const MetalCard = ({ metal, title, accentColor, purities }: MetalCardProps) => {
   const { data, isLoading, error } = useMetalPrices(metal);
   const isDark = theme.palette.mode === 'dark';
 
-  const baseRetailPrice = data ? calculateRetailPrice(data.price) : 0;
+  const baseRetailPrice = data ? calculateRetailPrice(data.price) : null;
 
   return (
     <Card
@@ -146,33 +146,35 @@ const MetalCard = ({ metal, title, accentColor, purities }: MetalCardProps) => {
         )}
 
         {/* Retail Prices */}
-        <Box
-          sx={{
-            pt: 2,
-            borderTop: `1px solid ${theme.palette.divider}`,
-          }}
-        >
-          <Typography
-            variant="overline"
+        {baseRetailPrice !== null && (
+          <Box
             sx={{
-              color: 'text.secondary',
-              fontSize: '0.65rem',
-              letterSpacing: 0.5,
-              mb: 1,
-              display: 'block',
+              pt: 2,
+              borderTop: `1px solid ${theme.palette.divider}`,
             }}
           >
-            Cena detaliczna
-          </Typography>
+            <Typography
+              variant="overline"
+              sx={{
+                color: 'text.secondary',
+                fontSize: '0.65rem',
+                letterSpacing: 0.5,
+                mb: 1,
+                display: 'block',
+              }}
+            >
+              Cena detaliczna
+            </Typography>
 
-          {purities.map((purity) => (
-            <PurityRow
-              key={purity.label}
-              label={purity.label}
-              price={baseRetailPrice * purity.multiplier}
-            />
-          ))}
-        </Box>
+            {purities.map((purity) => (
+              <PurityRow
+                key={purity.label}
+                label={purity.label}
+                price={baseRetailPrice * purity.multiplier}
+              />
+            ))}
+          </Box>
+        )}
       </CardContent>
     </Card>
   );

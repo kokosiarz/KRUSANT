@@ -8,5 +8,4 @@ export { default as DurationSlider } from '../../../Common/DurationSlider';
 export { default as StartHour } from './HourPicker';
 export { default as RoomSelector } from '../../../Common/RoomSelector';
 export { default as StudentsPicker } from './StudentsPicker';
-export { default as Classes } from './Classes';
 export { default as Summary } from './Summary';

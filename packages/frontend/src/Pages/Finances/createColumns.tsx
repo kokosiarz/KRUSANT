@@ -47,10 +47,5 @@ export function createColumns() {
       label: 'Tytułem',
       render: (entry: FinanceEntry) => entry.type === 'debit' ? (entry.entitlement || '') : '',
     },
-    // {
-    //   id: 'classId',
-    //   label: 'ID zajęć',
-    //   render: (entry: FinanceEntry) => entry.type === 'debit' ? (entry.classId || '') : '',
-    // },
   ];
 }

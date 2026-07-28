@@ -2733,6 +2733,7 @@ babel-preset-jest@30.4.0:
     "@nestjs/passport" "^11.0.5"
     "@nestjs/platform-express" "^11.1.28"
     "@nestjs/swagger" "^11.4.6"
+    "@nestjs/throttler" "^6.5.0"
     "@nestjs/typeorm" "^11.0.3"
     "@types/cookie-parser" "^1.4.10"
     better-sqlite3 "^12.11.1"

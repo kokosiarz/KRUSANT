@@ -27,7 +27,7 @@ const CostInput: React.FC<StepCostProps> = ({ cost, setCost, currency, mode }) =
           onChange={e => setCost(Number(e.target.value))}
           fullWidth
           size="small"
-          slotProps={{ htmlInput: { step: '0.01' } }}
+          slotProps={{ htmlInput: { step: '0.01', min: 0 } }}
         />
       </Box>
     </Fade>

@@ -12,6 +12,5 @@ export enum EStep {
   Room = 'room',
   Teacher = 'teacher',
   Students = 'students',
-  Classes = 'classes',
   Summary = 'summary',
 }

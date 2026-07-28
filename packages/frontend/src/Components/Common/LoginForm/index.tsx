@@ -6,23 +6,32 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
 import GoogleIcon from '@mui/icons-material/Google';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from '../../../hooks/useAuth';
 import { LoginFormProps } from './types';
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { login, error } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       await login({ email, password });
       setPassword('');
       onLoginSuccess?.();
     } catch (err) {
       // Error handled by AuthContext
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -53,15 +62,34 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
           />
           <TextField
             label="Hasło"
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             fullWidth
             autoComplete="current-password"
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <IconButton
+                    aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              },
+            }}
           />
-          <Button type="submit" variant="contained" size="large" fullWidth>
-            Zaloguj
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            fullWidth
+            disabled={submitting}
+          >
+            {submitting ? <CircularProgress size={24} /> : 'Zaloguj'}
           </Button>
           
           <Divider sx={{ my: 2 }}>lub</Divider>

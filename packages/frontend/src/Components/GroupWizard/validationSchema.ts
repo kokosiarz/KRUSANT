@@ -21,8 +21,16 @@ export const validators: Record<EStep, (data: GroupWizardData, mode: EMode, cont
     return null;
   },
   [EStep.Color]: (data) => data.colorHex ? null : 'Kolor jest wymagany',
-  [EStep.CostBase]: (data) => (data.cost !== undefined && data.cost !== null && !isNaN(Number(data.cost))) ? null : 'Koszt bazowy jest wymagany',
-  [EStep.CostUnit]: (data) => (data.unitCost !== undefined && data.unitCost !== null && !isNaN(Number(data.unitCost))) ? null : 'Koszt jednostkowy jest wymagany',
+  [EStep.CostBase]: (data) => {
+    if (data.cost === undefined || data.cost === null || isNaN(Number(data.cost))) return 'Koszt bazowy jest wymagany';
+    if (Number(data.cost) < 0) return 'Koszt bazowy nie może być ujemny';
+    return null;
+  },
+  [EStep.CostUnit]: (data) => {
+    if (data.unitCost === undefined || data.unitCost === null || isNaN(Number(data.unitCost))) return 'Koszt jednostkowy jest wymagany';
+    if (Number(data.unitCost) < 0) return 'Koszt jednostkowy nie może być ujemny';
+    return null;
+  },
   [EStep.DateStart]: (data) => data.minStartDate ? null : 'Data startu jest wymagana',
   [EStep.DateEnd]: (data) => {
     if ((data as TemplateData).includeYear && (data as TemplateData).minStartDate && (data as TemplateData).maxEndDate) {
@@ -42,7 +50,6 @@ export const validators: Record<EStep, (data: GroupWizardData, mode: EMode, cont
   [EStep.StartHour]: () => null,
   [EStep.Room]: () => null,
   [EStep.Students]: () => null,
-  [EStep.Classes]: () => null,
   [EStep.Summary]: () => null,
 };
 

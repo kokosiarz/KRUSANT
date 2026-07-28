@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -27,6 +27,7 @@ export type MenuProps = {
 const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const roles = user?.roles?.map((role: string) => role.toLowerCase()) ?? [];
 
   type MenuItem = { label: string; path: string; roles?: string[]; icon?: React.ReactNode };
@@ -119,23 +120,27 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
               </Typography>
               {section.items
                 .filter((item) => canViewItem(item.roles))
-                .map((item) => (
-                  <ListItemButton
-                    key={item.label}
-                    sx={{ py: 1.5, px: 2 }}
-                    onClick={() => handleMenuItemClick(item.path)}
-                  >
-                    {item.icon && (
-                      <ListItemIcon sx={{ minWidth: 36 }}>
-                        {item.icon}
-                      </ListItemIcon>
-                    )}
-                    <ListItemText
-                      primary={item.label}
-                      slotProps={{ primary: { sx: { fontWeight: 500 } } }}
-                    />
-                  </ListItemButton>
-                ))}
+                .map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <ListItemButton
+                      key={item.label}
+                      selected={isActive}
+                      sx={{ py: 1.5, px: 2 }}
+                      onClick={() => handleMenuItemClick(item.path)}
+                    >
+                      {item.icon && (
+                        <ListItemIcon sx={{ minWidth: 36, color: isActive ? 'primary.main' : undefined }}>
+                          {item.icon}
+                        </ListItemIcon>
+                      )}
+                      <ListItemText
+                        primary={item.label}
+                        slotProps={{ primary: { sx: { fontWeight: isActive ? 700 : 500, color: isActive ? 'primary.main' : undefined } } }}
+                      />
+                    </ListItemButton>
+                  );
+                })}
               </Box>
             </React.Fragment>
           ))}
