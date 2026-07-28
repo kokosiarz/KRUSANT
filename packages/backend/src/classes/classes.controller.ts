@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Param,
+  ParseIntPipe,
   Query,
   Get,
   Post,
@@ -51,8 +52,8 @@ export class ClassesController {
   @ApiResponse({ status: 200, description: 'Returns class' })
   @Roles(Role.Admin, Role.Teacher)
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    return await this.classesService.findOne(+id);
+  async getOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.classesService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create new class' })
@@ -68,16 +69,16 @@ export class ClassesController {
   @ApiBody({ type: UpdateClassDto })
   @ApiResponse({ status: 200, description: 'Class updated' })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: UpdateClassDto) {
-    return await this.classesService.update(+id, body);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateClassDto) {
+    return await this.classesService.update(id, body);
   }
 
   @ApiOperation({ summary: 'Delete class' })
   @ApiParam({ name: 'id', description: 'Class ID' })
   @ApiResponse({ status: 200, description: 'Class deleted' })
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    await this.classesService.remove(+id);
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    await this.classesService.remove(id);
     return { message: 'Class deleted successfully' };
   }
 
@@ -88,10 +89,10 @@ export class ClassesController {
   @Roles(Role.Admin, Role.Teacher) // marking attendance is a normal teaching-day task, not an admin one
   @Post(':id/attendance')
   async setAttendance(
-    @Param('id') id: string,
+    @Param('id', ParseIntPipe) id: number,
     @Body() attendedStudentsIds: number[],
   ) {
-    return await this.classesService.setAttendance(+id, attendedStudentsIds);
+    return await this.classesService.setAttendance(id, attendedStudentsIds);
   }
 
   @ApiOperation({

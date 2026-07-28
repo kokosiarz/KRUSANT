@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, Delete, Put } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { Payment } from './payment.entity';
@@ -32,16 +32,16 @@ export class PaymentsController {
   @ApiOperation({ summary: 'Get payments by student id' })
   @ApiParam({ name: 'studentId', type: Number })
   @ApiResponse({ status: 200, description: 'Payments for student', type: [Payment] })
-  findByStudent(@Param('studentId') studentId: number) {
-    return this.paymentsService.findByStudent(Number(studentId));
+  findByStudent(@Param('studentId', ParseIntPipe) studentId: number) {
+    return this.paymentsService.findByStudent(studentId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get payment by id' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Payment found', type: Payment })
-  findOne(@Param('id') id: number) {
-    return this.paymentsService.findOne(Number(id));
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.paymentsService.findOne(id);
   }
 
   @Put(':id')
@@ -49,15 +49,15 @@ export class PaymentsController {
   @ApiParam({ name: 'id', type: Number })
   @ApiBody({ type: UpdatePaymentDto })
   @ApiResponse({ status: 200, description: 'Payment updated', type: Payment })
-  update(@Param('id') id: number, @Body() updateData: UpdatePaymentDto) {
-    return this.paymentsService.update(Number(id), updateData);
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateData: UpdatePaymentDto) {
+    return this.paymentsService.update(id, updateData);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete payment by id' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Payment deleted' })
-  remove(@Param('id') id: number) {
-    return this.paymentsService.remove(Number(id));
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.paymentsService.remove(id);
   }
 }

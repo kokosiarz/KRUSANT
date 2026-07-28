@@ -1,11 +1,11 @@
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Injectable, Inject, forwardRef, NotFoundException } from '@nestjs/common';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { ClassEntity } from './class.entity';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
 import { Student } from '../students/student.entity';
-import { DebitsService } from '../debits/debits.service';
+import { Debit } from '../debits/debit.entity';
 import { GroupsService } from '../groups/groups.service';
 
 @Injectable()
@@ -13,9 +13,10 @@ export class ClassesService {
   constructor(
     @InjectRepository(ClassEntity)
     private classRepository: Repository<ClassEntity>,
-    private debitsService: DebitsService,
     @Inject(forwardRef(() => GroupsService))
     private groupsService: GroupsService,
+    @InjectDataSource()
+    private dataSource: DataSource,
   ) {}
 
   async findAll(groupId?: number): Promise<ClassEntity[]> {
@@ -26,7 +27,9 @@ export class ClassesService {
   }
 
   async findOne(id: number): Promise<ClassEntity> {
-    return await this.classRepository.findOne({ where: { id } });
+    const classEntity = await this.classRepository.findOne({ where: { id } });
+    if (!classEntity) throw new NotFoundException(`Class ${id} not found`);
+    return classEntity;
   }
 
   async create(createDto: CreateClassDto): Promise<ClassEntity> {
@@ -65,57 +68,72 @@ export class ClassesService {
   async setAttendance(
     id: number,
     attendedStudentsIds: number[],
-  ): Promise<{ class: ClassEntity; createdDebits: any[] }> {
-    const classEntity = await this.classRepository.findOne({ where: { id } });
-    if (!classEntity) throw new Error('Class not found');
-    classEntity.attendedStudentsIds = Array.isArray(attendedStudentsIds)
-      ? attendedStudentsIds
-          .map(Number)
-          .filter((v) => typeof v === 'number' && !isNaN(v))
+  ): Promise<{ class: ClassEntity; createdDebits: Debit[] }> {
+    const cleanAttendedIds = Array.isArray(attendedStudentsIds)
+      ? attendedStudentsIds.map(Number).filter((v) => typeof v === 'number' && !isNaN(v))
       : [];
-    await this.classRepository.save(classEntity);
 
-    // Prepare group name for entitlement
-    let groupName = 'kurs';
-    if (classEntity.groupId) {
-      const group = await this.groupsService.findOne(classEntity.groupId);
-      if (group && group.name) groupName = group.name;
-    }
+    return this.dataSource.transaction(async (manager) => {
+      const classRepo = manager.getRepository(ClassEntity);
+      const debitRepo = manager.getRepository(Debit);
+      const studentRepo = manager.getRepository(Student);
 
-    const createdDebits = [];
-    for (const studentId of attendedStudentsIds) {
-      // Check if a debit exists for this student and class
-      const existing = await this.debitsService.findAll();
-      const alreadyExists = existing.some(
-        (d) => d.studentId === studentId && d.classId === classEntity.id,
-      );
-      if (!alreadyExists) {
-        // Fetch student to get discount
-        const studentRepo = this.classRepository.manager.getRepository('Student');
-        const student = await studentRepo.findOne({ where: { id: studentId } });
-        let amount = classEntity.cost;
-        if (
-          student &&
-          typeof student.discount === 'number' &&
-          !isNaN(student.discount)
-        ) {
-          amount =
-            (Number(classEntity.cost) * (100 - Number(student.discount))) / 100;
+      const classEntity = await classRepo.findOne({ where: { id } });
+      if (!classEntity) throw new NotFoundException('Class not found');
+
+      classEntity.attendedStudentsIds = cleanAttendedIds;
+      await classRepo.save(classEntity);
+
+      // Prepare group name for entitlement. groupId has no FK constraint, so
+      // tolerate a group that's since been deleted rather than failing the
+      // whole attendance save over a display string.
+      let groupName = 'kurs';
+      if (classEntity.groupId) {
+        try {
+          const group = await this.groupsService.findOne(classEntity.groupId);
+          if (group?.name) groupName = group.name;
+        } catch {
+          // group no longer exists; keep the 'kurs' fallback
         }
-        const debit = await this.debitsService.create({
+      }
+
+      // One query for every debit already tied to this class, instead of the
+      // whole debits table re-fetched once per attending student.
+      const existingDebits = await debitRepo.find({ where: { classId: classEntity.id } });
+      const existingByStudentId = new Map(existingDebits.map((d) => [d.studentId, d]));
+
+      // A student un-marked after previously being marked present should have
+      // the debit that marking created removed, not left behind forever.
+      const toRemove = existingDebits.filter((d) => !cleanAttendedIds.includes(d.studentId));
+      if (toRemove.length > 0) {
+        await debitRepo.remove(toRemove);
+      }
+
+      const studentIdsNeedingDebits = cleanAttendedIds.filter((sid) => !existingByStudentId.has(sid));
+      const students = studentIdsNeedingDebits.length
+        ? await studentRepo.find({ where: { id: In(studentIdsNeedingDebits) } })
+        : [];
+      const studentById = new Map(students.map((s) => [s.id, s]));
+
+      const createdDebits: Debit[] = [];
+      for (const studentId of studentIdsNeedingDebits) {
+        const student = studentById.get(studentId);
+        let amount = classEntity.cost;
+        if (student && typeof student.discount === 'number' && !isNaN(student.discount)) {
+          amount = (Number(classEntity.cost) * (100 - Number(student.discount))) / 100;
+        }
+        const debit = debitRepo.create({
           studentId,
           classId: classEntity.id,
           amount,
-          dueDate: classEntity.startTime
-            ? new Date(classEntity.startTime)
-            : new Date(),
+          dueDate: classEntity.startTime ? new Date(classEntity.startTime) : new Date(),
           entitlement: `${groupName} @ ${new Date(classEntity.startTime).toLocaleString('pl-PL')}`,
         });
-        createdDebits.push(debit);
+        createdDebits.push(await debitRepo.save(debit));
       }
-    }
 
-    return { class: classEntity, createdDebits };
+      return { class: classEntity, createdDebits };
+    });
   }
 
   async remove(id: number): Promise<void> {

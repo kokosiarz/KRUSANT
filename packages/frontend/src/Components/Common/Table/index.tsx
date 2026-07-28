@@ -28,6 +28,7 @@ function CommonTable<T extends { id: string | number }>({
   headerButtons,
   emptyMessage = 'Brak danych',
   getRowActive,
+  getRowKey,
 }: CommonTableProps<T>) {
   // Map TableColumn<T> to GridColDef
   const gridColumns: GridColDef[] = columns.map((col) => ({
@@ -53,7 +54,7 @@ function CommonTable<T extends { id: string | number }>({
           rows={rows}
           columns={gridColumns}
           disableRowSelectionOnClick
-          getRowId={(row) => row.id}
+          getRowId={getRowKey ?? ((row) => row.id)}
           localeText={{ noRowsLabel: emptyMessage }}
           getRowClassName={(params) => {
             // If getRowActive is provided and returns false, mark as inactive

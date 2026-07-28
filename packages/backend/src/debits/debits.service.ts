@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Debit } from './debit.entity';
@@ -20,7 +20,9 @@ export class DebitsService {
   }
 
   async findOne(id: number): Promise<Debit> {
-    return this.debitsRepository.findOneBy({ id });
+    const debit = await this.debitsRepository.findOneBy({ id });
+    if (!debit) throw new NotFoundException(`Debit ${id} not found`);
+    return debit;
   }
 
   async update(id: number, updateData: Partial<Debit>): Promise<Debit> {

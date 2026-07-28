@@ -19,7 +19,8 @@ export function useFinanceEntries() {
         studentMap.set(s.id, s.name);
       });
       const paymentEntries: FinanceEntry[] = (payments as any[]).map((p: any) => ({
-        id: p.id,
+        id: `payment-${p.id}`,
+        entityId: p.id,
         date: p.date,
         amount: Number(p.amount),
         studentId: p.studentId,
@@ -31,7 +32,8 @@ export function useFinanceEntries() {
         invoiceId: p.invoiceId,
       }));
       const debitEntries: FinanceEntry[] = (debits as any[]).map((d: any) => ({
-        id: d.id,
+        id: `debit-${d.id}`,
+        entityId: d.id,
         date: d.dueDate,
         dueDate: d.dueDate,
         amount: -Math.abs(Number(d.amount)),

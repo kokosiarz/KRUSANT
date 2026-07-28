@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Param,
+  ParseIntPipe,
   Query,
   Get,
   Post,
@@ -53,8 +54,8 @@ export class GroupsController {
   @ApiResponse({ status: 200, description: 'Returns group' })
   @Roles(Role.Admin, Role.Teacher)
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    return await this.groupsService.findOne(+id);
+  async getOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.groupsService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create new group' })
@@ -70,16 +71,16 @@ export class GroupsController {
   @ApiBody({ type: UpdateGroupDto })
   @ApiResponse({ status: 200, description: 'Group updated' })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() group: UpdateGroupDto) {
-    return await this.groupsService.update(+id, group);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() group: UpdateGroupDto) {
+    return await this.groupsService.update(id, group);
   }
 
   @ApiOperation({ summary: 'Delete group' })
   @ApiParam({ name: 'id', description: 'Group ID' })
   @ApiResponse({ status: 200, description: 'Group deleted' })
   @Delete(':id')
-  async deleteGroup(@Param('id') id: string) {
-    await this.groupsService.remove(+id);
+  async deleteGroup(@Param('id', ParseIntPipe) id: number) {
+    await this.groupsService.remove(id);
     return { message: 'Group deleted successfully' };
   }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GroupTemplate } from './group-template.entity';
@@ -17,7 +17,9 @@ export class GroupTemplatesService {
   }
 
   async findOne(id: number): Promise<GroupTemplate> {
-    return await this.groupTemplateRepository.findOne({ where: { id } });
+    const template = await this.groupTemplateRepository.findOne({ where: { id } });
+    if (!template) throw new NotFoundException(`Group template ${id} not found`);
+    return template;
   }
 
   async create(createDto: CreateGroupTemplateDto): Promise<GroupTemplate> {

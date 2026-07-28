@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Query } from '@nestjs/common';
+import { Body, Controller, Param, ParseIntPipe, Query } from '@nestjs/common';
 import { Get, Post, Patch, Delete } from '@nestjs/common';
 import {
   ApiTags,
@@ -81,8 +81,8 @@ export class StudentsController {
   @ApiResponse({ status: 200, description: 'Returns student' })
   @Roles(Role.Admin, Role.Teacher)
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    return await this.studentsService.findOne(+id);
+  async getOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.studentsService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create new student' })
@@ -98,16 +98,16 @@ export class StudentsController {
   @ApiBody({ type: UpdateStudentDto })
   @ApiResponse({ status: 200, description: 'Student updated' })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() student: UpdateStudentDto) {
-    return await this.studentsService.update(+id, student);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() student: UpdateStudentDto) {
+    return await this.studentsService.update(id, student);
   }
 
   @ApiOperation({ summary: 'Delete student' })
   @ApiParam({ name: 'id', description: 'Student ID' })
   @ApiResponse({ status: 200, description: 'Student deleted' })
   @Delete(':id')
-  async deleteStudent(@Param('id') id: string) {
-    await this.studentsService.remove(+id);
+  async deleteStudent(@Param('id', ParseIntPipe) id: number) {
+    await this.studentsService.remove(id);
     return { message: 'Student deleted successfully' };
   }
 

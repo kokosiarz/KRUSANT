@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Delete, Param, Get } from '@nestjs/common';
+import { Body, Controller, Post, Delete, Param, ParseIntPipe, Get } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -38,8 +38,8 @@ export class TeachersController {
   @ApiParam({ name: 'id', description: 'Teacher ID' })
   @ApiResponse({ status: 200, description: 'Teacher deleted successfully' })
   @Delete(':id')
-  deleteTeacher(@Param('id') id: string) {
-    return this.teachersService.remove(parseInt(id));
+  deleteTeacher(@Param('id', ParseIntPipe) id: number) {
+    return this.teachersService.remove(id);
   }
 
   @ApiOperation({ summary: 'Batch create or update teachers by email' })

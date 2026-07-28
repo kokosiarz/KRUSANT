@@ -146,7 +146,7 @@
             "in": "path",
             "description": "Student ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -169,7 +169,7 @@
             "in": "path",
             "description": "Student ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -202,7 +202,7 @@
             "in": "path",
             "description": "Student ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -485,7 +485,7 @@
             "in": "path",
             "description": "Group ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -508,7 +508,7 @@
             "in": "path",
             "description": "Group ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -541,7 +541,7 @@
             "in": "path",
             "description": "Group ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -634,7 +634,7 @@
             "in": "path",
             "description": "Teacher ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -722,7 +722,7 @@
             "in": "path",
             "description": "Course ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -745,7 +745,7 @@
             "in": "path",
             "description": "Course ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -778,7 +778,7 @@
             "in": "path",
             "description": "Course ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -866,7 +866,7 @@
             "in": "path",
             "description": "Room ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -889,7 +889,7 @@
             "in": "path",
             "description": "Room ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -922,7 +922,7 @@
             "in": "path",
             "description": "Room ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1020,7 +1020,7 @@
             "in": "path",
             "description": "Class ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1043,7 +1043,7 @@
             "in": "path",
             "description": "Class ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1076,7 +1076,7 @@
             "in": "path",
             "description": "Class ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1101,7 +1101,7 @@
             "in": "path",
             "description": "Class ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1182,153 +1182,6 @@
         ]
       }
     },
-    "/api/debits": {
-      "post": {
-        "operationId": "DebitsController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateDebitDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Debit created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Debit"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Create a new debit",
-        "tags": [
-          "debits"
-        ]
-      },
-      "get": {
-        "operationId": "DebitsController_findAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "List of debits",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Debit"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get all debits",
-        "tags": [
-          "debits"
-        ]
-      }
-    },
-    "/api/debits/{id}": {
-      "get": {
-        "operationId": "DebitsController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Debit found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Debit"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get debit by id",
-        "tags": [
-          "debits"
-        ]
-      },
-      "put": {
-        "operationId": "DebitsController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateDebitDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Debit updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Debit"
-                }
-              }
-            }
-          }
-        },
-        "summary": "Update debit by id",
-        "tags": [
-          "debits"
-        ]
-      },
-      "delete": {
-        "operationId": "DebitsController_remove",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Debit deleted"
-          }
-        },
-        "summary": "Delete debit by id",
-        "tags": [
-          "debits"
-        ]
-      }
-    },
     "/api/group-templates": {
       "get": {
         "operationId": "GroupTemplatesController_getAll",
@@ -1377,7 +1230,7 @@
             "in": "path",
             "description": "Group template ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1400,7 +1253,7 @@
             "in": "path",
             "description": "Group template ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1433,7 +1286,7 @@
             "in": "path",
             "description": "Group template ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1643,7 +1496,7 @@
             "in": "path",
             "description": "User ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1671,7 +1524,7 @@
             "in": "path",
             "description": "User ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1709,7 +1562,7 @@
             "in": "path",
             "description": "User ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1739,7 +1592,7 @@
             "in": "path",
             "description": "User ID",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1766,6 +1619,153 @@
         "summary": "Reset user password",
         "tags": [
           "users"
+        ]
+      }
+    },
+    "/api/debits": {
+      "post": {
+        "operationId": "DebitsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDebitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Debit created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Debit"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create a new debit",
+        "tags": [
+          "debits"
+        ]
+      },
+      "get": {
+        "operationId": "DebitsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of debits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Debit"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get all debits",
+        "tags": [
+          "debits"
+        ]
+      }
+    },
+    "/api/debits/{id}": {
+      "get": {
+        "operationId": "DebitsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Debit found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Debit"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get debit by id",
+        "tags": [
+          "debits"
+        ]
+      },
+      "put": {
+        "operationId": "DebitsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDebitDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Debit updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Debit"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Update debit by id",
+        "tags": [
+          "debits"
+        ]
+      },
+      "delete": {
+        "operationId": "DebitsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Debit deleted"
+          }
+        },
+        "summary": "Delete debit by id",
+        "tags": [
+          "debits"
         ]
       }
     }
@@ -2257,9 +2257,14 @@
       "CreateGroupDto": {
         "type": "object",
         "properties": {
+          "courseId": {
+            "type": "number",
+            "description": "Course to inherit name/cost/unitCost defaults from",
+            "example": 1
+          },
           "name": {
             "type": "string",
-            "description": "Group name",
+            "description": "Group name (defaults to the course name if courseId is given)",
             "example": "Group A"
           },
           "isActive": {
@@ -2317,12 +2322,12 @@
           },
           "cost": {
             "type": "number",
-            "description": "Total course cost",
+            "description": "Total course cost (defaults from courseId if omitted)",
             "example": 3325
           },
           "unitCost": {
             "type": "number",
-            "description": "Cost per unit",
+            "description": "Cost per unit (defaults from courseId if omitted)",
             "example": 50
           },
           "comment": {
@@ -2358,18 +2363,20 @@
           }
         },
         "required": [
-          "name",
-          "teacherId",
-          "cost",
-          "unitCost"
+          "teacherId"
         ]
       },
       "UpdateGroupDto": {
         "type": "object",
         "properties": {
+          "courseId": {
+            "type": "number",
+            "description": "Course to inherit name/cost/unitCost defaults from",
+            "example": 1
+          },
           "name": {
             "type": "string",
-            "description": "Group name",
+            "description": "Group name (defaults to the course name if courseId is given)",
             "example": "Group A"
           },
           "isActive": {
@@ -2427,12 +2434,12 @@
           },
           "cost": {
             "type": "number",
-            "description": "Total course cost",
+            "description": "Total course cost (defaults from courseId if omitted)",
             "example": 3325
           },
           "unitCost": {
             "type": "number",
-            "description": "Cost per unit",
+            "description": "Cost per unit (defaults from courseId if omitted)",
             "example": 50
           },
           "comment": {
@@ -2797,67 +2804,6 @@
           "classes"
         ]
       },
-      "CreateDebitDto": {
-        "type": "object",
-        "properties": {
-          "dueDate": {
-            "type": "string",
-            "format": "date",
-            "example": "2026-01-15"
-          },
-          "amount": {
-            "type": "number",
-            "example": 100.5
-          },
-          "comment": {
-            "type": "string",
-            "example": "Some comment"
-          },
-          "entitlement": {
-            "type": "string",
-            "example": "Scholarship"
-          },
-          "studentId": {
-            "type": "number",
-            "example": 1
-          }
-        },
-        "required": [
-          "dueDate",
-          "amount",
-          "studentId"
-        ]
-      },
-      "Debit": {
-        "type": "object",
-        "properties": {}
-      },
-      "UpdateDebitDto": {
-        "type": "object",
-        "properties": {
-          "dueDate": {
-            "type": "string",
-            "format": "date",
-            "example": "2026-01-15"
-          },
-          "amount": {
-            "type": "number",
-            "example": 100.5
-          },
-          "comment": {
-            "type": "string",
-            "example": "Some comment"
-          },
-          "entitlement": {
-            "type": "string",
-            "example": "Scholarship"
-          },
-          "studentId": {
-            "type": "number",
-            "example": 1
-          }
-        }
-      },
       "CreateGroupTemplateDto": {
         "type": "object",
         "properties": {
@@ -3178,6 +3124,67 @@
         "required": [
           "newPassword"
         ]
+      },
+      "CreateDebitDto": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-01-15"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100.5
+          },
+          "comment": {
+            "type": "string",
+            "example": "Some comment"
+          },
+          "entitlement": {
+            "type": "string",
+            "example": "Scholarship"
+          },
+          "studentId": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "dueDate",
+          "amount",
+          "studentId"
+        ]
+      },
+      "Debit": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateDebitDto": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-01-15"
+          },
+          "amount": {
+            "type": "number",
+            "example": 100.5
+          },
+          "comment": {
+            "type": "string",
+            "example": "Some comment"
+          },
+          "entitlement": {
+            "type": "string",
+            "example": "Scholarship"
+          },
+          "studentId": {
+            "type": "number",
+            "example": 1
+          }
+        }
       }
     }
   }

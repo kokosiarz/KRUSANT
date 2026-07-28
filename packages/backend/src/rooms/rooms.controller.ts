@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Param,
+  ParseIntPipe,
   Get,
   Post,
   Patch,
@@ -40,8 +41,8 @@ export class RoomsController {
   @ApiResponse({ status: 200, description: 'Returns room' })
   @Roles()
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    return await this.roomsService.findOne(+id);
+  async getOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.roomsService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create new room' })
@@ -57,16 +58,16 @@ export class RoomsController {
   @ApiBody({ type: UpdateRoomDto })
   @ApiResponse({ status: 200, description: 'Room updated' })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: UpdateRoomDto) {
-    return await this.roomsService.update(+id, body);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateRoomDto) {
+    return await this.roomsService.update(id, body);
   }
 
   @ApiOperation({ summary: 'Delete room' })
   @ApiParam({ name: 'id', description: 'Room ID' })
   @ApiResponse({ status: 200, description: 'Room deleted' })
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    await this.roomsService.remove(+id);
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    await this.roomsService.remove(id);
     return { message: 'Room deleted successfully' };
   }
 

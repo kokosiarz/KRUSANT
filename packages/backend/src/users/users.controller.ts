@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Get, Post, Patch, Delete, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, ParseIntPipe, Get, Post, Patch, Delete, UseGuards, NotFoundException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -31,13 +31,11 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Returns user' })
   @Roles(Role.Admin)
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    const user = await this.usersService.findById(+id);
-    if (user) {
-      const { passwordHash, ...result } = user;
-      return result;
-    }
-    return null;
+  async getOne(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.usersService.findById(id);
+    if (!user) throw new NotFoundException('User not found');
+    const { passwordHash, ...result } = user;
+    return result;
   }
 
   @ApiOperation({ summary: 'Create new user' })
@@ -64,13 +62,11 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated' })
   @Roles(Role.Admin)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: UpdateUserDto) {
-    const user = await this.usersService.update(+id, body);
-    if (user) {
-      const { passwordHash, ...result } = user;
-      return result;
-    }
-    return null;
+  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateUserDto) {
+    const user = await this.usersService.update(id, body);
+    if (!user) throw new NotFoundException('User not found');
+    const { passwordHash, ...result } = user;
+    return result;
   }
 
   @ApiOperation({ summary: 'Reset user password' })
@@ -79,8 +75,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Password reset' })
   @Roles(Role.Admin)
   @Post(':id/reset-password')
-  async resetPassword(@Param('id') id: string, @Body() body: ResetPasswordDto) {
-    await this.usersService.setPassword(+id, body.newPassword);
+  async resetPassword(@Param('id', ParseIntPipe) id: number, @Body() body: ResetPasswordDto) {
+    await this.usersService.setPassword(id, body.newPassword);
     return { message: 'Password reset successfully' };
   }
 
@@ -89,8 +85,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User deleted' })
   @Roles(Role.Admin)
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    await this.usersService.remove(+id);
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    await this.usersService.remove(id);
     return { message: 'User deleted successfully' };
   }
 }

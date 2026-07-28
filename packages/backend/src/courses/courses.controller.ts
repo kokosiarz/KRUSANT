@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Param,
+  ParseIntPipe,
   Get,
   Post,
   Patch,
@@ -40,8 +41,8 @@ export class CoursesController {
   @ApiResponse({ status: 200, description: 'Returns course' })
   @Roles()
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    return await this.coursesService.findOne(+id);
+  async getOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.coursesService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create new course' })
@@ -57,16 +58,16 @@ export class CoursesController {
   @ApiBody({ type: UpdateCourseDto })
   @ApiResponse({ status: 200, description: 'Course updated' })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() course: UpdateCourseDto) {
-    return await this.coursesService.update(+id, course);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() course: UpdateCourseDto) {
+    return await this.coursesService.update(id, course);
   }
 
   @ApiOperation({ summary: 'Delete course' })
   @ApiParam({ name: 'id', description: 'Course ID' })
   @ApiResponse({ status: 200, description: 'Course deleted' })
   @Delete(':id')
-  async deleteCourse(@Param('id') id: string) {
-    await this.coursesService.remove(+id);
+  async deleteCourse(@Param('id', ParseIntPipe) id: number) {
+    await this.coursesService.remove(id);
     return { message: 'Course deleted successfully' };
   }
 

@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Param,
+  ParseIntPipe,
   Get,
   Post,
   Patch,
@@ -39,8 +40,8 @@ export class GroupTemplatesController {
   @ApiResponse({ status: 200, description: 'Returns group template' })
   @Roles()
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    return await this.groupTemplatesService.findOne(+id);
+  async getOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.groupTemplatesService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Create new group template' })
@@ -56,16 +57,16 @@ export class GroupTemplatesController {
   @ApiBody({ type: UpdateGroupTemplateDto })
   @ApiResponse({ status: 200, description: 'Group template updated' })
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() body: UpdateGroupTemplateDto) {
-    return await this.groupTemplatesService.update(+id, body);
+  async update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateGroupTemplateDto) {
+    return await this.groupTemplatesService.update(id, body);
   }
 
   @ApiOperation({ summary: 'Delete group template' })
   @ApiParam({ name: 'id', description: 'Group template ID' })
   @ApiResponse({ status: 200, description: 'Group template deleted' })
   @Delete(':id')
-  async delete(@Param('id') id: string) {
-    await this.groupTemplatesService.remove(+id);
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    await this.groupTemplatesService.remove(id);
     return { message: 'Group template deleted successfully' };
   }
 }

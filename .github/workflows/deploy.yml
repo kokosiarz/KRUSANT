@@ -21,7 +21,10 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm --workspaces install
+        run: npm ci
+
+      - name: Typecheck backend
+        run: npm --workspace backend run typecheck
 
       - name: Build frontend
         run: npm --workspace frontend run build
@@ -40,7 +43,6 @@ jobs:
           REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
           REMOTE_PATH: ${{ secrets.REMOTE_PATH }}
         run: |
-          scp -r packages/frontend/build $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/frontend
-          scp -r packages/backend/dist $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/backend
-          
-
+          ssh -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "rm -rf $REMOTE_PATH/frontend/* $REMOTE_PATH/backend/*"
+          scp -r packages/frontend/build/* $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/frontend
+          scp -r packages/backend/build/* $REMOTE_USER@$REMOTE_HOST:$REMOTE_PATH/backend

@@ -42,9 +42,21 @@ class DateBoundaryDto {
 }
 
 export class CreateGroupDto {
-  @ApiProperty({ description: 'Group name', example: 'Group A' })
+  @ApiPropertyOptional({
+    description: 'Course to inherit name/cost/unitCost defaults from',
+    example: 1,
+  })
+  @IsOptional()
+  @IsInt()
+  courseId?: number;
+
+  @ApiPropertyOptional({
+    description: 'Group name (defaults to the course name if courseId is given)',
+    example: 'Group A',
+  })
+  @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
   @ApiPropertyOptional({
     description: 'Group active status',
@@ -97,15 +109,23 @@ export class CreateGroupDto {
   @IsNumber()
   teacherId: number;
 
-  @ApiProperty({ description: 'Total course cost', example: 3325.0 })
+  @ApiPropertyOptional({
+    description: 'Total course cost (defaults from courseId if omitted)',
+    example: 3325.0,
+  })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  cost: number;
+  cost?: number;
 
-  @ApiProperty({ description: 'Cost per unit', example: 50.0 })
+  @ApiPropertyOptional({
+    description: 'Cost per unit (defaults from courseId if omitted)',
+    example: 50.0,
+  })
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  unitCost: number;
+  unitCost?: number;
 
   @ApiPropertyOptional({
     description: 'Additional comments',

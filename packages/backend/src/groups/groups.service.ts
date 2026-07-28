@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './group.entity';
@@ -40,7 +40,9 @@ export class GroupsService {
   }
 
   async findOne(id: number): Promise<Group> {
-    return await this.groupRepository.findOne({ where: { id } });
+    const group = await this.groupRepository.findOne({ where: { id } });
+    if (!group) throw new NotFoundException(`Group ${id} not found`);
+    return group;
   }
 
   async create(createGroupDto: CreateGroupDto): Promise<Group> {
