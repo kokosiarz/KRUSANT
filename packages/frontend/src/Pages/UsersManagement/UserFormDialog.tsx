@@ -8,17 +8,25 @@ import FormControl from '@mui/material/FormControl';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import { useQuery } from '@tanstack/react-query';
 import { AdminUser } from '@/api/endpoints/usersAdmin';
+import { teachersApi } from '@/api/endpoints/teachers';
+import { studentsApi } from '@/api/endpoints/students';
 import { AVAILABLE_ROLES, getRoleLabel } from './roleLabels';
 
 export interface UserFormValues {
   email: string;
   password: string;
   roles: string[];
+  teacherId: number | null;
+  studentId: number | null;
 }
 
 interface UserFormDialogProps {
@@ -30,16 +38,33 @@ interface UserFormDialogProps {
   onSubmit: (values: UserFormValues) => void;
 }
 
-const emptyValues: UserFormValues = { email: '', password: '', roles: [] };
+const emptyValues: UserFormValues = { email: '', password: '', roles: [], teacherId: null, studentId: null };
 
 const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loading, onClose, onSubmit }) => {
   const [values, setValues] = useState<UserFormValues>(emptyValues);
+
+  const { data: teachers = [] } = useQuery({
+    queryKey: ['teachers'],
+    queryFn: teachersApi.getTeachers,
+    enabled: open,
+  });
+  const { data: students = [] } = useQuery({
+    queryKey: ['students'],
+    queryFn: studentsApi.getStudents,
+    enabled: open,
+  });
 
   useEffect(() => {
     if (!open) return;
     setValues(
       mode === 'edit' && user
-        ? { email: user.email, password: '', roles: user.roles || [] }
+        ? {
+            email: user.email,
+            password: '',
+            roles: user.roles || [],
+            teacherId: user.teacherId ?? null,
+            studentId: user.studentId ?? null,
+          }
         : emptyValues,
     );
   }, [open, mode, user]);
@@ -92,6 +117,38 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loadi
                 />
               ))}
             </FormGroup>
+          </FormControl>
+          <FormControl fullWidth disabled={loading}>
+            <InputLabel id="user-teacher-label">Powiąż z nauczycielem</InputLabel>
+            <Select
+              labelId="user-teacher-label"
+              label="Powiąż z nauczycielem"
+              value={values.teacherId !== null ? String(values.teacherId) : ''}
+              onChange={(e) =>
+                setValues((prev) => ({ ...prev, teacherId: e.target.value === '' ? null : Number(e.target.value) }))
+              }
+            >
+              <MenuItem value="">Brak</MenuItem>
+              {teachers.map((t) => (
+                <MenuItem key={t.id} value={String(t.id)}>{t.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth disabled={loading}>
+            <InputLabel id="user-student-label">Powiąż z kursantem</InputLabel>
+            <Select
+              labelId="user-student-label"
+              label="Powiąż z kursantem"
+              value={values.studentId !== null ? String(values.studentId) : ''}
+              onChange={(e) =>
+                setValues((prev) => ({ ...prev, studentId: e.target.value === '' ? null : Number(e.target.value) }))
+              }
+            >
+              <MenuItem value="">Brak</MenuItem>
+              {students.map((s: any) => (
+                <MenuItem key={s.id} value={String(s.id)}>{s.name}</MenuItem>
+              ))}
+            </Select>
           </FormControl>
         </Stack>
       </DialogContent>

@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -9,27 +8,16 @@ import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import Collapse from '@mui/material/Collapse';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
 import { ProfilePanelProps } from './types';
 import { useAuth } from '../../hooks/useAuth';
 
 const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onToggleTheme }) => {
     const { user, logout } = useAuth();
-    const navigate = useNavigate();
-    const [settingsOpen, setSettingsOpen] = useState(false);
-
-    const userRoles = user?.roles?.map(role => role.toLowerCase()) ?? [];
-    const isAdmin = userRoles.includes('admin');
-    const isTeacher = userRoles.includes('teacher');
-    const canManageCourses = isAdmin || isTeacher;
 
     const handleLogout = async () => {
         try {
@@ -38,12 +26,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
         } catch (error) {
             console.error('Logout failed:', error);
         }
-    };
-
-    const handleSettingsClick = (path: string) => {
-        navigate(path);
-        setSettingsOpen(false);
-        onClose();
     };
 
     return (
@@ -105,38 +87,6 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
                             secondary={mode === 'light' ? 'Przełącz na tryb ciemny' : 'Przełącz na tryb jasny'}
                         />
                     </ListItemButton>
-
-                    <Divider />
-
-                    {/* Ustawienia - Settings submenu */}
-                    <ListItemButton
-                        onClick={() => setSettingsOpen(!settingsOpen)}
-                        sx={{ py: 2 }}
-                    >
-                        <ListItemIcon>
-                            <SettingsIcon />
-                        </ListItemIcon>
-                        <ListItemText primary="Ustawienia" />
-                        {settingsOpen ? <ExpandLess /> : <ExpandMore />}
-                    </ListItemButton>
-                    <Collapse in={settingsOpen} timeout="auto" unmountOnExit>
-                        <List component="div" disablePadding>
-                            <ListItemButton
-                                sx={{ pl: 4, py: 1.5 }}
-                                onClick={() => handleSettingsClick('/settings/appearance')}
-                            >
-                                <ListItemText primary="Wygląd" />
-                            </ListItemButton>
-                            {canManageCourses && (
-                                <ListItemButton
-                                    sx={{ pl: 4, py: 1.5 }}
-                                    onClick={() => handleSettingsClick('/settings/courses')}
-                                >
-                                    <ListItemText primary="Kursy" />
-                                </ListItemButton>
-                            )}
-                        </List>
-                    </Collapse>
 
                     <Divider />
 

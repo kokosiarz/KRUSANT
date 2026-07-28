@@ -36,7 +36,16 @@ const SummaryWrapper: React.FC = () => {
         if (idx !== -1) setCurrentStepNo(idx);
     };
 
-    return <Summary formData={formData} courses={courses} rooms={rooms} teachers={teachers} onEditStep={handleEditStep} />;
+    return (
+        <Summary
+            formData={formData}
+            mode={context?.mode}
+            courses={courses}
+            rooms={rooms}
+            teachers={teachers}
+            onEditStep={handleEditStep}
+        />
+    );
 };
 
 export default SummaryWrapper;

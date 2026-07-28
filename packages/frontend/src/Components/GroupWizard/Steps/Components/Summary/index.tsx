@@ -9,11 +9,13 @@ import { Room } from '../../../../../api/types/room';
 import { useSettings } from '../../../../../context/Settings';
 import { copy } from './copy';
 import { getStepList } from '../../../config';
+import { EMode } from '../../../types';
 
 import TextField from '@mui/material/TextField';
 import './styles.css';
 export type StepSummaryProps = {
     formData: any;
+    mode?: EMode;
     courses: Course[];
     rooms: Room[];
     teachers: any[];
@@ -51,6 +53,7 @@ const formatCurrency = (amount?: number, currency?: string) => {
 
 const Summary: React.FC<StepSummaryProps> = ({
     formData,
+    mode,
     courses,
     rooms,
     teachers,
@@ -85,8 +88,7 @@ const Summary: React.FC<StepSummaryProps> = ({
         summary: null,
     };
 
-    const mode = formData.mode || 'create-group';
-    const steps = getStepList(mode);
+    const steps = getStepList(mode ?? EMode.CreateGroup);
 
 return (
     <Box className="summary-root">

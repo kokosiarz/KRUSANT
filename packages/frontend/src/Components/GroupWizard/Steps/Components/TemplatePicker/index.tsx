@@ -35,6 +35,11 @@ const TemplatePicker: React.FC<StepSelectTemplateProps> = ({ templates, selected
             ))}
           </Select>
         </FormControl>
+        {templates.length === 0 && (
+          <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+            Brak szablonów — możesz je dodać w sekcji „Szablony grup”, albo pominąć ten krok.
+          </Typography>
+        )}
       </Box>
     </Fade>
   );

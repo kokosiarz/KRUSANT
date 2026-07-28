@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { GroupWizardData, TemplateData, GroupData, EMode } from './types';
 import { EStep } from './Steps/types';
 
@@ -36,7 +37,6 @@ export const validators: Record<EStep, (data: GroupWizardData, mode: EMode, cont
     if ((data as TemplateData).includeYear && (data as TemplateData).minStartDate && (data as TemplateData).maxEndDate) {
       const { minStartDate, maxEndDate } = data as TemplateData;
       if (minStartDate?.year && maxEndDate?.year) {
-        const dayjs = require('dayjs');
         const startDate = dayjs(`${minStartDate.year}-${String(minStartDate.month).padStart(2, '0')}-${String(minStartDate.day).padStart(2, '0')}`);
         const endDate = dayjs(`${maxEndDate.year}-${String(maxEndDate.month).padStart(2, '0')}-${String(maxEndDate.day).padStart(2, '0')}`);
         if (!endDate.isAfter(startDate)) return 'Data końca musi być po dacie startu';

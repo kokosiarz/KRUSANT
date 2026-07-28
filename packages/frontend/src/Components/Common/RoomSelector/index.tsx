@@ -47,6 +47,11 @@ const RoomSelector: React.FC<StepRoomProps> = ({ roomsList, roomId, setRoomId, c
             ))}
           </Select>
         </FormControl>
+        {roomsList.length === 0 && (
+          <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+            Brak zdefiniowanych sal w systemie.
+          </Typography>
+        )}
       </Box>
     </Fade>
   );

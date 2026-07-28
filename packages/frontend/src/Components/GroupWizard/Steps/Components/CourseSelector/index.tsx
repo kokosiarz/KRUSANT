@@ -39,6 +39,11 @@ const CourseSelector: React.FC<StepCourseProps> = ({ courses, courseId, setCours
             ))}
           </Select>
         </FormControl>
+        {courses.length === 0 && (
+          <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+            Brak zdefiniowanych kursów w systemie.
+          </Typography>
+        )}
         {courseId && (
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
             {copy.helper}

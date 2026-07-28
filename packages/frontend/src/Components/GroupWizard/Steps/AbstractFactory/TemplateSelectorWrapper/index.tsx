@@ -18,16 +18,29 @@ export const TemplateSelectorWrapper: React.FC = () => {
 
   const setTemplateId = (id: number) => {
     // Find the selected template by id
-    const selectedTemplate = templates.find((t: any) => t.id === id);
+    const t = templates.find((template: any) => template.id === id);
+    if (!t) return;
+    // Inherit everything the template describes about the group pattern
+    // (schedule, cost, teacher/room/course) — deliberately NOT studentIds/
+    // classIds, since a new group starts with its own fresh roster rather
+    // than cloning whichever students happened to be on the template.
     setFormData({
       ...formData,
       templateId: id,
-      baseTemplateName: selectedTemplate?.templateName || '',
-      groupName: selectedTemplate?.templateName || '',
-      cost: selectedTemplate?.cost !== undefined ? selectedTemplate.cost : formData.cost,
-      unitCost: selectedTemplate?.unitCost !== undefined ? selectedTemplate.unitCost : formData.unitCost,
-      colorHex: selectedTemplate?.colorHex ? selectedTemplate.colorHex : formData.colorHex,
-      numberOfHours: selectedTemplate?.numberOfHours !== undefined ? selectedTemplate.numberOfHours : formData.numberOfHours,
+      baseTemplateName: t.templateName || '',
+      groupName: t.templateName || '',
+      cost: t.cost !== undefined ? t.cost : formData.cost,
+      unitCost: t.unitCost !== undefined ? t.unitCost : formData.unitCost,
+      colorHex: t.colorHex ? t.colorHex : formData.colorHex,
+      numberOfHours: t.numberOfHours !== undefined ? t.numberOfHours : formData.numberOfHours,
+      courseId: t.courseId !== undefined ? t.courseId : formData.courseId,
+      teacherId: t.teacherId !== undefined ? t.teacherId : formData.teacherId,
+      roomId: t.roomId !== undefined ? t.roomId : formData.roomId,
+      startHour: t.startHour ? t.startHour : formData.startHour,
+      lessonLength: t.lessonLength ? t.lessonLength : formData.lessonLength,
+      minStartDate: t.minStartDate ? t.minStartDate : formData.minStartDate,
+      maxEndDate: t.maxEndDate ? t.maxEndDate : formData.maxEndDate,
+      comment: t.comment !== undefined ? t.comment : formData.comment,
     });
   };
 

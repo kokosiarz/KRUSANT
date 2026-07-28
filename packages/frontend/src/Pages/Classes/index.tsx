@@ -123,7 +123,10 @@ const Classes: React.FC = () => {
               onEventDragStop={onEventDragStop}
               onEventDrop={handleEventDrop}
             />
-            <ClassEditDialog open={editDialogOpen} onClose={handleDialogClose} classId={editingClassId || 0} />
+            {/* Keyed by classId so switching classes fully remounts the dialog
+                instead of reusing stale local state (e.g. attendance
+                selection) from whichever class was open before. */}
+            <ClassEditDialog key={editingClassId ?? 'new'} open={editDialogOpen} onClose={handleDialogClose} classId={editingClassId || 0} />
             <ClassCreationDialog open={creationDialogOpen} onClose={handleDialogClose} initialDate={dialogDate} />
             <DeleteItemDialog
               open={deleteDialogOpen}

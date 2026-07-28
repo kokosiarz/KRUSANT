@@ -1,7 +1,11 @@
 import React from 'react';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import { useGroupWizardData } from '@components/GroupWizard/Context/GroupWizardDataContext';
+import { createHandleYearToggle } from '@components/GroupWizard/handlers';
 import DatePicker from '../../../../Common/DatePicker';
 import { EDateMode } from '../../../../Common/DatePicker/types';
+import { copy as datePickerCopy } from '../../../../Common/DatePicker/copy';
 
 const DatePickerWrapper: React.FC<{ mode: EDateMode, minDate?: Date, maxDate?: Date }> = ({ mode, minDate, maxDate }) => {
   const { formData, setFormData } = useGroupWizardData();
@@ -45,15 +49,24 @@ const DatePickerWrapper: React.FC<{ mode: EDateMode, minDate?: Date, maxDate?: D
   };
 
   const { selectedDate, setDate } = getDateHandlers();
+  const handleYearToggle = createHandleYearToggle(formData, setFormData);
 
   return (
-    <DatePicker
-      mode={mode}
-      selectedDate={selectedDate}
-      minDate={minDate}
-      maxDate={maxDate}
-      setDate={setDate}
-    />
+    <>
+      <DatePicker
+        mode={mode}
+        selectedDate={selectedDate}
+        minDate={minDate}
+        maxDate={maxDate}
+        setDate={setDate}
+      />
+      {(mode === EDateMode.startDate || mode === EDateMode.endDate) && (
+        <FormControlLabel
+          control={<Checkbox checked={includeYear} onChange={handleYearToggle} />}
+          label={datePickerCopy.includeYearLabel}
+        />
+      )}
+    </>
   );
 };
 

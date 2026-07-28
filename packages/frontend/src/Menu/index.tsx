@@ -57,13 +57,6 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
         { label: 'Administracja', path: '/administration', roles: ['admin'], icon: <SettingsIcon /> },
       ],
     },
-    {
-      title: 'Student',
-      items: [
-        // Placeholder for future student-specific items
-      ],
-      roles: ['student'],
-    },
   ];
 
   const canViewItem = (itemRoles?: string[]) => {

@@ -8,15 +8,16 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import CommonTable from '@/Components/Common/Table';
 import { studentsApi } from '../../api/endpoints/students';
+import { groupsApi } from '../../api/endpoints/groups';
 import { useQuery } from '@tanstack/react-query';
 import { StudentWithBalance } from './types';
-// import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth';
 import StudentForm from '../../Components/StudentForm';
 import { useSettings } from '../../context/Settings';
 import { createColumns } from './createColumns';
 
 export const Students: React.FC = () => {
-  // const { user } = useAuth();
+  const { user } = useAuth();
   const [filters, setFilters] = useState<string[]>(['active']);
   const [formOpen, setFormOpen] = useState<boolean>(false);
   const [editingStudentId, setEditingStudentId] = useState<number | undefined>(undefined);
@@ -26,7 +27,21 @@ export const Students: React.FC = () => {
     queryFn: studentsApi.getStudentsWithBalance,
   });
 
+  const { data: groups = [] } = useQuery({
+    queryKey: ['groups'],
+    queryFn: groupsApi.getGroups,
+  });
+
   const { currency } = useSettings();
+
+  // Students who belong to any group taught by the current user.
+  const myStudentIds = useMemo(() => {
+    if (!user?.teacherId) return new Set<number>();
+    const ids = groups
+      .filter((group) => group.teacherId === user.teacherId)
+      .flatMap((group) => group.studentIds.map((id) => Number(id)));
+    return new Set(ids);
+  }, [groups, user?.teacherId]);
 
   const filteredStudents = useMemo(() => {
     let result = students;
@@ -38,9 +53,11 @@ export const Students: React.FC = () => {
     if (filters.includes('active')) {
       result = result.filter(student => student.active);
     }
-    // The 'mine' filter is skipped for StudentWithBalance (no classes info)
+    if (filters.includes('mine')) {
+      result = result.filter(student => myStudentIds.has(student.id));
+    }
     return result;
-  }, [students, filters]);
+  }, [students, filters, myStudentIds]);
 
   const handleFilterChange = (_event: React.MouseEvent<HTMLElement>, newFilters: string[]) => {
     // If no filters selected, default to 'all'

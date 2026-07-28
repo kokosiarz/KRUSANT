@@ -108,6 +108,22 @@ const GroupWizardInner: React.FC<GroupWizardProps> = ({ open, onClose, mode, id,
         setCurrentStepNo((prev) => prev + 1);
     };
 
+    const handleSkip = () => {
+        setError(null);
+        // Same "resume at Summary" behavior as Continue — otherwise skipping
+        // a step reached via Summary's pencil-edit silently drops you into
+        // the next linear step instead of back where you came from.
+        if (returnToSummaryAfterStep.current) {
+            const summaryIdx = stepsList.findIndex(s => s.step === 'summary');
+            if (summaryIdx !== -1) {
+                setCurrentStepNo(summaryIdx);
+                returnToSummaryAfterStep.current = false;
+                return;
+            }
+        }
+        setCurrentStepNo((prev) => prev + 1);
+    };
+
     const handleSave = isTemplate
         ? createHandleSaveTemplate({ formData, allTemplates, groupTemplateId: id, setLoading, setError, onSuccess, handleClose })
         : createHandleSaveGroup({ formData, groupId: id, setLoading, setError, onSuccess, handleClose });
@@ -193,7 +209,7 @@ const GroupWizardInner: React.FC<GroupWizardProps> = ({ open, onClose, mode, id,
                                 totalSteps={stepsList.length}
                                 onBack={() => setCurrentStepNo((p) => p - 1)}
                                 onContinue={handleContinue}
-                                onSkip={() => setCurrentStepNo((p) => p + 1)}
+                                onSkip={handleSkip}
                                 onSave={handleSave}
                                 canContinue={canContinue(stepsList[currentStepNo].step)}
                                 stepKey={stepsList[currentStepNo].step}

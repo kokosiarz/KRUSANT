@@ -102,9 +102,20 @@ const UsersManagement: React.FC = () => {
 
   const handleFormSubmit = (values: UserFormValues) => {
     if (openDialog === 'create') {
-      createMutation.mutate({ email: values.email, password: values.password, roles: values.roles });
+      createMutation.mutate({
+        email: values.email,
+        password: values.password,
+        roles: values.roles,
+        teacherId: values.teacherId,
+        studentId: values.studentId,
+      });
     } else if (openDialog === 'edit' && selectedUser) {
-      const data: UpdateUserRequest = { email: values.email, roles: values.roles };
+      const data: UpdateUserRequest = {
+        email: values.email,
+        roles: values.roles,
+        teacherId: values.teacherId,
+        studentId: values.studentId,
+      };
       if (values.password) data.password = values.password;
       updateMutation.mutate({ id: selectedUser.id, data });
     }

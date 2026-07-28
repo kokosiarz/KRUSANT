@@ -66,6 +66,11 @@ const TeacherSelector: React.FC<StepTeacherProps> = ({ teacherId, teacherList, s
             </FormControl>
           </>
         )}
+        {teacherList.length === 0 && (
+          <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+            Brak zdefiniowanych nauczycieli w systemie.
+          </Typography>
+        )}
       </Box>
     </Fade>
   );
