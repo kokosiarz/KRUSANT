@@ -17,14 +17,18 @@ import {
 import { GroupTemplatesService } from './group-templates.service';
 import { CreateGroupTemplateDto } from './dto/create-group-template.dto';
 import { UpdateGroupTemplateDto } from './dto/update-group-template.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('group-templates')
 @Controller('group-templates')
+@Roles(Role.Admin)
 export class GroupTemplatesController {
   constructor(private readonly groupTemplatesService: GroupTemplatesService) {}
 
   @ApiOperation({ summary: 'Get all group templates' })
   @ApiResponse({ status: 200, description: 'Returns all group templates' })
+  @Roles() // any authenticated role can read (used by the GroupWizard template selector)
   @Get()
   async getAll() {
     return await this.groupTemplatesService.findAll();
@@ -33,6 +37,7 @@ export class GroupTemplatesController {
   @ApiOperation({ summary: 'Get group template by ID' })
   @ApiParam({ name: 'id', description: 'Group template ID' })
   @ApiResponse({ status: 200, description: 'Returns group template' })
+  @Roles()
   @Get(':id')
   async getOne(@Param('id') id: string) {
     return await this.groupTemplatesService.findOne(+id);

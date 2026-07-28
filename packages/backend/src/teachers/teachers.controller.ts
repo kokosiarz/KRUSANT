@@ -9,14 +9,18 @@ import {
 import { CreateTeacherDto } from './dto/create-teacher.dto';
 import { TeachersService } from './teachers.service';
 import { BatchUpsertTeacherDto } from './dto/batch-upsert-teacher.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('teachers')
 @Controller('teachers')
+@Roles(Role.Admin)
 export class TeachersController {
   constructor(private readonly teachersService: TeachersService) {}
 
   @ApiOperation({ summary: 'Get all teachers' })
   @ApiResponse({ status: 200, description: 'Returns all teachers' })
+  @Roles() // override the controller-level admin restriction: any authenticated role can list teachers (used by TeacherSelector)
   @Get()
   getAllTeachers() {
     return this.teachersService.findAll();

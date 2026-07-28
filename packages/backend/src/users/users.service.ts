@@ -2,10 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import { randomBytes, scrypt as _scrypt } from 'crypto';
-import { promisify } from 'util';
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual, ScryptOptions } from 'crypto';
 
-const scrypt = promisify(_scrypt);
+// Pinned explicitly (these match Node's current scrypt defaults) so a future
+// change to Node's defaults can't silently change what a stored hash means.
+const SCRYPT_OPTIONS: ScryptOptions = { N: 16384, r: 8, p: 1 };
+const SCRYPT_KEYLEN = 32;
+const SALT_BYTES = 16;
+
+function scrypt(password: string, salt: string, keylen: number, options: ScryptOptions): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scryptCallback(password, salt, keylen, options, (err, derivedKey) => {
+      if (err) reject(err);
+      else resolve(derivedKey);
+    });
+  });
+}
 
 @Injectable()
 export class UsersService {
@@ -67,14 +79,18 @@ export class UsersService {
   }
 
   async verifyPassword(user: User, password: string): Promise<boolean> {
-    const [salt, storedHash] = user.passwordHash.split('.');
-    const hash = (await scrypt(password, salt, 32)) as Buffer;
-    return storedHash === hash.toString('hex');
+    if (!user.passwordHash) return false;
+    const [salt, storedHashHex] = user.passwordHash.split('.');
+    if (!salt || !storedHashHex) return false;
+    const storedHash = Buffer.from(storedHashHex, 'hex');
+    const hash = await scrypt(password, salt, storedHash.length, SCRYPT_OPTIONS);
+    if (hash.length !== storedHash.length) return false;
+    return timingSafeEqual(hash, storedHash);
   }
 
   private async hashPassword(password: string): Promise<string> {
-    const salt = randomBytes(8).toString('hex');
-    const hash = (await scrypt(password, salt, 32)) as Buffer;
+    const salt = randomBytes(SALT_BYTES).toString('hex');
+    const hash = await scrypt(password, salt, SCRYPT_KEYLEN, SCRYPT_OPTIONS);
     return `${salt}.${hash.toString('hex')}`;
   }
 

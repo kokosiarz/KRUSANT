@@ -1555,59 +1555,6 @@
         ]
       }
     },
-    "/api/auth/backfill-teachers": {
-      "post": {
-        "operationId": "PassportAuthController_backfillTeachers",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Backfill executed"
-          }
-        },
-        "summary": "Backfill Users from Teachers (dev only)",
-        "tags": [
-          "auth"
-        ]
-      }
-    },
-    "/api/auth/reset-password": {
-      "post": {
-        "operationId": "PassportAuthController_resetPassword",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "email": {
-                    "type": "string",
-                    "example": "teacher@example.com"
-                  },
-                  "newPassword": {
-                    "type": "string",
-                    "example": "newpassword123"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Password reset successful"
-          },
-          "404": {
-            "description": "User not found"
-          }
-        },
-        "summary": "Reset user password by email",
-        "tags": [
-          "auth"
-        ]
-      }
-    },
     "/api/auth/google": {
       "get": {
         "operationId": "PassportAuthController_googleAuth",

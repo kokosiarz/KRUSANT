@@ -18,14 +18,18 @@ import {
 import { CoursesService } from './courses.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('courses')
 @Controller('courses')
+@Roles(Role.Admin)
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
 
   @ApiOperation({ summary: 'Get all courses' })
   @ApiResponse({ status: 200, description: 'Returns all courses' })
+  @Roles() // any authenticated role can read (used by CourseSelector); mutations stay admin-only
   @Get()
   async getAll() {
     return await this.coursesService.findAll();
@@ -34,6 +38,7 @@ export class CoursesController {
   @ApiOperation({ summary: 'Get course by ID' })
   @ApiParam({ name: 'id', description: 'Course ID' })
   @ApiResponse({ status: 200, description: 'Returns course' })
+  @Roles()
   @Get(':id')
   async getOne(@Param('id') id: string) {
     return await this.coursesService.findOne(+id);

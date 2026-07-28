@@ -4,9 +4,12 @@ import { DebitsService } from './debits.service';
 import { Debit } from './debit.entity';
 import { CreateDebitDto } from './dto/create-debit.dto';
 import { UpdateDebitDto } from './dto/update-debit.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('debits')
 @Controller('debits')
+@Roles(Role.Admin)
 export class DebitsController {
   constructor(private readonly debitsService: DebitsService) {}
 

@@ -18,14 +18,18 @@ import { RoomsService } from './rooms.service';
 import { BatchUpsertRoomDto } from './dto/batch-upsert-room.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('rooms')
 @Controller('rooms')
+@Roles(Role.Admin)
 export class RoomsController {
   constructor(private readonly roomsService: RoomsService) {}
 
   @ApiOperation({ summary: 'Get all rooms' })
   @ApiResponse({ status: 200, description: 'Returns all rooms' })
+  @Roles() // any authenticated role can read (used by RoomSelector); mutations stay admin-only
   @Get()
   async getAll() {
     return await this.roomsService.findAll();
@@ -34,6 +38,7 @@ export class RoomsController {
   @ApiOperation({ summary: 'Get room by ID' })
   @ApiParam({ name: 'id', description: 'Room ID' })
   @ApiResponse({ status: 200, description: 'Returns room' })
+  @Roles()
   @Get(':id')
   async getOne(@Param('id') id: string) {
     return await this.roomsService.findOne(+id);

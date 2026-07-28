@@ -12,6 +12,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { JWT_LIFETIME } from './auth.constants';
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
 config({ path: path.resolve(process.cwd(), envFile) });
@@ -25,7 +26,7 @@ config({ path: path.resolve(process.cwd(), envFile) });
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '3d' },
+      signOptions: { expiresIn: JWT_LIFETIME },
     }),
     PassportModule,
   ],

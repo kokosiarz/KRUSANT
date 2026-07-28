@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { StudentsModule } from './students/students.module';
@@ -26,6 +27,8 @@ import { SettingsModule } from './settings/settings.module';
 import { Settings } from './settings/settings.entity';
 import { DebitsModule } from './debits/debits.module';
 import { Debit } from './debits/debit.entity';
+import { PassportJwtAuthGuard } from './auth/guards/passport-jwt.guard';
+import { RolesGuard } from './auth/roles.guard';
 
 @Module({
   imports: [
@@ -62,6 +65,11 @@ import { Debit } from './debits/debit.entity';
     DebitsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AuthService],
+  providers: [
+    AppService,
+    AuthService,
+    { provide: APP_GUARD, useClass: PassportJwtAuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
 })
 export class AppModule {}

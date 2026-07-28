@@ -4,9 +4,12 @@ import { PaymentsService } from './payments.service';
 import { Payment } from './payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('payments')
 @Controller('payments')
+@Roles(Role.Admin)
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 

@@ -1,5 +1,4 @@
 import {
-  Body,
   Controller,
   Get,
   HttpCode,
@@ -16,6 +15,8 @@ import { AuthService } from './auth.service';
 import { PassportJwtAuthGuard } from './guards/passport-jwt.guard';
 import { PassportLocalGuard } from './guards/passport-local.guard';
 import { AuthGuard } from '@nestjs/passport';
+import { Public } from './public.decorator';
+import { JWT_LIFETIME_MS } from './auth.constants';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -43,6 +44,7 @@ export class PassportAuthController {
   })
   @HttpCode(HttpStatus.OK)
   @Post('login')
+  @Public()
   @UseGuards(PassportLocalGuard)
   async login(@Request() request, @Response({ passthrough: true }) response) {
     const token = await this.authService.getToken(request.user);
@@ -51,7 +53,7 @@ export class PassportAuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: JWT_LIFETIME_MS,
     });
 
     return {
@@ -72,6 +74,7 @@ export class PassportAuthController {
     description: 'Logout successful. Clears access token cookie.',
   })
   @Post('logout')
+  @Public()
   @HttpCode(HttpStatus.OK)
   logout(@Response({ passthrough: true }) response) {
     response.clearCookie('access_token');
@@ -99,31 +102,8 @@ export class PassportAuthController {
     };
   }
 
-  @ApiOperation({ summary: 'Backfill Users from Teachers (dev only)' })
-  @ApiResponse({ status: 200, description: 'Backfill executed' })
-  @Post('backfill-teachers')
-  async backfillTeachers() {
-    return this.authService.backfillUsersFromTeachers();
-  }
-
-  @ApiOperation({ summary: 'Reset user password by email' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        email: { type: 'string', example: 'teacher@example.com' },
-        newPassword: { type: 'string', example: 'newpassword123' },
-      },
-    },
-  })
-  @ApiResponse({ status: 200, description: 'Password reset successful' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @Post('reset-password')
-  async resetPassword(@Body() body: { email: string; newPassword: string }) {
-    return this.authService.resetPassword(body.email, body.newPassword);
-  }
-
   @ApiOperation({ summary: 'Login with Google OAuth' })
+  @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleAuth(@Req() req) {
@@ -131,6 +111,7 @@ export class PassportAuthController {
   }
 
   @ApiOperation({ summary: 'Google OAuth callback' })
+  @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {
@@ -141,7 +122,7 @@ export class PassportAuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: JWT_LIFETIME_MS,
     });
 
     // Redirect to frontend after successful login

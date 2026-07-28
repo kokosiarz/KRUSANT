@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Query } from '@nestjs/common';
 import { Get, Post, Patch, Delete } from '@nestjs/common';
 import {
   ApiTags,
@@ -12,12 +12,19 @@ import { CreateStudentDto } from './dto/create-student.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
 import { BatchUpsertStudentDto } from './dto/batch-upsert-student.dto';
 import { StudentsService } from './students.service';
-import { AuthGuard } from '@nestjs/passport';
 import { StudentWithBalanceDto } from './dto/student-with-balance.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
+
+function parseActiveFilter(active?: 'true' | 'false'): boolean | undefined {
+  if (active === 'true') return true;
+  if (active === 'false') return false;
+  return undefined;
+}
 
 @ApiTags('students')
 @Controller('students')
-@UseGuards(AuthGuard('jwt'))
+@Roles(Role.Admin) // default: admin-only; read overridden below for teachers
 export class StudentsController {
   constructor(private readonly studentsService: StudentsService) {}
   @ApiOperation({ summary: 'Get all students' })
@@ -31,10 +38,10 @@ export class StudentsController {
     status: 200,
     description: 'Returns all students or filtered by active status',
   })
+  @Roles(Role.Admin, Role.Teacher)
   @Get()
   async getAll(@Query('active') active?: 'true' | 'false') {
-    const isActive = active === 'true' ? true : undefined;
-    return await this.studentsService.findAll(isActive);
+    return await this.studentsService.findAll(parseActiveFilter(active));
   }
 
   @ApiOperation({ summary: 'Get all students with financial balance' })
@@ -49,10 +56,10 @@ export class StudentsController {
     description: 'Returns all students with their financial balance',
     type: [StudentWithBalanceDto],
   })
+  @Roles(Role.Admin, Role.Teacher)
   @Get('with-balance')
   async getAllWithBalance(@Query('active') active?: 'true' | 'false') {
-    const isActive = active === 'true' ? true : undefined;
-    return await this.studentsService.findAllWithBalance(isActive);
+    return await this.studentsService.findAllWithBalance(parseActiveFilter(active));
   }
 
   @ApiOperation({ summary: 'Get student by email' })
@@ -63,6 +70,7 @@ export class StudentsController {
   })
   @ApiResponse({ status: 200, description: 'Returns student' })
   @ApiResponse({ status: 404, description: 'Student not found' })
+  @Roles(Role.Admin, Role.Teacher)
   @Get('search')
   async getByEmail(@Query('email') email: string) {
     return await this.studentsService.findByEmail(email);
@@ -71,6 +79,7 @@ export class StudentsController {
   @ApiOperation({ summary: 'Get student by ID' })
   @ApiParam({ name: 'id', description: 'Student ID' })
   @ApiResponse({ status: 200, description: 'Returns student' })
+  @Roles(Role.Admin, Role.Teacher)
   @Get(':id')
   async getOne(@Param('id') id: string) {
     return await this.studentsService.findOne(+id);

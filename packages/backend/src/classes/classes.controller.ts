@@ -20,9 +20,12 @@ import { ClassesService } from './classes.service';
 import { BatchUpsertClassDto } from './dto/batch-upsert-class.dto';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('classes')
 @Controller('classes')
+@Roles(Role.Admin) // default: admin-only; read + attendance overridden below for teachers
 export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
@@ -36,6 +39,7 @@ export class ClassesController {
     status: 200,
     description: 'Returns all classes or filtered by group ID',
   })
+  @Roles(Role.Admin, Role.Teacher)
   @Get()
   async getAll(@Query('groupId') groupId?: string) {
     const gid = groupId !== undefined ? Number(groupId) : undefined;
@@ -45,6 +49,7 @@ export class ClassesController {
   @ApiOperation({ summary: 'Get class by ID' })
   @ApiParam({ name: 'id', description: 'Class ID' })
   @ApiResponse({ status: 200, description: 'Returns class' })
+  @Roles(Role.Admin, Role.Teacher)
   @Get(':id')
   async getOne(@Param('id') id: string) {
     return await this.classesService.findOne(+id);
@@ -80,6 +85,7 @@ export class ClassesController {
   @ApiParam({ name: 'id', description: 'Class ID' })
   @ApiBody({ type: [Number] })
   @ApiResponse({ status: 200, description: 'Attendance set, returns class and created debits' })
+  @Roles(Role.Admin, Role.Teacher) // marking attendance is a normal teaching-day task, not an admin one
   @Post(':id/attendance')
   async setAttendance(
     @Param('id') id: string,

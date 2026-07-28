@@ -20,9 +20,12 @@ import { GroupsService } from './groups.service';
 import { BatchUpsertGroupDto } from './dto/batch-upsert-group.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '../auth/roles.enum';
 
 @ApiTags('groups')
 @Controller('groups')
+@Roles(Role.Admin) // default: admin-only; read overridden below for teachers
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
@@ -37,6 +40,7 @@ export class GroupsController {
     status: 200,
     description: 'Returns all groups or filtered by active status',
   })
+  @Roles(Role.Admin, Role.Teacher)
   @Get()
   async getAll(@Query('isActive') isActive?: 'true' | 'false') {
     const active =
@@ -47,6 +51,7 @@ export class GroupsController {
   @ApiOperation({ summary: 'Get group by ID' })
   @ApiParam({ name: 'id', description: 'Group ID' })
   @ApiResponse({ status: 200, description: 'Returns group' })
+  @Roles(Role.Admin, Role.Teacher)
   @Get(':id')
   async getOne(@Param('id') id: string) {
     return await this.groupsService.findOne(+id);

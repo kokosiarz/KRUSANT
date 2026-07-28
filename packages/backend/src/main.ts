@@ -6,7 +6,21 @@ import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 import * as fs from 'fs';
 
+const REQUIRED_ENV_VARS = ['JWT_SECRET', 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'];
+
+function assertRequiredEnvVars() {
+  const missing = REQUIRED_ENV_VARS.filter((name) => !process.env[name]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variable(s): ${missing.join(', ')}. ` +
+        'Check .env / .env.production before starting the app.',
+    );
+  }
+}
+
 async function bootstrap() {
+  assertRequiredEnvVars();
+
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
     abortOnError: false,
