@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { GroupsService } from './groups.service';
 import { Group } from './group.entity';
 import { Course } from '../courses/course.entity';
@@ -13,6 +14,7 @@ describe('GroupsService', () => {
         GroupsService,
         { provide: getRepositoryToken(Group), useValue: {} },
         { provide: getRepositoryToken(Course), useValue: {} },
+        { provide: DataSource, useValue: {} },
       ],
     }).compile();
 

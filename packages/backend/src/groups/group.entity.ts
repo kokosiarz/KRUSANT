@@ -4,7 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
+import { Student } from '../students/student.entity';
+import { ClassEntity } from '../classes/class.entity';
 
 @Entity()
 export class Group {
@@ -17,11 +21,25 @@ export class Group {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ type: 'json', default: '[]' })
-  studentIds: number[];
+  // Junction tables created via @JoinTable() default to ON DELETE CASCADE on
+  // both FKs (confirmed against Student.classes below, which relies on the
+  // same default) — deleting a Group/Student/Class cleans up membership rows
+  // automatically instead of leaving a dangling id like the old JSON arrays did.
+  @ManyToMany(() => Student)
+  @JoinTable({
+    name: 'group_students',
+    joinColumn: { name: 'groupId' },
+    inverseJoinColumn: { name: 'studentId' },
+  })
+  students: Student[];
 
-  @Column({ type: 'json', default: '[]' })
-  classIds: number[];
+  @ManyToMany(() => ClassEntity)
+  @JoinTable({
+    name: 'group_classes',
+    joinColumn: { name: 'groupId' },
+    inverseJoinColumn: { name: 'classId' },
+  })
+  classes: ClassEntity[];
 
   @Column({ type: 'json', nullable: true })
   minStartDate: { day: number; month: number; year?: number } | null;

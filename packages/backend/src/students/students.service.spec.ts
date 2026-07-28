@@ -70,15 +70,18 @@ describe('StudentsService', () => {
         discount: 10,
       });
 
-      await dataSource.getRepository(Group).save({
+      const group = await dataSource.getRepository(Group).save({
         name: 'Test Group',
         isActive: true,
-        studentIds: [student.id],
-        classIds: [],
         teacherId: 1,
         cost: 1000,
         unitCost: 100,
       });
+      await dataSource
+        .createQueryBuilder()
+        .relation(Group, 'students')
+        .of(group)
+        .add(student.id);
       await dataSource.getRepository(Payment).save({
         studentId: student.id,
         date: '2026-01-01',

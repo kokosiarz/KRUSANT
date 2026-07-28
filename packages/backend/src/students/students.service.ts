@@ -32,8 +32,9 @@ export class StudentsService extends BaseCrudService<Student> {
         'balance',
       )
       .addSelect(
-        `(SELECT g.unitCost FROM "group" g, json_each(g.studentIds) je` +
-          ` WHERE je.value = student.id AND g.isActive = 1 LIMIT 1)`,
+        `(SELECT g.unitCost FROM "group" g` +
+          ` INNER JOIN group_students gs ON gs."groupId" = g.id` +
+          ` WHERE gs."studentId" = student.id AND g.isActive = 1 LIMIT 1)`,
         'groupUnitCost',
       )
       .from(Student, 'student');
