@@ -5,6 +5,7 @@ import AddDebitDialog from './AddDebitDialog';
 import { paymentsApi } from '@/api/endpoints/payments';
 import { debitsApi } from '@/api/endpoints/debits';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -20,6 +21,7 @@ const Finances: React.FC = () => {
   const [addDebitOpen, setAddDebitOpen] = useState(false);
   const { data: entries = [], isLoading, error } = useFinanceEntries();
   const queryClient = useQueryClient();
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const addPaymentMutation = useMutation({
     mutationFn: paymentsApi.create,
@@ -27,6 +29,7 @@ const Finances: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['finance-entries'] });
       setAddPaymentOpen(false);
     },
+    onError: (err) => setMutationError(err instanceof Error ? err.message : 'Nie udało się zapisać wpłaty'),
   });
 
   const addDebitMutation = useMutation({
@@ -35,6 +38,7 @@ const Finances: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['finance-entries'] });
       setAddDebitOpen(false);
     },
+    onError: (err) => setMutationError(err instanceof Error ? err.message : 'Nie udało się zapisać obciążenia'),
   });
 
   const filteredEntries = useMemo(() => {
@@ -79,15 +83,22 @@ const Finances: React.FC = () => {
   if (error) return <div style={{ color: 'red' }}>{(error as Error).message || 'Błąd ładowania danych'}</div>;
 
   const handleAddPayment = (data: any) => {
+    setMutationError(null);
     addPaymentMutation.mutate(data);
   };
 
   const handleAddDebit = (data: any) => {
+    setMutationError(null);
     addDebitMutation.mutate(data);
   };
 
   return (
     <>
+      {mutationError && (
+        <Alert severity="error" sx={{ mx: 3, mt: 2 }} onClose={() => setMutationError(null)}>
+          {mutationError}
+        </Alert>
+      )}
       <CommonTable
         columns={columns}
         rows={filteredEntries}

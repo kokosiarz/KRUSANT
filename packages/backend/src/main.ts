@@ -28,13 +28,16 @@ async function bootstrap() {
 
   app.getHttpAdapter().getInstance().set('trust proxy', 1);
 
+  const DEFAULT_CORS_ORIGINS = [
+    'http://localhost:3001',
+    'http://83.168.71.6:3001',
+    'http://krusant.szkolazlotnictwa.pl',
+    'https://krusant.szkolazlotnictwa.pl',
+  ];
   app.enableCors({
-    origin: [
-      'http://localhost:3001',
-      'http://83.168.71.6:3001',
-      'http://krusant.szkolazlotnictwa.pl',
-      'https://krusant.szkolazlotnictwa.pl',
-    ],
+    origin: process.env.CORS_ORIGINS
+      ? process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim())
+      : DEFAULT_CORS_ORIGINS,
     credentials: true,
   });
 

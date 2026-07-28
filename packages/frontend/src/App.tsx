@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import CssBaseline from '@mui/material/CssBaseline';
 import { ThemeProvider } from '@mui/material/styles';
 import './App.css';
@@ -22,7 +23,7 @@ import Finances from './Pages/Finances';
 type ColorMode = 'light' | 'dark';
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const [mode, setMode] = useState<ColorMode>('dark');
   const theme = useMemo(() => createAppTheme(mode), [mode]);
   const toggleMode = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -30,7 +31,11 @@ function AppContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      {!isAuthenticated ? (
+      {isLoading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <CircularProgress />
+        </Box>
+      ) : !isAuthenticated ? (
         <Login />
       ) : (
         <Box className="App">

@@ -32,9 +32,6 @@ const GroupWizardInner: React.FC<GroupWizardProps> = ({ open, onClose, mode, id,
     });
 
     const { formData, setFormData, resetFormData } = useGroupWizardData();
-    // Centralized validation logic will be used instead of useWizardValidation
-    // Placeholder: canContinue, getValidationError to be replaced below
-    // import { validateStep } from './validationSchema';
 
     const [currentStepNo, setCurrentStepNo] = useState(0);
     // Track if we should return to summary after editing a step
