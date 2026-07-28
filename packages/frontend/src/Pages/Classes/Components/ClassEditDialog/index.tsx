@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Dialog, DialogContent, DialogActions, Tabs, Tab, Button, CircularProgress } from '@mui/material';
+import { Dialog, DialogContent, DialogActions, Tabs, Tab, Button, CircularProgress, Alert } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -35,6 +35,7 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
   } = useClassDialogData(classId);
 
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [formClassData, setFormClassData] = useState<ClassItem>({} as ClassItem);
   const [comment, setComment] = useState('');
 
@@ -46,6 +47,7 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
 
   useEffect(() => {
     if (!open) return;
+    setSaveError(null);
     if (classId) refetchClassData();
     if (classId && !classDataFromDb) return;
     setFormClassData(
@@ -85,7 +87,10 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
       purgeFormData();
       onClose();
     },
-    onError: () => setSaving(false),
+    onError: (err: Error) => {
+      setSaving(false);
+      setSaveError(err.message || 'Nie udało się zapisać zajęć');
+    },
   });
 
   const updateMutation = useMutation({
@@ -97,7 +102,10 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
       purgeFormData();
       onClose();
     },
-    onError: () => setSaving(false),
+    onError: (err: Error) => {
+      setSaving(false);
+      setSaveError(err.message || 'Nie udało się zapisać zajęć');
+    },
   });
 
   const setAttendanceMutation = useMutation({
@@ -119,9 +127,12 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
     }));
   };
 
+  const isCostSet = formClassData.cost !== undefined && formClassData.cost !== null && !isNaN(Number(formClassData.cost));
+
   const handleSave = () => {
-    if (!formClassData.startTime || !formClassData.lessonLength || !formClassData.cost) return;
+    if (!formClassData.startTime || !formClassData.lessonLength || !isCostSet) return;
     setSaving(true);
+    setSaveError(null);
     const data: CreateClassRequest = {
       ...formClassData,
       comment,
@@ -184,6 +195,11 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
             roomsList={roomsList}
             active={tab === ETab.Properties}
           />
+          {saveError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {saveError}
+            </Alert>
+          )}
         </DialogContent>
 
         <DialogActions>
@@ -196,7 +212,7 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
               saving ||
               !formClassData.startTime ||
               !formClassData.lessonLength ||
-              !formClassData.cost
+              !isCostSet
             }
             variant="contained"
           >

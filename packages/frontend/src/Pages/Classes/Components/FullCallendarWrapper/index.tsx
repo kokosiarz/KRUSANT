@@ -6,7 +6,7 @@ import interactionPlugin, { DateClickArg, EventDragStopArg } from '@fullcalendar
 import { useClassEventsWithNames } from './hooks/useClassEventsWithNames';
 import plLocale from '@fullcalendar/core/locales/pl';
 import { Class } from '@/api/endpoints/classes';
-import { EventClickArg } from '@fullcalendar/core';
+import { EventClickArg, EventDropArg } from '@fullcalendar/core';
 import EventContent from './EventContent';
 
 interface FullCalendarWrapperProps {
@@ -14,6 +14,7 @@ interface FullCalendarWrapperProps {
     handleEventClick?: (arg: EventClickArg) => void;
     handleDateClick?: (arg: DateClickArg) => void;
     onEventDragStop?: (arg: EventDragStopArg) => void;
+    onEventDrop?: (arg: EventDropArg) => void;
 }
 
 export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
@@ -21,6 +22,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
     handleEventClick,
     handleDateClick,
     onEventDragStop,
+    onEventDrop,
 }) => {
     const events = useClassEventsWithNames(classes);
 
@@ -41,10 +43,12 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                     right: 'dayGridMonth,timeGridWeek',
                 }}
                 editable={true}
+                eventDurationEditable={false}
                 locale={plLocale}
                 eventClick={handleEventClick}
                 dateClick={handleDateClick}
                 eventDragStop={onEventDragStop}
+                eventDrop={onEventDrop}
                 nowIndicator={true}
                 eventContent={(arg) => <EventContent timeText={arg.timeText} event={arg.event} />}
             />

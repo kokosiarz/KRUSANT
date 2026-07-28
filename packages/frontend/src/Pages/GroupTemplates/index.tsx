@@ -1,4 +1,6 @@
 import React, { useMemo, useState } from 'react';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import { groupTemplatesApi } from '../../api/endpoints/groupTemplates';
 import { useQuery } from '@tanstack/react-query';
 import { duplicateTemplate } from '../../api/services/duplicateService';
@@ -20,6 +22,8 @@ const GroupTemplates: React.FC = () => {
   const [templateToDelete, setTemplateToDelete] = useState<GroupTemplate | null>(null);
   const [deleting, setDeleting] = useState<boolean>(false);
   const [duplicating, setDuplicating] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
 
   const { data: groupTemplates = [], isLoading: loading, error, refetch } = useQuery<GroupTemplate[], Error>({
     queryKey: ['groupTemplates'],
@@ -76,16 +80,16 @@ const GroupTemplates: React.FC = () => {
 
   const handleDeleteConfirm = async () => {
     if (!templateToDelete) return;
+    setDeleting(true);
+    setDeleteError(null);
     try {
-      setDeleting(true);
       await groupTemplatesApi.deleteGroupTemplate(templateToDelete.id);
       await refetch();
       setTemplateToDelete(null);
-    } catch (err) {
-      // error is handled by useQuery
-      console.error('Error deleting template:', err);
-    } finally {
       setDeleteConfirmOpen(false);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Nie udało się usunąć szablonu');
+    } finally {
       setDeleting(false);
     }
   };
@@ -93,12 +97,14 @@ const GroupTemplates: React.FC = () => {
   const handleDeleteCancel = () => {
     setDeleteConfirmOpen(false);
     setTemplateToDelete(null);
+    setDeleteError(null);
   };
 
   const handleDuplicateTemplate = React.useCallback(
     async (template: GroupTemplate) => {
+      setDuplicating(true);
+      setDuplicateError(null);
       try {
-        setDuplicating(true);
         await duplicateTemplate(
           template,
           groupTemplates,
@@ -107,8 +113,7 @@ const GroupTemplates: React.FC = () => {
         );
         await refetch();
       } catch (err) {
-        // error is handled by useQuery
-        console.error('Error duplicating template:', err);
+        setDuplicateError(err instanceof Error ? err.message : 'Nie udało się zduplikować szablonu');
       } finally {
         setDuplicating(false);
       }
@@ -145,6 +150,7 @@ const GroupTemplates: React.FC = () => {
       open={deleteConfirmOpen}
       itemName={`szablon ${templateToDelete?.templateName}`}
       deleting={deleting}
+      error={deleteError}
       onCancel={handleDeleteCancel}
       onConfirm={handleDeleteConfirm}
     />
@@ -169,6 +175,11 @@ const GroupTemplates: React.FC = () => {
         getRowActive={(row) => row.isActive}
         emptyMessage="Nie znaleziono szablonów"
       />
+      <Snackbar open={!!duplicateError} autoHideDuration={6000} onClose={() => setDuplicateError(null)}>
+        <Alert severity="error" onClose={() => setDuplicateError(null)}>
+          {duplicateError}
+        </Alert>
+      </Snackbar>
     </LoadingErrorHandler>
   );
 };

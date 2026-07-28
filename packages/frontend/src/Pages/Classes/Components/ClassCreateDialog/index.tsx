@@ -6,16 +6,15 @@ import {
 } from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-// import { useQueryClient } from '@tanstack/react-query';
-// import type { Class as ClassItem } from '@/api/endpoints/classes';
-import LoadingErrorHandler from '@/Components/Common/LoadingErrorHandler';
 import dayjs, { Dayjs } from 'dayjs';
 import { generateOccurrences } from './generateOccurrences';
 import CustomDaysDialog from './Components/CustomDaysDialog';
 import ConfirmationDialog from './Components/ConfirmationDialog';
 import { mapGroupToClassData } from './mapGroupToClassData';
 import { classesApi } from '@/api/endpoints/classes';
-import { useQueryClient } from '@tanstack/react-query';
+import { teachersApi } from '@/api/endpoints/teachers';
+import { roomsApi } from '@/api/endpoints/rooms';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import 'dayjs/locale/pl';
 import BatchClassForm from '../BatchClassForm';
 import GroupSelector from './Components/GroupSelector';
@@ -28,8 +27,13 @@ interface ClassCreationDialogProps {
 
 
 export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, onClose, initialDate = new Date().toISOString() }) => {
-  const isLoading = false;
   const queryClient = useQueryClient();
+  const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: teachersApi.getTeachers });
+  const { data: rooms = [] } = useQuery({ queryKey: ['rooms'], queryFn: roomsApi.getRooms });
+  const teacherNamesById: Record<number, string> = Object.fromEntries(
+    teachers.map((t) => [t.id, t.name ?? `Nauczyciel #${t.id}`]),
+  );
+  const roomNamesById: Record<number, string> = Object.fromEntries(rooms.map((r) => [r.id, r.name]));
 
   // Reocurrence options
   const reocurranceOptions = [
@@ -66,9 +70,8 @@ export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, 
   const [customDialogOpen, setCustomDialogOpen] = useState(false);
   const [confirmationOpen, setConfirmationOpen] = useState(false);
   const [classesToCreate, setClassesToCreate] = useState<any[]>([]);
-  // const queryClient = useQueryClient();
-  // const saving = false; // Placeholder for saving state
-  // const error = undefined;
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   // Weekday names in Polish
   const weekDays = [
@@ -112,66 +115,76 @@ export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, 
   };
 
   const handleBatchCreate = async () => {
+    setCreating(true);
+    setCreateError(null);
     try {
       await classesApi.batchCreateClasses(classesToCreate);
       await queryClient.invalidateQueries({ queryKey: ['classes'] });
+      setConfirmationOpen(false);
+      handleClose();
     } catch (e) {
-      // Optionally handle error (show notification, etc.)
+      setCreateError(e instanceof Error ? e.message : 'Nie udało się utworzyć zajęć');
+    } finally {
+      setCreating(false);
     }
-    setConfirmationOpen(false);
-    handleClose();
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pl">
       <Dialog open={open} maxWidth="sm" fullWidth onClose={handleClose}>
         <DialogTitle>Tworzenie zajęć</DialogTitle>
-        <LoadingErrorHandler loading={isLoading} >
-          <DialogContent>
-            <Box sx={{ mt: 1 }}>
-              <GroupSelector value={selectedGroup} onChange={setSelectedGroup} />
-              <BatchClassForm
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
-                selectedHour={selectedHour}
-                setSelectedHour={setSelectedHour}
-                reocurrance={reocurrance}
-                setReocurrance={setReocurrance}
-                reocurranceOptions={reocurranceOptions}
-                skipHolidays={skipHolidays}
-                setSkipHolidays={setSkipHolidays}
-                occurrencesCount={occurrencesCount}
-                setOccurrencesCount={setOccurrencesCount}
-                occurrences={occurrences}
-                setOccurrences={setOccurrences}
-                handleGenerateOccurrences={handleGenerateOccurrences}
-                handleOccurrenceDelete={idx => setOccurrences(occurrences.filter((_, i) => i !== idx))}
-                setCustomDialogOpen={setCustomDialogOpen}
-              />
-              {/* Custom days dialog */}
-              <CustomDaysDialog
-                open={customDialogOpen}
-                weekDays={weekDays}
-                customDays={customDays}
-                onToggle={handleCustomDayToggle}
-                onClose={() => setCustomDialogOpen(false)}
-              />
-            </Box>
-          </DialogContent>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <GroupSelector value={selectedGroup} onChange={setSelectedGroup} />
+            <BatchClassForm
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedHour={selectedHour}
+              setSelectedHour={setSelectedHour}
+              reocurrance={reocurrance}
+              setReocurrance={setReocurrance}
+              reocurranceOptions={reocurranceOptions}
+              skipHolidays={skipHolidays}
+              setSkipHolidays={setSkipHolidays}
+              occurrencesCount={occurrencesCount}
+              setOccurrencesCount={setOccurrencesCount}
+              occurrences={occurrences}
+              setOccurrences={setOccurrences}
+              handleGenerateOccurrences={handleGenerateOccurrences}
+              handleOccurrenceDelete={idx => setOccurrences(occurrences.filter((_, i) => i !== idx))}
+              setCustomDialogOpen={setCustomDialogOpen}
+            />
+            {/* Custom days dialog */}
+            <CustomDaysDialog
+              open={customDialogOpen}
+              weekDays={weekDays}
+              customDays={customDays}
+              onToggle={handleCustomDayToggle}
+              onClose={() => setCustomDialogOpen(false)}
+            />
+          </Box>
+        </DialogContent>
 
-          <DialogActions>
-            <Button onClick={handleClose}>Anuluj</Button>
-            <Button onClick={handleSave} variant="contained" color="primary" disabled={!selectedGroup || occurrences.length === 0}>
-              Zapisz
-            </Button>
-          </DialogActions>
-        </LoadingErrorHandler>
+        <DialogActions>
+          <Button onClick={handleClose}>Anuluj</Button>
+          <Button onClick={handleSave} variant="contained" color="primary" disabled={!selectedGroup || occurrences.length === 0}>
+            Zapisz
+          </Button>
+        </DialogActions>
       </Dialog>
       <ConfirmationDialog
         open={confirmationOpen}
         classesToCreate={classesToCreate}
+        roomNamesById={roomNamesById}
+        teacherNamesById={teacherNamesById}
+        groupName={selectedGroup?.name}
+        creating={creating}
+        error={createError}
         onConfirm={handleBatchCreate}
-        onCancel={() => setConfirmationOpen(false)}
+        onCancel={() => {
+          setConfirmationOpen(false);
+          setCreateError(null);
+        }}
       />
     </LocalizationProvider>
   );

@@ -11,19 +11,24 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 
 interface AddDebitDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: { amount: number; dueDate: string; comment?: string; studentId: number }) => void;
+  submitting?: boolean;
+  error?: string | null;
 }
 
-const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit }) => {
+const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit, submitting, error }) => {
 
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [comment, setComment] = useState('');
   const [studentId, setStudentId] = useState('');
+  const [amountError, setAmountError] = useState(false);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
@@ -31,18 +36,25 @@ const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit
   });
 
   const handleSubmit = () => {
-    if (!amount || !dueDate || !studentId) return;
-    onSubmit({ amount: parseFloat(amount), dueDate, comment, studentId: Number(studentId) });
-    setAmount('');
-    setDueDate('');
-    setComment('');
-    setStudentId('');
+    const parsedAmount = parseFloat(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setAmountError(true);
+      return;
+    }
+    if (!dueDate || !studentId) return;
+    setAmountError(false);
+    onSubmit({ amount: parsedAmount, dueDate, comment, studentId: Number(studentId) });
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Dodaj obciążenie</DialogTitle>
       <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <FormControl fullWidth margin="normal">
           <InputLabel id="student-label">Kursant</InputLabel>
           <Select
@@ -60,7 +72,9 @@ const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit
           label="Kwota"
           type="number"
           value={amount}
-          onChange={e => setAmount(e.target.value)}
+          onChange={e => { setAmount(e.target.value); setAmountError(false); }}
+          error={amountError}
+          helperText={amountError ? 'Podaj kwotę większą od zera' : ''}
           fullWidth
           margin="normal"
         />
@@ -82,8 +96,10 @@ const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Anuluj</Button>
-        <Button onClick={handleSubmit} variant="contained">Dodaj</Button>
+        <Button onClick={onClose} disabled={submitting}>Anuluj</Button>
+        <Button onClick={handleSubmit} variant="contained" disabled={submitting}>
+          {submitting ? <CircularProgress size={20} /> : 'Dodaj'}
+        </Button>
       </DialogActions>
     </Dialog>
   );

@@ -7,6 +7,7 @@ import { debitsApi } from '@/api/endpoints/debits';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CommonTable from '@/Components/Common/Table';
@@ -79,9 +80,6 @@ const Finances: React.FC = () => {
   );
 
 
-  if (isLoading) return <div>Ładowanie danych...</div>;
-  if (error) return <div style={{ color: 'red' }}>{(error as Error).message || 'Błąd ładowania danych'}</div>;
-
   const handleAddPayment = (data: any) => {
     setMutationError(null);
     addPaymentMutation.mutate(data);
@@ -92,13 +90,24 @@ const Finances: React.FC = () => {
     addDebitMutation.mutate(data);
   };
 
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{(error as Error).message || 'Błąd ładowania danych'}</Alert>
+      </Box>
+    );
+  }
+
   return (
     <>
-      {mutationError && (
-        <Alert severity="error" sx={{ mx: 3, mt: 2 }} onClose={() => setMutationError(null)}>
-          {mutationError}
-        </Alert>
-      )}
       <CommonTable
         columns={columns}
         rows={filteredEntries}
@@ -108,8 +117,20 @@ const Finances: React.FC = () => {
         getRowActive={() => true}
         emptyMessage="Brak wpisów finansowych"
       />
-      <AddPaymentDialog open={addPaymentOpen} onClose={() => setAddPaymentOpen(false)} onSubmit={handleAddPayment} />
-      <AddDebitDialog open={addDebitOpen} onClose={() => setAddDebitOpen(false)} onSubmit={handleAddDebit} />
+      <AddPaymentDialog
+        open={addPaymentOpen}
+        onClose={() => { setAddPaymentOpen(false); setMutationError(null); }}
+        onSubmit={handleAddPayment}
+        submitting={addPaymentMutation.isPending}
+        error={mutationError}
+      />
+      <AddDebitDialog
+        open={addDebitOpen}
+        onClose={() => { setAddDebitOpen(false); setMutationError(null); }}
+        onSubmit={handleAddDebit}
+        submitting={addDebitMutation.isPending}
+        error={mutationError}
+      />
     </>
   );
 };

@@ -13,16 +13,20 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 
 
 interface AddPaymentDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: { amount: number; date: string; comment?: string; studentId: number; proofType: 'receipt' | 'invoice'; fiscalized: boolean }) => void;
+  submitting?: boolean;
+  error?: string | null;
 }
 
 
-const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSubmit }) => {
+const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSubmit, submitting, error }) => {
 
 
   const [amount, setAmount] = useState('');
@@ -31,6 +35,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSu
   const [studentId, setStudentId] = useState('');
   const [proofType, setProofType] = useState<'receipt' | 'invoice'>('receipt');
   const [fiscalized, setFiscalized] = useState(false);
+  const [amountError, setAmountError] = useState(false);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
@@ -38,20 +43,25 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSu
   });
 
   const handleSubmit = () => {
-    if (!amount || !date || !studentId || !proofType) return;
-    onSubmit({ amount: parseFloat(amount), date, comment, studentId: Number(studentId), proofType, fiscalized: Boolean(fiscalized) });
-    setAmount('');
-    setDate('');
-    setComment('');
-    setStudentId('');
-    setProofType('receipt');
-    setFiscalized(false);
+    const parsedAmount = parseFloat(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setAmountError(true);
+      return;
+    }
+    if (!date || !studentId || !proofType) return;
+    setAmountError(false);
+    onSubmit({ amount: parsedAmount, date, comment, studentId: Number(studentId), proofType, fiscalized: Boolean(fiscalized) });
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Dodaj wpłatę</DialogTitle>
       <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
         <FormControl fullWidth margin="normal">
           <InputLabel id="student-label">Kursant</InputLabel>
           <Select
@@ -69,7 +79,9 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSu
           label="Kwota"
           type="number"
           value={amount}
-          onChange={e => setAmount(e.target.value)}
+          onChange={e => { setAmount(e.target.value); setAmountError(false); }}
+          error={amountError}
+          helperText={amountError ? 'Podaj kwotę większą od zera' : ''}
           fullWidth
           margin="normal"
         />
@@ -108,8 +120,10 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSu
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Anuluj</Button>
-        <Button onClick={handleSubmit} variant="contained">Dodaj</Button>
+        <Button onClick={onClose} disabled={submitting}>Anuluj</Button>
+        <Button onClick={handleSubmit} variant="contained" disabled={submitting}>
+          {submitting ? <CircularProgress size={20} /> : 'Dodaj'}
+        </Button>
       </DialogActions>
     </Dialog>
   );

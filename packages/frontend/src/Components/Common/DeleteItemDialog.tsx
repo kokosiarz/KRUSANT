@@ -6,11 +6,13 @@ import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 
 export interface DeleteItemDialogProps {
   open: boolean;
   itemName?: string;
   deleting: boolean;
+  error?: string | null;
   onCancel: () => void;
   onConfirm: () => void;
 }
@@ -19,6 +21,7 @@ const DeleteItemDialog: React.FC<DeleteItemDialogProps> = ({
   open,
   itemName,
   deleting,
+  error,
   onCancel,
   onConfirm,
 }) => (
@@ -37,6 +40,11 @@ const DeleteItemDialog: React.FC<DeleteItemDialogProps> = ({
       <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
         Ta operacja nie może być cofnięta.
       </Typography>
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
     </DialogContent>
     <DialogActions>
       <Button onClick={onCancel} disabled={deleting}>

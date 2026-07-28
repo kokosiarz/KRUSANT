@@ -2,11 +2,14 @@ import DeleteItemDialog from '@/Components/Common/DeleteItemDialog';
 import React, { useState } from 'react';
 import ClassEditDialog from './Components/ClassEditDialog';
 import Box from '@mui/material/Box';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import LoadingErrorHandler from '@components/Common/LoadingErrorHandler';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { classesApi } from '@api/endpoints/classes';
 import { Paper } from '@mui/material';
 import type { Class as ClassItem } from '@api/endpoints/classes';
+import type { EventDropArg } from '@fullcalendar/core';
 import ClassCreationDialog from './Components/ClassCreateDialog';
 import FullCalendarWrapper from './Components/FullCallendarWrapper';
 import { isInside } from './utils';
@@ -27,7 +30,10 @@ const Classes: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [rescheduleError, setRescheduleError] = useState<string | null>(null);
 
+  const queryClient = useQueryClient();
 
   // API calls
   const { data: classes = [], isLoading: loading, error, refetch } = useQuery<ClassItem[], Error>({
@@ -38,11 +44,14 @@ const Classes: React.FC = () => {
   // Delete event API call (with dialog)
   const handleDeleteEvent = async (eventId: string) => {
     setDeleting(true);
+    setDeleteError(null);
     try {
       await classesApi.deleteClass(Number(eventId));
       setDeleteDialogOpen(false);
       setDeleteTargetId(null);
       refetch();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Nie udało się usunąć zajęć');
     } finally {
       setDeleting(false);
     }
@@ -52,10 +61,25 @@ const Classes: React.FC = () => {
   const handleDeleteDialogCancel = () => {
     setDeleteDialogOpen(false);
     setDeleteTargetId(null);
+    setDeleteError(null);
   };
   const handleDeleteDialogConfirm = () => {
     if (deleteTargetId) {
       handleDeleteEvent(deleteTargetId);
+    }
+  };
+
+  // Persist a drag-to-reschedule: FullCalendar moves the event optimistically
+  // in the UI regardless, so if the save fails we revert it and tell the user.
+  const handleEventDrop = async (info: EventDropArg) => {
+    try {
+      await classesApi.updateClass(Number(info.event.id), {
+        startTime: info.event.start?.toISOString(),
+      });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+    } catch (err) {
+      info.revert();
+      setRescheduleError(err instanceof Error ? err.message : 'Nie udało się przenieść zajęć');
     }
   };
 
@@ -97,6 +121,7 @@ const Classes: React.FC = () => {
               handleDateClick={handleDateClick}
               handleEventClick={handleEventClick}
               onEventDragStop={onEventDragStop}
+              onEventDrop={handleEventDrop}
             />
             <ClassEditDialog open={editDialogOpen} onClose={handleDialogClose} classId={editingClassId || 0} />
             <ClassCreationDialog open={creationDialogOpen} onClose={handleDialogClose} initialDate={dialogDate} />
@@ -104,12 +129,22 @@ const Classes: React.FC = () => {
               open={deleteDialogOpen}
               itemName={deleteTargetId ? `zajęcia #${deleteTargetId}` : ''}
               deleting={deleting}
+              error={deleteError}
               onCancel={handleDeleteDialogCancel}
               onConfirm={handleDeleteDialogConfirm}
             />
           </Box>
         </LoadingErrorHandler>
       </Paper>
+      <Snackbar
+        open={!!rescheduleError}
+        autoHideDuration={6000}
+        onClose={() => setRescheduleError(null)}
+      >
+        <Alert severity="error" onClose={() => setRescheduleError(null)}>
+          {rescheduleError}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

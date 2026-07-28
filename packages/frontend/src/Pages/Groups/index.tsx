@@ -20,6 +20,7 @@ const Groups: React.FC = () => {
   const [formParams, setFormParams] = useState<{ open: boolean; mode: EMode; groupId?: number }>({ open: false, mode: EMode.EditGroup });
   const [deleteParams, setDeleteParams] = useState<{ open: boolean; groupId?: number }>({ open: false });
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { data: teachers = [] } = useQuery({
     queryKey: ['teachers'],
     queryFn: teachersApi.getTeachers,
@@ -66,15 +67,19 @@ const Groups: React.FC = () => {
   const handleDeleteCancel = () => {
     if (deleting) return;
     setDeleteParams({ open: false, groupId: undefined });
+    setDeleteError(null);
   };
 
   const handleDeleteConfirm = async () => {
     if (!deleteParams.groupId) return;
     setDeleting(true);
+    setDeleteError(null);
     try {
       await groupsApi.deleteGroup(deleteParams.groupId);
       setDeleteParams({ open: false, groupId: undefined });
       refetch();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Nie udało się usunąć grupy');
     } finally {
       setDeleting(false);
     }
@@ -103,6 +108,7 @@ const Groups: React.FC = () => {
         open={deleteParams.open}
         itemName={groupToDelete?.name || 'grupę'}
         deleting={deleting}
+        error={deleteError}
         onCancel={handleDeleteCancel}
         onConfirm={handleDeleteConfirm}
       />

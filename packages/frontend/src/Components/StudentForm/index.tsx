@@ -12,6 +12,7 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import MenuItem from '@mui/material/MenuItem';
 import { studentsApi } from '../../api/endpoints/students';
+import { ApiClientError } from '../../api/client';
 import { StudentFormProps, StudentFormData } from './types';
 
 const SEMESTERS = ['I', 'II', 'III', 'IV', 'V', 'VI'];
@@ -20,6 +21,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ open, onClose, studentId, onS
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailCheckWarning, setEmailCheckWarning] = useState<string | null>(null);
   const [validatingEmail, setValidatingEmail] = useState<boolean>(false);
   const [formData, setFormData] = useState<StudentFormData>({
     name: '',
@@ -74,10 +76,12 @@ const StudentForm: React.FC<StudentFormProps> = ({ open, onClose, studentId, onS
     async (email: string) => {
       if (!email) {
         setEmailError(null);
+        setEmailCheckWarning(null);
         return;
       }
 
       setValidatingEmail(true);
+      setEmailCheckWarning(null);
       try {
         await studentsApi.searchStudentByEmail(email);
         // If we get here, a student with this email exists
@@ -93,8 +97,15 @@ const StudentForm: React.FC<StudentFormProps> = ({ open, onClose, studentId, onS
           setEmailError('Kursant z tym adresem email już istnieje');
         }
       } catch (err) {
-        // 404 error means email doesn't exist, which is good
-        setEmailError(null);
+        if (err instanceof ApiClientError && err.statusCode === 404) {
+          // Genuinely not found - the email is available.
+          setEmailError(null);
+        } else {
+          // Couldn't actually verify (network/server error) - say so instead
+          // of silently treating an unknown result as "available".
+          setEmailError(null);
+          setEmailCheckWarning('Nie udało się zweryfikować unikalności adresu email');
+        }
       } finally {
         setValidatingEmail(false);
       }
@@ -173,7 +184,8 @@ const StudentForm: React.FC<StudentFormProps> = ({ open, onClose, studentId, onS
     }
   };
 
-  const isFormValid = formData.name && formData.email && formData.semester;
+  const isEmailFormatValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
+  const isFormValid = formData.name && formData.email && isEmailFormatValid && formData.semester;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -206,7 +218,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ open, onClose, studentId, onS
             onChange={handleChange('email')}
             disabled={loading}
             error={!!emailError}
-            helperText={emailError || (validatingEmail ? 'Sprawdzanie email...' : '')}
+            helperText={emailError || emailCheckWarning || (validatingEmail ? 'Sprawdzanie email...' : '')}
           />
           
           <TextField
