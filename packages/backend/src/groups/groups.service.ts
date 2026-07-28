@@ -1,23 +1,21 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './group.entity';
 import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
 import { Course } from '../courses/course.entity';
+import { BaseCrudService } from '../common/base-crud.service';
 
 @Injectable()
-export class GroupsService {
+export class GroupsService extends BaseCrudService<Group> {
   constructor(
     @InjectRepository(Group)
     private groupRepository: Repository<Group>,
     @InjectRepository(Course)
     private courseRepository: Repository<Course>,
-  ) {}
+  ) {
+    super(groupRepository, { entityName: 'Group', uniqueBy: 'name' });
+  }
 
   private async applyCourseDefaults(
     dto: CreateGroupDto,
@@ -48,64 +46,27 @@ export class GroupsService {
     return await this.groupRepository.find();
   }
 
-  async findOne(id: number): Promise<Group> {
-    const group = await this.groupRepository.findOne({ where: { id } });
-    if (!group) throw new NotFoundException(`Group ${id} not found`);
-    return group;
-  }
-
   async create(createGroupDto: CreateGroupDto): Promise<Group> {
     const patchedDto = await this.applyCourseDefaults(createGroupDto);
     if (!patchedDto.name) throw new BadRequestException('name is required');
     if (patchedDto.cost === undefined || patchedDto.unitCost === undefined) {
       throw new BadRequestException('cost and unitCost are required');
     }
-    const group = this.groupRepository.create(patchedDto);
-    return await this.groupRepository.save(group);
-  }
-
-  async update(id: number, updateGroupDto: UpdateGroupDto): Promise<Group> {
-    await this.groupRepository.update(id, updateGroupDto);
-    return await this.findOne(id);
-  }
-
-  async remove(id: number): Promise<void> {
-    await this.groupRepository.delete(id);
+    return super.create(patchedDto);
   }
 
   async batchUpsert(
     groups: CreateGroupDto[],
-  ): Promise<{ created: number; updated: number; groups: Group[] }> {
-    const results: Group[] = [];
-    let created = 0;
-    let updated = 0;
-
+  ): Promise<{ created: number; updated: number; items: Group[] }> {
+    const patched: CreateGroupDto[] = [];
     for (const groupDto of groups) {
       const patchedDto = await this.applyCourseDefaults(groupDto);
       if (!patchedDto.name) throw new BadRequestException('name is required');
       if (patchedDto.cost === undefined || patchedDto.unitCost === undefined) {
         throw new BadRequestException('cost and unitCost are required');
       }
-      // Find existing group by name
-      const existingGroup = await this.groupRepository.findOne({
-        where: { name: patchedDto.name },
-      });
-
-      if (existingGroup) {
-        // Update existing group
-        await this.groupRepository.update(existingGroup.id, patchedDto);
-        const updatedGroup = await this.findOne(existingGroup.id);
-        results.push(updatedGroup);
-        updated++;
-      } else {
-        // Create new group
-        const newGroup = this.groupRepository.create(patchedDto);
-        const savedGroup = await this.groupRepository.save(newGroup);
-        results.push(savedGroup);
-        created++;
-      }
+      patched.push(patchedDto);
     }
-
-    return { created, updated, groups: results };
+    return super.batchUpsert(patched);
   }
 }

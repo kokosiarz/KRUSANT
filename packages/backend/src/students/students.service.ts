@@ -1,20 +1,20 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Student } from './student.entity';
-import { CreateStudentDto } from './dto/create-student.dto';
-import { UpdateStudentDto } from './dto/update-student.dto';
-
-import { DataSource } from 'typeorm';
 import { StudentWithBalanceDto } from './dto/student-with-balance.dto';
+import { BaseCrudService } from '../common/base-crud.service';
 
 @Injectable()
-export class StudentsService {
+export class StudentsService extends BaseCrudService<Student> {
   constructor(
     @InjectRepository(Student)
     private studentRepository: Repository<Student>,
     private dataSource: DataSource,
-  ) {}
+  ) {
+    super(studentRepository, { entityName: 'Student', uniqueBy: 'email' });
+  }
+
   async findAllWithBalance(active?: boolean): Promise<StudentWithBalanceDto[]> {
     // Use a single query to aggregate debits and payments per student
     const qb = this.dataSource.createQueryBuilder();
@@ -62,63 +62,9 @@ export class StudentsService {
     return await this.studentRepository.find();
   }
 
-  async findOne(id: number): Promise<Student> {
-    const student = await this.studentRepository.findOne({ where: { id } });
-    if (!student) throw new NotFoundException(`Student ${id} not found`);
-    return student;
-  }
-
   async findByEmail(email: string): Promise<Student> {
     const student = await this.studentRepository.findOne({ where: { email } });
     if (!student) throw new NotFoundException(`No student with email ${email}`);
     return student;
-  }
-
-  async create(createStudentDto: CreateStudentDto): Promise<Student> {
-    const student = this.studentRepository.create(createStudentDto);
-    return await this.studentRepository.save(student);
-  }
-
-  async update(
-    id: number,
-    updateStudentDto: UpdateStudentDto,
-  ): Promise<Student> {
-    await this.studentRepository.update(id, updateStudentDto);
-    return await this.findOne(id);
-  }
-
-  async remove(id: number): Promise<void> {
-    await this.studentRepository.delete(id);
-  }
-
-  async batchUpsert(
-    students: CreateStudentDto[],
-  ): Promise<{ created: number; updated: number; students: Student[] }> {
-    const results: Student[] = [];
-    let created = 0;
-    let updated = 0;
-
-    for (const studentDto of students) {
-      // Find existing student by email
-      const existingStudent = await this.studentRepository.findOne({
-        where: { email: studentDto.email },
-      });
-
-      if (existingStudent) {
-        // Update existing student
-        await this.studentRepository.update(existingStudent.id, studentDto);
-        const updatedStudent = await this.findOne(existingStudent.id);
-        results.push(updatedStudent);
-        updated++;
-      } else {
-        // Create new student
-        const newStudent = this.studentRepository.create(studentDto);
-        const savedStudent = await this.studentRepository.save(newStudent);
-        results.push(savedStudent);
-        created++;
-      }
-    }
-
-    return { created, updated, students: results };
   }
 }

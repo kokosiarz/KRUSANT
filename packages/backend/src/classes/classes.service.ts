@@ -8,13 +8,13 @@ import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 import { ClassEntity } from './class.entity';
 import { CreateClassDto } from './dto/create-class.dto';
-import { UpdateClassDto } from './dto/update-class.dto';
 import { Student } from '../students/student.entity';
 import { Debit } from '../debits/debit.entity';
 import { GroupsService } from '../groups/groups.service';
+import { BaseCrudService } from '../common/base-crud.service';
 
 @Injectable()
-export class ClassesService {
+export class ClassesService extends BaseCrudService<ClassEntity> {
   constructor(
     @InjectRepository(ClassEntity)
     private classRepository: Repository<ClassEntity>,
@@ -22,19 +22,18 @@ export class ClassesService {
     private groupsService: GroupsService,
     @InjectDataSource()
     private dataSource: DataSource,
-  ) {}
+  ) {
+    // batchUpsert is fully overridden below (classes match on a compound
+    // startTime+roomId key, which the base class's single-column matching
+    // can't express), so uniqueBy is never actually exercised.
+    super(classRepository, { entityName: 'Class', uniqueBy: 'id' });
+  }
 
   async findAll(groupId?: number): Promise<ClassEntity[]> {
     if (groupId !== undefined) {
       return await this.classRepository.find({ where: { groupId } });
     }
     return await this.classRepository.find();
-  }
-
-  async findOne(id: number): Promise<ClassEntity> {
-    const classEntity = await this.classRepository.findOne({ where: { id } });
-    if (!classEntity) throw new NotFoundException(`Class ${id} not found`);
-    return classEntity;
   }
 
   async create(createDto: CreateClassDto): Promise<ClassEntity> {
@@ -63,11 +62,6 @@ export class ClassesService {
       (entity as any).comment = comment;
     }
     return await this.classRepository.save(entity);
-  }
-
-  async update(id: number, updateDto: UpdateClassDto): Promise<ClassEntity> {
-    await this.classRepository.update(id, updateDto);
-    return await this.findOne(id);
   }
 
   async setAttendance(
@@ -158,13 +152,9 @@ export class ClassesService {
     });
   }
 
-  async remove(id: number): Promise<void> {
-    await this.classRepository.delete(id);
-  }
-
   async batchUpsert(
     classes: CreateClassDto[],
-  ): Promise<{ created: number; updated: number; classes: ClassEntity[] }> {
+  ): Promise<{ created: number; updated: number; items: ClassEntity[] }> {
     const results: ClassEntity[] = [];
     let created = 0;
     let updated = 0;
@@ -189,7 +179,7 @@ export class ClassesService {
         created++;
       }
     }
-    return { created, updated, classes: results };
+    return { created, updated, items: results };
   }
 
   async batchCreate(classes: CreateClassDto[]): Promise<ClassEntity[]> {
