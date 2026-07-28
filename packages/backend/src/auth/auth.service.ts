@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { TeachersService } from 'src/teachers/teachers.service';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
-import { Role } from './roles.enum';
 
 type AuthInput = { email: string; password: string };
 type SignInData = {
@@ -68,10 +67,12 @@ export class AuthService {
     let user = await this.usersService.findByEmail(profile.email);
 
     if (!user) {
-      // Create new user with Google profile
+      // New Google accounts start with no roles — an admin has to grant
+      // access explicitly via Users Management, rather than anyone with a
+      // Google account self-provisioning as a teacher.
       user = await this.usersService.create({
         email: profile.email,
-        roles: [Role.Teacher], // Default role, adjust as needed
+        roles: [],
         teacherId: null,
         studentId: null,
       });
