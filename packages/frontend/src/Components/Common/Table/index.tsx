@@ -30,10 +30,15 @@ function CommonTable<T extends { id: string | number }>({
   getRowActive,
   getRowKey,
 }: CommonTableProps<T>) {
-  // Map TableColumn<T> to GridColDef
+  // Map TableColumn<T> to GridColDef. `label` is typed as ReactNode (e.g. a
+  // header with an explanatory tooltip), but DataGrid's `headerName` only
+  // accepts a string — fall back to `renderHeader` for anything richer, and
+  // use the column id as headerName so column-picker/menu UIs still have a
+  // real name to show.
   const gridColumns: GridColDef[] = columns.map((col) => ({
     field: col.id,
-    headerName: typeof col.label === 'string' ? col.label : '',
+    headerName: typeof col.label === 'string' ? col.label : col.id,
+    renderHeader: typeof col.label === 'string' ? undefined : () => <>{col.label}</>,
     flex: 1,
     sortable: true,
     renderCell: (params: GridRenderCellParams<any, T>) => col.render(params.row),
