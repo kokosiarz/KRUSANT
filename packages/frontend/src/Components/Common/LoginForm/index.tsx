@@ -12,6 +12,7 @@ import GoogleIcon from '@mui/icons-material/Google';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from '../../../hooks/useAuth';
+import { API_BASE_URL } from '../../../api/client';
 import { LoginFormProps } from './types';
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
@@ -36,7 +37,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = '/api/auth/google';
+    // Must be absolute: in production the SPA and API share an origin (nginx
+    // proxies /api), but in local dev the SPA is on :3001 and the API on
+    // :3002, so a relative '/api/...' would hit the Vite dev server and 404.
+    window.location.href = `${API_BASE_URL}/auth/google`;
   };
 
   return (
