@@ -1,3 +1,11 @@
+export type CoursePattern =
+  | 'workdays'
+  | 'weekends'
+  | 'everyday'
+  | 'weekly'
+  | 'biweekly'
+  | 'monthly';
+
 export interface Course {
   id: number;
   name: string;
@@ -5,5 +13,5 @@ export interface Course {
   cost: number;
   numberOfHours: number;
   lessonLength: string;
-  pattern: 'workdays' | 'weekly';
+  pattern: CoursePattern;
 }

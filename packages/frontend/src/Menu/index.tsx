@@ -17,6 +17,9 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LayersIcon from '@mui/icons-material/Layers';
 import PaidIcon from '@mui/icons-material/Paid';
 import SchoolIcon from '@mui/icons-material/School';
+import BadgeIcon from '@mui/icons-material/Badge';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useAuth } from '@hooks/useAuth';
 
 export type MenuProps = {
@@ -47,6 +50,15 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
         { label: 'Kursanci', path: '/students', roles: ['admin', 'teacher'], icon: <PeopleIcon /> },
         { label: 'Grupy', path: '/groups', roles: ['admin', 'teacher'], icon: <GroupsIcon /> },
       ],
+    },
+    {
+      title: 'Zasoby',
+      items: [
+        { label: 'Nauczyciele', path: '/teachers', roles: ['admin'], icon: <BadgeIcon /> },
+        { label: 'Sale', path: '/rooms', roles: ['admin'], icon: <MeetingRoomIcon /> },
+        { label: 'Kursy', path: '/courses', roles: ['admin'], icon: <MenuBookIcon /> },
+      ],
+      roles: ['admin'],
     },
     {
       title: 'Administracja',
