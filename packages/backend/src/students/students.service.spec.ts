@@ -62,7 +62,7 @@ describe('StudentsService', () => {
       expect(result.balance).toBe(200);
     });
 
-    it('estimates lessonsLeft from the active group rate, applying the student discount', async () => {
+    it('estimates lessonsLeft from the active group rate for a 1-hour lesson, applying the student discount', async () => {
       const student = await service.create({
         name: 'Grace Hopper',
         email: 'grace@example.com',
@@ -75,7 +75,8 @@ describe('StudentsService', () => {
         isActive: true,
         teacherId: 1,
         cost: 1000,
-        unitCost: 100,
+        unitCost: 100, // per hour
+        lessonLength: '01:00',
       });
       await dataSource
         .createQueryBuilder()
@@ -91,9 +92,69 @@ describe('StudentsService', () => {
 
       const [result] = await service.findAllWithBalance();
 
-      // unitCost 100 with a 10% discount -> 90/lesson; balance 900 -> 10 lessons
+      // 1-hour lesson at 100/hour with a 10% discount -> 90/lesson; balance 900 -> 10 lessons
       expect(result.unitCost).toBeCloseTo(90);
       expect(result.lessonsLeft).toBe(10);
+    });
+
+    it('converts the hourly rate to a per-lesson cost for multi-hour lessons (regression: previously divided balance by the raw hourly rate)', async () => {
+      const student = await service.create({
+        name: 'Katherine Johnson',
+        email: 'katherine@example.com',
+        semester: 'I',
+      });
+
+      const group = await dataSource.getRepository(Group).save({
+        name: 'Intensive Group',
+        isActive: true,
+        teacherId: 1,
+        cost: 5000,
+        unitCost: 100, // per hour
+        lessonLength: '05:00', // 5-hour sessions, matching real course groups
+      });
+      await dataSource
+        .createQueryBuilder()
+        .relation(Group, 'students')
+        .of(group)
+        .add(student.id);
+      await dataSource.getRepository(Payment).save({
+        studentId: student.id,
+        date: '2026-01-01',
+        amount: 1000,
+        proofType: 'receipt',
+      });
+
+      const [result] = await service.findAllWithBalance();
+
+      // A single 5-hour lesson costs 5 * 100 = 500, not 100 — balance 1000 covers 2 lessons.
+      expect(result.unitCost).toBe(500);
+      expect(result.lessonsLeft).toBe(2);
+    });
+
+    it('returns null lessonsLeft when the active group has no lessonLength set (cannot determine a per-lesson cost)', async () => {
+      const student = await service.create({
+        name: 'No Lesson Length',
+        email: 'nolessonlength@example.com',
+        semester: 'I',
+      });
+
+      const group = await dataSource.getRepository(Group).save({
+        name: 'Group Without Lesson Length',
+        isActive: true,
+        teacherId: 1,
+        cost: 1000,
+        unitCost: 100,
+      });
+      await dataSource
+        .createQueryBuilder()
+        .relation(Group, 'students')
+        .of(group)
+        .add(student.id);
+
+      const [result] = await service.findAllWithBalance();
+
+      expect(result.unitCost).toBeNull();
+      expect(result.lessonsLeft).toBeNull();
     });
 
     it('returns null lessonsLeft when the student has no active group and no custom rate', async () => {
