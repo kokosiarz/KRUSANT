@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Post,
+  Patch,
   Delete,
   Param,
   ParseIntPipe,
@@ -15,6 +16,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { CreateTeacherDto } from './dto/create-teacher.dto';
+import { UpdateTeacherDto } from './dto/update-teacher.dto';
 import { TeachersService } from './teachers.service';
 import { BatchUpsertTeacherDto } from './dto/batch-upsert-teacher.dto';
 import { Roles } from '../auth/roles.decorator';
@@ -34,12 +36,33 @@ export class TeachersController {
     return this.teachersService.findAll();
   }
 
+  @ApiOperation({ summary: 'Get teacher by ID' })
+  @ApiParam({ name: 'id', description: 'Teacher ID' })
+  @ApiResponse({ status: 200, description: 'Returns teacher' })
+  @Get(':id')
+  getOne(@Param('id', ParseIntPipe) id: number) {
+    return this.teachersService.findOne(id);
+  }
+
   @ApiOperation({ summary: 'Create new teacher' })
+  @ApiBody({ type: CreateTeacherDto })
   @ApiResponse({ status: 201, description: 'Teacher created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
-  @Post('/signup')
+  @Post()
   createTeacher(@Body() body: CreateTeacherDto) {
     return this.teachersService.create(body);
+  }
+
+  @ApiOperation({ summary: 'Update teacher' })
+  @ApiParam({ name: 'id', description: 'Teacher ID' })
+  @ApiBody({ type: UpdateTeacherDto })
+  @ApiResponse({ status: 200, description: 'Teacher updated' })
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateTeacherDto,
+  ) {
+    return this.teachersService.update(id, body);
   }
 
   @ApiOperation({ summary: 'Delete teacher' })
