@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
+import { Student } from '../students/student.entity';
 
 @Entity('class')
 export class ClassEntity {
@@ -34,11 +37,25 @@ export class ClassEntity {
   @Column({ type: 'text', nullable: true })
   comment?: string;
 
-  @Column({ type: 'json', default: '[]' })
-  attendedStudentsIds: number[];
+  // Attendance and the planned roster are real join tables rather than JSON
+  // arrays, so deleting a student cleans up after itself instead of leaving an
+  // orphaned id embedded in every class forever. The API still speaks
+  // attendedStudentsIds/plannedStudentsIds — see ClassesService.toResponse.
+  @ManyToMany(() => Student)
+  @JoinTable({
+    name: 'class_attended_students',
+    joinColumn: { name: 'classId' },
+    inverseJoinColumn: { name: 'studentId' },
+  })
+  attendedStudents: Student[];
 
-  @Column({ type: 'json', default: '[]' })
-  plannedStudentsIds?: number[];
+  @ManyToMany(() => Student)
+  @JoinTable({
+    name: 'class_planned_students',
+    joinColumn: { name: 'classId' },
+    inverseJoinColumn: { name: 'studentId' },
+  })
+  plannedStudents: Student[];
 
   @CreateDateColumn()
   createdAt: Date;

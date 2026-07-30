@@ -56,8 +56,6 @@ describe('ClassesService', () => {
       lessonLength: '01:00',
       groupId: 1,
       cost: 100,
-      attendedStudentsIds: [],
-      plannedStudentsIds: [],
     });
     classId = classEntity.id;
   });
@@ -107,6 +105,30 @@ describe('ClassesService', () => {
       .find({ where: { classId } });
     expect(remaining).toHaveLength(1);
     expect(remaining[0].studentId).toBe(studentA.id);
+  });
+
+  it('rejects a malformed body instead of silently wiping attendance and debits', async () => {
+    await service.setAttendance(classId, [studentA.id, studentB.id]);
+    await expect(
+      service.setAttendance(classId, undefined as unknown as number[]),
+    ).rejects.toThrow(/must be an array/);
+    // Roster and debits must be untouched by the rejected call.
+    const { attendedStudentsIds } = await service.findOne(classId);
+    expect(attendedStudentsIds.sort()).toEqual([studentA.id, studentB.id].sort());
+    expect(
+      await dataSource.getRepository(Debit).count({ where: { classId } }),
+    ).toBe(2);
+  });
+
+  it('removes a deleted student from attendance automatically (cascade)', async () => {
+    await service.setAttendance(classId, [studentA.id, studentB.id]);
+    // Debits reference students with ON DELETE RESTRICT, so clear this
+    // class's debits first — we are exercising the roster cascade, not that.
+    await dataSource.getRepository(Debit).delete({ classId });
+    await dataSource.getRepository(Student).delete(studentB.id);
+
+    const { attendedStudentsIds } = await service.findOne(classId);
+    expect(attendedStudentsIds).toEqual([studentA.id]);
   });
 
   it('updates the class attendedStudentsIds to match what was passed in', async () => {
