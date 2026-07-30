@@ -4,9 +4,7 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
 } from 'typeorm';
-import { Student } from '../students/student.entity';
 
 @Entity('class')
 export class ClassEntity {

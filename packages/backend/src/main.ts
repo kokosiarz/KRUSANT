@@ -55,10 +55,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document, { useGlobalPrefix: true });
 
-  // Export OpenAPI schema to JSON file
+  // Local dev aid only (gitignored). Swagger UI at /api/docs is the source of
+  // truth; nothing consumes a checked-in copy.
   fs.writeFileSync('./openapi.json', JSON.stringify(document, null, 2));
-  fs.writeFileSync('../frontend/backend_openapi.json', JSON.stringify(document, null, 2));
-  console.log('OpenAPI schema exported to openapi.json');
 
   await app.listen(3002);
 
