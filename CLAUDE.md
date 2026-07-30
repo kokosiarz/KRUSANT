@@ -2,84 +2,182 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Keeping this file current
+
+**This file goes stale fast, and stale guidance here is worse than no guidance** — it has previously
+described tables that no longer exist and build settings that had been inverted, and that misinformation
+got acted on. Treat it as part of the change, not documentation written afterwards.
+
+Update it in the **same commit** whenever you:
+- add, remove, rename or merge an entity/table, or change a schema-level rule (constraints, nullability)
+- add or remove a module, workspace, page or route
+- change how something is built, run, tested, linted or deployed
+- discover a gotcha that cost you time (the "Gotchas" section exists so nobody pays that cost twice)
+- fix something this file claims is broken — **delete the claim**, don't leave it
+
+Before relying on a specific claim here (a version, a flag, a table), **verify it against the code**.
+If you find something wrong, fix it as you go.
+
 ## What this is
 
-KRUSANT is an admin/back-office web app for a school (Polish domain: "szkoła" — course provider "szkolazlotnictwa.pl"). It manages students (kursanci), teachers, groups, group templates, courses, rooms, classes/lessons, attendance, payments and debits (financial obligations). Domain notes and comments in the code are frequently in Polish (see `TODO.txt`, `packages/backend/.todo`, `packages/frontend/.todo` at repo root/package level for current product priorities — worth checking for intent before large feature work).
+KRUSANT is an admin/back-office web app for a Polish jewellery school (`szkolazlotnictwa.pl`). It manages
+students (*kursanci*), teachers, groups, courses, rooms, classes/lessons, attendance, payments and debits
+(*obciążenia*). Domain vocabulary and UI copy are Polish throughout — this is deliberate, it matches how
+the users talk about the business. Keep it that way.
 
-This is an npm-workspaces monorepo:
+npm-workspaces monorepo with **two** packages:
 - `packages/backend` — NestJS API
 - `packages/frontend` — React 19 + Vite SPA
-- `packages/shared` — thin shared types/utils package (currently minimal, mostly a placeholder — check before assuming it's wired into build output)
+
+(There was a `packages/shared`; it was an unused placeholder and has been deleted.)
 
 ## Commands
 
-Run from `monorepo/` (the workspace root — this is the actual git repo; the parent `KRUSANT/` folder just contains deployment scripts and is not version controlled here).
+Run from `monorepo/` — this is the git repo root. The parent `KRUSANT/` folder holds deploy scripts and
+is not version-controlled.
 
 ```bash
-# install once for all workspaces
-npm install
+npm install              # once, all workspaces
 
-# dev servers
-npm run dev:backend     # nest start --watch  -> http://localhost:3002
-npm run dev:frontend    # vite                -> http://localhost:3001
+npm run dev:backend      # nest start        -> http://localhost:3002
+npm run dev:frontend     # vite              -> http://localhost:3001
 
-# build (also used by CI/deploy)
-npm run build:backend   # nest build (swc) -> packages/backend/build
-npm run build:frontend  # tsc && vite build -> packages/frontend/build
+# these fan out across workspaces with --if-present
+npm run typecheck        # tsc --noEmit (backend) + tsc (frontend)
+npm run test             # jest (backend) + vitest (frontend)
+npm run lint             # eslint --fix
+npm run build
 ```
 
-Backend-specific (run inside `packages/backend`):
+All four root scripts work and pass. Lint reports ~81 warnings and 0 errors — warnings are the baseline,
+errors are not.
+
+Backend-only (from `packages/backend`):
 ```bash
-npm run start:debug     # nest start --debug --watch
-npm run lint            # eslint --fix — currently BROKEN, see note below
-npm test                # jest, all *.spec.ts under src/
-npx jest src/students/students.service.spec.ts   # single test file
-npm run test:e2e        # jest -c test/jest-e2e.json
-npm run test:cov
+npx jest src/classes/classes.service.spec.ts   # single test file
+npm run migration:run                          # apply pending migrations
+npm run migration:generate src/migrations/Name # diff entities against the DB
+npm run migration:revert                       # roll back the last one
 ```
-Several of the NestJS-CLI-scaffolded `*.service.spec.ts`/`*.controller.spec.ts` files (teachers, groups, students) never got their `TestingModule` updated with repository mocks after real `@InjectRepository` dependencies were added to the services — they fail with "Nest can't resolve dependencies" regardless of package versions. Pre-existing, not caused by any upgrade.
 
-Frontend-specific (run inside `packages/frontend`):
+Frontend-only (from `packages/frontend`):
 ```bash
-npm run lint            # eslint --fix — currently BROKEN, see note below
-npm test                # vitest (watch mode by default) — currently BROKEN, see note below
-npx vitest run src/App.test.tsx    # single test file, non-watch
-npm run preview          # serve the production build locally
+npx vitest run src/App.test.tsx   # single file, non-watch (bare `npm test` watches)
 ```
-`App.test.tsx` uses global `test`/`expect` (Jest-style), but `vite.config.ts` has no `test` block at all — no `globals: true`, no `environment: 'jsdom'`, no `setupFiles` wiring to `setupTests.ts`. It fails with `ReferenceError: test is not defined`. This was never finished after the CRA→Vite migration (`VITE_MIGRATION.md` claims vitest is wired up; it isn't). Pre-existing, not caused by any upgrade.
-
-**Both packages' `eslint.config.mjs` are pre-existing dead config**, unrelated to any dependency version: they call `defineConfig` from `eslint-define-config` (a package that was never actually added to either `package.json`) and extend legacy `airbnb`/`airbnb-base`/`airbnb-typescript` configs, which don't work with ESLint's flat-config format (`@eslint/eslintrc`'s `FlatCompat` is installed in the backend but never used to bridge them). `npm run lint` fails immediately with `ERR_MODULE_NOT_FOUND` in both packages. Fixing this means writing a real flat-config file (dropping airbnb or wrapping it in `FlatCompat`), not a version bump.
-
-There is no root-level test/lint script — run them per-workspace, or via `npm --workspace <name> run <script>` from `monorepo/`.
 
 ## Architecture
 
 ### Backend (NestJS, `packages/backend/src`)
 
-- Standard Nest module-per-domain layout: `students`, `groups`, `teachers`, `courses`, `rooms`, `classes`, `payments`, `debits`, `group-templates`, `settings`, `users`, `auth`. Each has `*.entity.ts`, `*.service.ts`, `*.controller.ts`, `*.module.ts`, `dto/`.
-- Persistence: TypeORM (v1.x) with **SQLite via the `better-sqlite3` driver** (`type: 'better-sqlite3'`, `db.sqlite` file lives in `packages/backend/`), `synchronize: true` (no migration-driven schema — schema follows entities directly; `src/migrations/` and `src/data-source.ts` exist for the TypeORM CLI but are not the primary way schema changes happen). TypeORM 1.x **dropped the plain `sqlite3`-driver `"sqlite"` type entirely** — only `"better-sqlite3"` remains for embedded SQLite, so don't reintroduce the `sqlite3` npm package or `type: 'sqlite'`. All entities must be registered in `TypeOrmModule.forRoot({ entities: [...] })` in `app.module.ts` — note `data-source.ts` has its own separate, shorter entity list; keep both in sync if you touch either.
-- **Entities mostly do NOT use TypeORM relations for cross-domain links** — most links are plain integer FK columns (e.g. `Group.teacherId`, `ClassEntity.groupId`/`roomId`/`teacherId`, `Payment.studentId`, `Debit.studentId`) resolved manually in services, not via `@ManyToOne`/joins. `Student` is the exception (has real `@OneToMany`/`@ManyToMany` relations to `Debit`, `Payment`, `ClassEntity`). `Group` also stores membership as JSON array columns (`studentIds`, `classIds`) rather than a join table — don't assume a `group.students` relation exists.
-- Auth: Passport strategies (`local`, `jwt`, `google`) under `auth/strategies`, JWT issued via `@nestjs/jwt` (3-day expiry), delivered as an httpOnly cookie (`cookie-parser` is enabled globally). Role model: `Role` enum (`admin`/`teacher`/`student`) on `User.roles` (stored as `simple-array`), enforced via `@Roles()` decorator + `RolesGuard` (reads `request.user.roles`) — but per `TODO.txt`/`.todo` files this is still a work in progress ("przekminić autentykację z rolami per endpoints", "zdekaplować teachera od superusera") and not yet applied consistently across controllers. Don't assume every endpoint is role-gated — check the specific controller.
-- `main.ts`: global prefix `api`, global `ValidationPipe({ whitelist: true })`, CORS locked to specific origins (localhost:3001, prod domain) with `credentials: true`, Swagger served at `/api/docs`. **On every backend boot it regenerates `openapi.json` in the backend package and overwrites `packages/frontend/backend_openapi.json`** — this is the mechanism that keeps frontend API types in sync with the backend; if you change a DTO/controller, run the backend once to refresh that file.
-- Listens on port **3002** in dev (not Nest's default 3000).
-- **TypeScript is intentionally pinned to `^6.0.3` here, not the current `7.x` line** — `ts-jest` (peer `typescript >=4.3 <7`) and `typescript-eslint` (peer `typescript >=4.8.4 <6.1.0`) don't support TS7 yet. Don't bump backend `typescript` past 6.0.x until both packages catch up, or `npm test`/lint will break. `tsconfig.json` also sets `"strict": false` explicitly (newer TS defaults strict-family checks on when nothing is specified at all — this codebase relies on decorator-populated entity/DTO fields with no initializers and loose null handling, so leave it off unless doing a deliberate strictness pass) and `"types": ["node", "jest"]` (auto @types-folder discovery doesn't reliably walk up to the hoisted root `node_modules/@types` in this workspace layout — without an explicit `types` array, `describe`/`it`/`expect` silently fail to resolve under ts-jest).
+Module-per-domain: `auth`, `classes`, `common`, `courses`, `debits`, `groups`, `payments`, `rooms`,
+`settings`, `students`, `users`. Each has `*.entity.ts` / `*.service.ts` / `*.controller.ts` /
+`*.module.ts` / `dto/`. Listens on **3002**, global prefix `api`, Swagger at `/api/docs`.
+
+**Persistence: TypeORM 1.x + SQLite via `better-sqlite3`.** TypeORM 1.x dropped the plain `sqlite` driver
+— only `better-sqlite3` remains, so don't reintroduce `type: 'sqlite'`.
+
+- **`synchronize: false`. Schema changes go through migrations, always.** `src/entities.ts` is the single
+  entity list, imported by both `app.module.ts` and `src/data-source.ts` (they used to drift; don't
+  re-split them). `ci/deploy_backend.sh` runs `migration:run` before restarting pm2.
+- `db.sqlite` lives in `packages/backend/`, resolved relative to CWD. Backups in `db-backups/` (gitignored).
+
+**Data model — read this before assuming a shape:**
+
+- **A teacher is a `user` with the `teacher` role.** There is no `teacher` table. `group.teacherId` /
+  `class.teacherId` reference `user(id)`. `GET /teachers` is a *read-only projection* of teacher-role
+  users (`users/teachers.controller.ts`) that exists so non-admins can populate teacher dropdowns —
+  it carries a bare `@Roles()` override for exactly that reason. Create/edit teachers via `/users`.
+- **Templates live in the `group` table behind `isTemplate`.** There is no `group_template` table.
+  `GroupsService.findAll` always takes an explicit `isTemplate` side so templates can't leak into a list
+  of real groups. `group.teacherId` is nullable *only* because templates may not have one — a CHECK
+  constraint (`isTemplate = 1 OR teacherId IS NOT NULL`) still requires it for real groups.
+- **Membership is join tables, never JSON arrays.** `group_students`, `group_classes`,
+  `class_attended_students`, `class_planned_students`. Services keep the old wire format
+  (`studentIds` / `attendedStudentsIds` …) via a `toResponse` mapping, so the API shape is unchanged
+  even though storage isn't. `GroupsService` and `ClassesService` both follow this pattern and
+  deliberately do **not** extend `BaseCrudService` (their response shape differs from the entity on
+  every method).
+- **Cross-domain links are plain int columns with real FK constraints**, not `@ManyToOne` relations.
+  Required/financial links (`group.teacherId`, `payment.studentId`, `debits.studentId`) are
+  `ON DELETE RESTRICT`; optional ones (`roomId`, `groupId`, `class.teacherId`, `debits.classId`) are
+  `SET NULL`. `BaseCrudService.remove` and `UsersService.remove` translate the resulting constraint
+  violation into a 409.
+
+**Auth:** Passport `local` / `jwt` / `google` strategies, JWT in an httpOnly cookie, 24h lifetime from
+`auth.constants.ts`. Closed by default — `PassportJwtAuthGuard` and `RolesGuard` are global `APP_GUARD`s;
+public routes opt out with `@Public()`. `ThrottlerGuard` is registered *first* so a hammered login is
+rate-limited before hitting auth (global 60/min, login 5/min).
+
+`JwtStrategy.validate` **re-reads roles from the database on every request** rather than trusting the
+token payload, so a revoked role takes effect immediately instead of after 24h. Don't "optimise" that
+away. New Google sign-ins are created with **no roles** — an admin grants access explicitly.
+
+**TypeScript is pinned to `^6.0.3` here, not 7.x** — `ts-jest` and `typescript-eslint` don't support TS7
+yet. `tsconfig.json` sets `"strict": false` and an explicit `"types": ["node", "jest"]` (auto @types
+discovery doesn't reach the hoisted root `node_modules` in this layout).
 
 ### Frontend (React 19 + Vite, `packages/frontend/src`)
 
-- Bundler: **Vite** (migrated from CRA/Craco — see `VITE_MIGRATION.md` for what changed if you hit stale assumptions from old CRA-era code/comments). Env vars use the `VITE_` prefix, not `REACT_APP_`.
-- Path aliases (must stay in sync between `vite.config.ts` and `tsconfig.json`): `@/*`, `@api/*`, `@components/*`, `@common/*`, `@pages/*`, `@hooks/*`, `@utils/*`. Note `tsconfig.json`'s `paths` values are `"./src/*"`-style (leading `./`, no `baseUrl`) — TypeScript 7 **removed `baseUrl` and `moduleResolution: "node"` outright** (hard errors, not deprecation warnings); this project now uses `moduleResolution: "bundler"` with relative `paths`. Frontend `typescript` tracks current latest (`^7.x`) fine since nothing here (unlike the backend) has a peer range capping it below 7.
-- `tsconfig.json` sets `"types": ["vite/client", "node"]` explicitly for the same reason as the backend — automatic `@types` folder discovery doesn't reliably reach the hoisted root `node_modules/@types` in this workspace layout, which previously surfaced as `Cannot find name 'require'`/`NodeJS` errors in a few files that still use CommonJS `require()`.
-- Structure: `Pages/<Feature>` (route-level screens: Dashboard, Students, Groups, Classes, Finances, Settings, UsersManagement, Administration, Login), `Components/` (shared UI: `TopBar`, `GroupWizard`, `StudentForm`, `Common`, `ProfilePanel`), `Menu/`, `context/` (`AuthContext`, `Settings`), `hooks/`, `api/` (`client.ts` fetch wrapper + `endpoints/*.ts` per domain + `types.ts`), `settings/defaults.json`.
-- API layer: hand-written fetch client in `api/client.ts` (`credentials: 'include'` for cookie auth, unwraps `{ data, success }` envelopes automatically), consumed through **TanStack React Query**. Auth state lives in `context/AuthContext` (`useQuery(['currentUser'])` + login/logout mutations) exposed via `hooks/useAuth.ts`. See `API_INTEGRATION.md` for the intended usage patterns (some of it describes an aspirational/older API surface — check `api/endpoints/*.ts` for what's actually implemented).
-- Routing: plain `react-router-dom` switch in `App.tsx` — currently binary (logged in → routed app with `TopBar`; logged out → `Login`), no per-route role restriction yet on the frontend (matches the backend's incomplete role enforcement noted above).
-- UI kit: **MUI v9** (+ `x-data-grid`, `x-date-pickers-pro`, both also v9), FullCalendar for scheduling views, `dayjs`/`luxon` both present for dates — check which a given file already uses before introducing the other.
-  - MUI v9 dropped the old "system props" shorthand on layout components (`Box`, `Stack`, `Typography`, `ListItemText`, etc.) — you can no longer write `<Stack alignItems="center" mb={2}>` or `<Typography fontWeight={700}>` directly; those props must go inside `sx={{ ... }}`. `TextField`'s `inputProps`/`InputProps`/`InputLabelProps` are similarly gone in favor of `slotProps={{ htmlInput, input, inputLabel }}`, and `Autocomplete`'s `renderTags(value, getTagProps)` is now `renderValue(value, getItemProps)`. If you see a `TS2769`/`TS2322`/`TS2353` error on an MUI component about a prop "not existing", it's almost always one of these — move it into `sx`/`slotProps` rather than typing around it.
-  - `@fullcalendar/*` packages are pinned to the `6.1.x` line on purpose: `@fullcalendar/core`/`react` have a stable `7.x`, but `daygrid`/`interaction`/`timegrid` only have `7.x` as beta/rc prereleases (peer-incompatible with the stable `core`/`react` v7). Don't bump core/react to `7.x` alone — wait until the whole family has a matching stable major.
-  - `@ambiot/material-ui-multiple-dates-picker` was removed (was unused dead weight — grep confirmed no imports anywhere outside a throwaway ambient `.d.ts` stub — and it hard-pins `@mui/material@^5.10.9`, which blocks `npm install` outright once MUI is on v9). `react-multi-date-picker` is also currently unused in `src/` but was left alone since it doesn't block anything.
-- Test runner is **Vitest**, not Jest, despite some `@testing-library`/`@types/jest` leftovers from the CRA era.
+Vite (migrated from CRA — env vars are `VITE_`-prefixed). TypeScript tracks latest (`^7.x`) here, unlike
+the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconfig.json`.
 
-### Deployment
+- **Pages/routes**: `/` Dashboard, `/students`, `/groups`, `/classes`, `/finances`, `/templates`,
+  `/teachers`, `/rooms`, `/courses`, `/users`, `/administration`. All lazy-loaded via `React.lazy`.
+- **Routes are role-gated** by `<RequireRole>` in `App.tsx`, matching what the backend enforces. Dashboard
+  is open to any authenticated user; `students`/`groups`/`classes` are admin+teacher; the rest admin-only.
+  `Menu/index.tsx` must agree with `App.tsx` — if you change one, change the other.
+- **API layer**: `api/client.ts` (fetch, `credentials: 'include'`, unwraps `{data, success}`) +
+  `api/endpoints/*.ts`, consumed through **TanStack React Query**. Auth state in `context/AuthContext`.
+  Note `groupTemplatesApi` is a thin adapter over `/groups` that maps `name` ↔ `templateName`.
+- **Shared CRUD UI**: `Components/Common/SimpleCrudPage` drives the Teachers/Rooms/Courses pages (table +
+  form dialog + delete confirm). Prefer extending it over hand-rolling another CRUD screen.
+- **UI kit: MUI v9** (+ x-data-grid, x-date-pickers-pro), FullCalendar for scheduling, `dayjs`/`luxon`
+  both present — check which a file already uses.
+- Test runner is **Vitest**, not Jest.
 
-- No Docker in active use (`ci/docker/` is empty). Deploys are plain scp+ssh scripts at the top-level `ci/` folder (`deploy_backend.sh`, `deploy_frontend.sh`) targeting a single VPS, process-managed with `pm2` (backend, process name `main`) and served by nginx (`ci/nginx.config`) for the frontend static build.
-- GitHub Actions (`.github/workflows/deploy.yml`) builds both packages on push to `release` and scp's `packages/frontend/build` and `packages/backend/dist` to the server — **note this dist path (`packages/backend/dist`) doesn't match the local build script's output dir (`packages/backend/build`, per `nest build`/`nest-cli.json`); verify which is correct before trusting the CI workflow blindly.**
-- Backend build uses `swc` (fast, `typeCheck: false` per `nest-cli.json`) — type errors won't fail `nest build`; rely on `tsc`/editor/tests to catch them.
+## Gotchas
+
+These each cost real debugging time. They are not hypothetical.
+
+- **SQLite migrations, `down()` only:** `PRAGMA foreign_keys = OFF` is a **no-op inside an already-open
+  transaction**, which is exactly where `migration:revert` runs. Use **`PRAGMA defer_foreign_keys = ON`**
+  instead. It defers checks to COMMIT but does *not* suppress `ON DELETE CASCADE`, so a `down()` that
+  rebuilds a parent table must still back up and restore its junction tables. `up()` is unaffected —
+  `migration:run` disables foreign_keys before opening its transaction.
+- **Never remap ids with a loop of per-row `UPDATE`s.** Use a temp mapping table and one `UPDATE` per
+  table, or rows already remapped get caught again when one entity's old id equals another's new id.
+- **`POST /classes/:id/attendance` takes a bare JSON array** (`[1,2,3]`), not `{attendedStudentsIds:[…]}`.
+  A malformed body now 400s; it used to be coerced to `[]`, which silently wiped the roster *and deleted
+  every debit for that class*.
+- **MUI v9 dropped system props.** `<Stack alignItems="center" mb={2}>` must become `sx={{...}}`;
+  `TextField`'s `inputProps`/`InputProps` became `slotProps={{ htmlInput, input, inputLabel }}`;
+  `Autocomplete`'s `renderTags` became `renderValue`. A `TS2769`/`TS2322` on an MUI prop is almost always
+  one of these.
+- **`@fullcalendar/*` is pinned to 6.1.x on purpose** — `daygrid`/`interaction`/`timegrid` only have 7.x
+  as prereleases, peer-incompatible with stable core/react v7. Bump the whole family or none of it.
+- **Testing MUI X DataGrid under jsdom:** its toolbar renders CSS jsdom can't resolve, so any
+  `screen.*ByRole()` scanning the whole document throws. Find the dialog with a raw
+  `document.querySelector('[role="dialog"]')` and scope queries with `within()`. See
+  `SimpleCrudPage.test.tsx`.
+- **Killing a backgrounded dev server on Windows:** `pkill` doesn't reliably work here. Find the real PID
+  with `netstat -ano | grep ":3002"` and use `powershell -Command "Stop-Process -Id <PID> -Force"`.
+  Verify the port is actually free before trusting a smoke test against a "restarted" server.
+- **`nest build` uses swc with `typeCheck: false`** — type errors do not fail the build. Run
+  `npm run typecheck` separately; CI does.
+
+## Deployment
+
+Single VPS, plain scp+ssh scripts in the top-level `ci/` folder. Backend runs under pm2 (process `main`);
+nginx serves the frontend build and proxies `/api` from the same origin.
+
+```bash
+bash ci/deploy_backend.sh    # build -> ship -> migration:run -> pm2 restart
+bash ci/deploy_frontend.sh   # build -> clear remote dir -> ship
+```
+
+- **Always back up production `db.sqlite` before a backend deploy** that touches schema, and dry-run the
+  migration against a copy of real production data first (including a full `up → down → up` cycle).
+  This has caught real bugs that typechecking and unit tests did not.
+- `deploy_frontend.sh` does `rm -rf` on the remote directory **before** scp. If the connection drops in
+  between, production is left with an empty web root until the deploy is re-run.
+- `.github/workflows/deploy.yml` exists but is not the primary path; verify it before trusting it.
