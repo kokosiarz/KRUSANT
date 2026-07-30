@@ -1,6 +1,5 @@
 import { Student } from './students/student.entity';
 import { Group } from './groups/group.entity';
-import { Teacher } from './teachers/entities/teacher.entity';
 import { Course } from './courses/course.entity';
 import { ClassEntity } from './classes/class.entity';
 import { Room } from './rooms/room.entity';
@@ -13,7 +12,6 @@ import { Debit } from './debits/debit.entity';
 export const entities = [
   Student,
   Group,
-  Teacher,
   Course,
   ClassEntity,
   Room,

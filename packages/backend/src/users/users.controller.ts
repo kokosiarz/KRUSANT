@@ -64,9 +64,9 @@ export class UsersController {
   async create(@Body() body: CreateUserDto) {
     const user = await this.usersService.create({
       email: body.email,
+      name: body.name,
       password: body.password,
       roles: body.roles,
-      teacherId: body.teacherId,
       studentId: body.studentId,
     });
     // Don't return password hash

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { TeachersService } from 'src/teachers/teachers.service';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 
@@ -9,14 +8,12 @@ type SignInData = {
   email: string;
   name: string;
   roles: string[];
-  teacherId?: number | null;
   studentId?: number | null;
 };
 
 @Injectable()
 export class AuthService {
   constructor(
-    private teachersService: TeachersService,
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
@@ -27,18 +24,11 @@ export class AuthService {
     const ok = await this.usersService.verifyPassword(user, input.password);
     if (!ok) return null;
 
-    // Derive name: prefer teacher profile name if linked, else email
-    let name = user.email;
-    if (user.teacherId) {
-      const teacher = await this.teachersService.findOneById(user.teacherId);
-      if (teacher?.name) name = teacher.name;
-    }
     return {
       id: user.id,
       email: user.email,
-      name,
+      name: user.name || user.email,
       roles: user.roles ?? [],
-      teacherId: user.teacherId ?? null,
       studentId: user.studentId ?? null,
     };
   }
@@ -49,7 +39,6 @@ export class AuthService {
       email: data.email,
       name: data.name,
       roles: data.roles,
-      teacherId: data.teacherId,
       studentId: data.studentId,
     };
     const accessToken = await this.jwtService.signAsync(payload);
@@ -63,7 +52,7 @@ export class AuthService {
     lastName: string;
     picture: string;
   }): Promise<SignInData> {
-    // Check if user exists by email
+    const googleName = `${profile.firstName} ${profile.lastName}`.trim();
     let user = await this.usersService.findByEmail(profile.email);
 
     if (!user) {
@@ -72,25 +61,17 @@ export class AuthService {
       // Google account self-provisioning as a teacher.
       user = await this.usersService.create({
         email: profile.email,
+        name: googleName || null,
         roles: [],
-        teacherId: null,
         studentId: null,
       });
-    }
-
-    // Derive name: prefer teacher profile name if linked, else use Google name
-    let name = `${profile.firstName} ${profile.lastName}`;
-    if (user.teacherId) {
-      const teacher = await this.teachersService.findOneById(user.teacherId);
-      if (teacher?.name) name = teacher.name;
     }
 
     return {
       id: user.id,
       email: user.email,
-      name,
+      name: user.name || googleName || user.email,
       roles: user.roles ?? [],
-      teacherId: user.teacherId ?? null,
       studentId: user.studentId ?? null,
     };
   }

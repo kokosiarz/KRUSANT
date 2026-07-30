@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { User } from './user.entity';
 import {
   randomBytes,
@@ -50,29 +50,30 @@ export class UsersService {
 
   async create(params: {
     email: string;
+    name?: string | null;
     password?: string;
     roles?: string[];
-    teacherId?: number | null;
     studentId?: number | null;
   }): Promise<User> {
-    const {
-      email,
-      password,
-      roles = [],
-      teacherId = null,
-      studentId = null,
-    } = params;
+    const { email, name = null, password, roles = [], studentId = null } = params;
     const passwordHash = password
       ? await this.hashPassword(password)
       : await this.hashPassword(this.generateTempPassword());
     const user = this.usersRepo.create({
       email,
+      name,
       passwordHash,
       roles: roles,
-      teacherId,
       studentId,
     });
     return this.usersRepo.save(user);
+  }
+
+  async findByRole(role: string): Promise<User[]> {
+    // `roles` is a simple-array (comma-separated text), so filter in JS
+    // rather than with a LIKE that could match a role name as a substring.
+    const users = await this.usersRepo.find();
+    return users.filter((user) => (user.roles ?? []).includes(role));
   }
 
   async setPassword(userId: number, newPassword: string): Promise<void> {
@@ -84,19 +85,19 @@ export class UsersService {
     userId: number,
     params: {
       email?: string;
+      name?: string | null;
       password?: string;
       roles?: string[];
-      teacherId?: number | null;
       studentId?: number | null;
     },
   ): Promise<User> {
     const updates: any = {};
     if (params.email) updates.email = params.email;
+    if (params.name !== undefined) updates.name = params.name;
     if (params.password)
       updates.passwordHash = await this.hashPassword(params.password);
     if (params.roles !== undefined)
       updates.roles = params.roles.map((r) => r.toLowerCase());
-    if (params.teacherId !== undefined) updates.teacherId = params.teacherId;
     if (params.studentId !== undefined) updates.studentId = params.studentId;
 
     await this.usersRepo.update(userId, updates);
@@ -104,7 +105,21 @@ export class UsersService {
   }
 
   async remove(userId: number): Promise<void> {
-    await this.usersRepo.delete(userId);
+    try {
+      await this.usersRepo.delete(userId);
+    } catch (error) {
+      // A user who still teaches a group is protected by an ON DELETE
+      // RESTRICT foreign key; surface that as a 409 rather than a raw 500.
+      if (
+        error instanceof QueryFailedError &&
+        error.message.includes('FOREIGN KEY constraint failed')
+      ) {
+        throw new ConflictException(
+          'Nie można usunąć użytkownika: jest przypisany jako nauczyciel do istniejących grup lub zajęć.',
+        );
+      }
+      throw error;
+    }
   }
 
   async verifyPassword(user: User, password: string): Promise<boolean> {

@@ -36,12 +36,13 @@ export const Students: React.FC = () => {
 
   // Students who belong to any group taught by the current user.
   const myStudentIds = useMemo(() => {
-    if (!user?.teacherId) return new Set<number>();
+    if (!user?.id) return new Set<number>();
+    const myId = Number(user.id);
     const ids = groups
-      .filter((group) => group.teacherId === user.teacherId)
+      .filter((group) => group.teacherId === myId)
       .flatMap((group) => group.studentIds.map((id) => Number(id)));
     return new Set(ids);
-  }, [groups, user?.teacherId]);
+  }, [groups, user?.id]);
 
   const filteredStudents = useMemo(() => {
     let result = students;

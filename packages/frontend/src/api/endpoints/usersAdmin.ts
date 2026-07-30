@@ -3,8 +3,8 @@ import api from '../client';
 export interface AdminUser {
   id: number;
   email: string;
+  name?: string | null;
   roles: string[];
-  teacherId?: number | null;
   studentId?: number | null;
   createdAt: string;
   updatedAt: string;
@@ -12,17 +12,17 @@ export interface AdminUser {
 
 export interface CreateUserRequest {
   email: string;
+  name?: string;
   password: string;
   roles?: string[];
-  teacherId?: number | null;
   studentId?: number | null;
 }
 
 export interface UpdateUserRequest {
   email?: string;
+  name?: string | null;
   password?: string;
   roles?: string[];
-  teacherId?: number | null;
   studentId?: number | null;
 }
 

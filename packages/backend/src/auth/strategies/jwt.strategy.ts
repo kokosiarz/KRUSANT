@@ -24,10 +24,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     email: string;
     name: string;
     roles?: string[];
-    teacherId?: number | null;
     studentId?: number | null;
   }) {
-    // Re-check roles/teacherId/studentId against the DB on every request so a
+    // Re-check roles/studentId against the DB on every request so a
     // revoked role or a deleted user takes effect immediately instead of
     // waiting out the token's lifetime — the payload's own copy of these
     // fields is stale by design (baked in at login time).
@@ -40,7 +39,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: payload.email,
       name: payload.name,
       roles: user.roles ?? [],
-      teacherId: user.teacherId ?? null,
       studentId: user.studentId ?? null,
     };
   }

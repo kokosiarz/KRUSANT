@@ -17,15 +17,14 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import { useQuery } from '@tanstack/react-query';
 import { AdminUser } from '@/api/endpoints/usersAdmin';
-import { teachersApi } from '@/api/endpoints/teachers';
 import { studentsApi } from '@/api/endpoints/students';
 import { AVAILABLE_ROLES, getRoleLabel } from './roleLabels';
 
 export interface UserFormValues {
   email: string;
+  name: string;
   password: string;
   roles: string[];
-  teacherId: number | null;
   studentId: number | null;
 }
 
@@ -38,16 +37,11 @@ interface UserFormDialogProps {
   onSubmit: (values: UserFormValues) => void;
 }
 
-const emptyValues: UserFormValues = { email: '', password: '', roles: [], teacherId: null, studentId: null };
+const emptyValues: UserFormValues = { email: '', name: '', password: '', roles: [], studentId: null };
 
 const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loading, onClose, onSubmit }) => {
   const [values, setValues] = useState<UserFormValues>(emptyValues);
 
-  const { data: teachers = [] } = useQuery({
-    queryKey: ['teachers'],
-    queryFn: teachersApi.getTeachers,
-    enabled: open,
-  });
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
     queryFn: studentsApi.getStudents,
@@ -60,9 +54,9 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loadi
       mode === 'edit' && user
         ? {
             email: user.email,
+            name: user.name ?? '',
             password: '',
             roles: user.roles || [],
-            teacherId: user.teacherId ?? null,
             studentId: user.studentId ?? null,
           }
         : emptyValues,
@@ -93,6 +87,14 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loadi
           />
           <TextField
             fullWidth
+            label="Imię i nazwisko"
+            value={values.name}
+            onChange={(e) => setValues((prev) => ({ ...prev, name: e.target.value }))}
+            disabled={loading}
+            helperText="Wyświetlane w aplikacji i na listach nauczycieli"
+          />
+          <TextField
+            fullWidth
             label={mode === 'create' ? 'Hasło' : 'Nowe hasło (opcjonalne)'}
             type="password"
             value={values.password}
@@ -117,22 +119,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loadi
                 />
               ))}
             </FormGroup>
-          </FormControl>
-          <FormControl fullWidth disabled={loading}>
-            <InputLabel id="user-teacher-label">Powiąż z nauczycielem</InputLabel>
-            <Select
-              labelId="user-teacher-label"
-              label="Powiąż z nauczycielem"
-              value={values.teacherId !== null ? String(values.teacherId) : ''}
-              onChange={(e) =>
-                setValues((prev) => ({ ...prev, teacherId: e.target.value === '' ? null : Number(e.target.value) }))
-              }
-            >
-              <MenuItem value="">Brak</MenuItem>
-              {teachers.map((t) => (
-                <MenuItem key={t.id} value={String(t.id)}>{t.name}</MenuItem>
-              ))}
-            </Select>
           </FormControl>
           <FormControl fullWidth disabled={loading}>
             <InputLabel id="user-student-label">Powiąż z kursantem</InputLabel>

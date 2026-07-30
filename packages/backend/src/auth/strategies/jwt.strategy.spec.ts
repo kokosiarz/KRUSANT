@@ -10,7 +10,6 @@ describe('JwtStrategy', () => {
     email: 'user@example.com',
     name: 'Test User',
     roles: ['teacher'],
-    teacherId: 7,
     studentId: null,
   };
 
@@ -18,11 +17,10 @@ describe('JwtStrategy', () => {
     return new JwtStrategy(usersService as UsersService);
   }
 
-  it('returns the fresh roles/teacherId/studentId from the DB, not the token payload', async () => {
+  it('returns the fresh roles/studentId from the DB, not the token payload', async () => {
     const findById = jest.fn().mockResolvedValue({
       id: 1,
       roles: ['admin'], // changed since the token was issued
-      teacherId: null,
       studentId: 42,
     });
     const strategy = makeStrategy({ findById });
@@ -35,7 +33,6 @@ describe('JwtStrategy', () => {
       email: 'user@example.com',
       name: 'Test User',
       roles: ['admin'],
-      teacherId: null,
       studentId: 42,
     });
   });
@@ -49,11 +46,10 @@ describe('JwtStrategy', () => {
     );
   });
 
-  it('defaults roles/teacherId/studentId to empty/null when the DB row has none set', async () => {
+  it('defaults roles/studentId to empty/null when the DB row has none set', async () => {
     const findById = jest.fn().mockResolvedValue({
       id: 1,
       roles: undefined,
-      teacherId: undefined,
       studentId: undefined,
     });
     const strategy = makeStrategy({ findById });
@@ -61,7 +57,6 @@ describe('JwtStrategy', () => {
     const result = await strategy.validate(payload);
 
     expect(result.roles).toEqual([]);
-    expect(result.teacherId).toBeNull();
     expect(result.studentId).toBeNull();
   });
 });

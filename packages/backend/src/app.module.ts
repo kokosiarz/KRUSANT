@@ -6,7 +6,6 @@ import { AppService } from './app.service';
 import { StudentsModule } from './students/students.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { GroupsModule } from './groups/groups.module';
-import { TeachersModule } from './teachers/teachers.module';
 import { CoursesModule } from './courses/courses.module';
 import { RoomsModule } from './rooms/rooms.module';
 import { PaymentsModule } from './payments/payments.module';
@@ -33,7 +32,6 @@ import { entities } from './entities';
     StudentsModule,
     PaymentsModule,
     GroupsModule,
-    TeachersModule,
     CoursesModule,
     RoomsModule,
     ClassesModule,

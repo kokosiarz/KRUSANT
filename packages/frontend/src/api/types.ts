@@ -35,7 +35,7 @@ export interface User {
   email: string;
   name: string;
   roles?: string[];
-  teacherId?: number | null;
+  studentId?: number | null;
 }
 
 export interface UpdateUserRequest {

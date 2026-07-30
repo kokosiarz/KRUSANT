@@ -64,7 +64,6 @@ export class PassportAuthController {
         email: request.user.email,
         name: request.user.name,
         roles: request.user.roles ?? [],
-        teacherId: request.user.teacherId ?? null,
         studentId: request.user.studentId ?? null,
       },
     };
@@ -98,7 +97,6 @@ export class PassportAuthController {
         email: request.user.email,
         name: request.user.name,
         roles: request.user.roles ?? [],
-        teacherId: request.user.teacherId ?? null,
         studentId: request.user.studentId ?? null,
       },
     };

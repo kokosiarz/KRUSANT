@@ -18,9 +18,7 @@ export function createColumns(
 ) {
   const getTeacherName = (id?: number) => {
     const t = teachers.find(t => t.id === id);
-    if (!t) return '-';
-    if (t.firstName || t.lastName) return `${t.firstName ?? ''} ${t.lastName ?? ''}`.trim();
-    return t.name || '-';
+    return t?.name || '-';
   };
   const getRoomName = (id?: number) => {
     const r = rooms.find(r => r.id === id);

@@ -28,9 +28,7 @@ const TeacherSelector: React.FC<StepTeacherProps> = ({ teacherId, teacherList, s
               <MenuItem value="">{copy.noTeacher}</MenuItem>
               {teacherList.map((teacher: any) => (
                 <MenuItem key={teacher.id} value={String(teacher.id)}>
-                  {teacher.firstName && teacher.lastName
-                    ? `${teacher.firstName} ${teacher.lastName}`
-                    : teacher.name || `${copy.fallbackPrefix} ${teacher.id}`}
+                  {teacher.name || `${copy.fallbackPrefix} ${teacher.id}`}
                 </MenuItem>
               ))}
             </Select>
@@ -57,9 +55,7 @@ const TeacherSelector: React.FC<StepTeacherProps> = ({ teacherId, teacherList, s
                 <MenuItem value="">{copy.noTeacher}</MenuItem>
                 {teacherList.map((teacher: any) => (
                   <MenuItem key={teacher.id} value={String(teacher.id)}>
-                    {teacher.firstName && teacher.lastName
-                      ? `${teacher.firstName} ${teacher.lastName}`
-                      : teacher.name || `${copy.fallbackPrefix} ${teacher.id}`}
+                    {teacher.name || `${copy.fallbackPrefix} ${teacher.id}`}
                   </MenuItem>
                 ))}
               </Select>

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 // import { AuthController } from './auth.controller';
 import { PassportAuthController } from './passport-auth.controller';
 import { AuthService } from './auth.service';
-import { TeachersModule } from 'src/teachers/teachers.module';
 import { UsersModule } from 'src/users/users.module';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -34,7 +33,6 @@ loadEnvFile(path.resolve(process.cwd(), envFile));
   controllers: [PassportAuthController],
   providers: [AuthService, JwtStrategy, LocalStrategy, GoogleStrategy],
   imports: [
-    TeachersModule,
     UsersModule,
     JwtModule.register({
       global: true,

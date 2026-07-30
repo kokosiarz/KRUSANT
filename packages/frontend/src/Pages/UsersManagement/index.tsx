@@ -104,16 +104,16 @@ const UsersManagement: React.FC = () => {
     if (openDialog === 'create') {
       createMutation.mutate({
         email: values.email,
+        name: values.name || undefined,
         password: values.password,
         roles: values.roles,
-        teacherId: values.teacherId,
         studentId: values.studentId,
       });
     } else if (openDialog === 'edit' && selectedUser) {
       const data: UpdateUserRequest = {
         email: values.email,
+        name: values.name || null,
         roles: values.roles,
-        teacherId: values.teacherId,
         studentId: values.studentId,
       };
       if (values.password) data.password = values.password;

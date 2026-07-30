@@ -52,10 +52,10 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
                             bgcolor: 'primary.main',
                         }}
                     >
-                        {user?.name?.charAt(0).toUpperCase() || '?'}
+                        {(user?.name || user?.email)?.charAt(0).toUpperCase() || '?'}
                     </Avatar>
                     <Typography variant="h6" sx={{ fontWeight: 700 }} gutterBottom>
-                        {user?.name || 'Gość'}
+                        {user?.name || user?.email || 'Gość'}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                         {user?.email || 'Brak adresu e-mail'}

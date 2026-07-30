@@ -50,7 +50,7 @@ const TopBar: React.FC<TopBarProps> = ({ mode, onToggleTheme }) => {
                     color: user ? 'primary.contrastText' : undefined,
                   }}
                 >
-                  {user?.name?.charAt(0).toUpperCase() || '?'}
+                  {(user?.name || user?.email)?.charAt(0).toUpperCase() || '?'}
                 </Avatar>
               </IconButton>
             </Tooltip>

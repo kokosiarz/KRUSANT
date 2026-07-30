@@ -12,6 +12,11 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
+  @ApiPropertyOptional({ description: 'Display name', example: 'Jan Kowalski' })
+  @IsOptional()
+  @IsString()
+  name?: string;
+
   @ApiProperty({ description: 'User password', example: 'password123' })
   @IsString()
   password: string;
@@ -25,14 +30,6 @@ export class CreateUserDto {
   @IsArray()
   @IsString({ each: true })
   roles?: string[];
-
-  @ApiPropertyOptional({
-    description: 'Teacher ID if linking to teacher profile',
-    example: 1,
-  })
-  @IsOptional()
-  @IsNumber()
-  teacherId?: number;
 
   @ApiPropertyOptional({
     description: 'Student ID if linking to student profile',
