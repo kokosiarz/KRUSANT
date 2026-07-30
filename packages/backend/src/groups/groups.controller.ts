@@ -30,23 +30,33 @@ import { Role } from '../auth/roles.enum';
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 
-  @ApiOperation({ summary: 'Get all groups' })
+  @ApiOperation({ summary: 'Get all groups (or templates)' })
   @ApiQuery({
     name: 'isActive',
     required: false,
     enum: ['true', 'false'],
     description: 'Filter by active status',
   })
+  @ApiQuery({
+    name: 'isTemplate',
+    required: false,
+    enum: ['true', 'false'],
+    description:
+      'Return templates instead of real groups. Defaults to false, so plain /groups never includes templates.',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Returns all groups or filtered by active status',
+    description: 'Returns groups (or templates when isTemplate=true)',
   })
   @Roles(Role.Admin, Role.Teacher)
   @Get()
-  async getAll(@Query('isActive') isActive?: 'true' | 'false') {
+  async getAll(
+    @Query('isActive') isActive?: 'true' | 'false',
+    @Query('isTemplate') isTemplate?: 'true' | 'false',
+  ) {
     const active =
       isActive === 'true' ? true : isActive === 'false' ? false : undefined;
-    return await this.groupsService.findAll(active);
+    return await this.groupsService.findAll(isTemplate === 'true', active);
   }
 
   @ApiOperation({ summary: 'Get group by ID' })

@@ -106,9 +106,23 @@ export class CreateGroupDto {
   @Type(() => DateBoundaryDto)
   maxEndDate?: DateBoundaryDto;
 
-  @ApiProperty({ description: 'Teacher ID', example: 1 })
+  @ApiPropertyOptional({
+    description:
+      'Teacher ID. Required for a real group; optional for a template, which may not have one chosen yet.',
+    example: 1,
+  })
+  @IsOptional()
   @IsNumber()
-  teacherId: number;
+  teacherId?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Save as a reusable template rather than a real group. Defaults to false.',
+    example: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isTemplate?: boolean;
 
   @ApiPropertyOptional({
     description: 'Total course cost (defaults from courseId if omitted)',

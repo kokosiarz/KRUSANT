@@ -439,14 +439,27 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "isTemplate",
+            "required": false,
+            "in": "query",
+            "description": "Return templates instead of real groups. Defaults to false, so plain /groups never includes templates.",
+            "schema": {
+              "enum": [
+                "true",
+                "false"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Returns all groups or filtered by active status"
+            "description": "Returns groups (or templates when isTemplate=true)"
           }
         },
-        "summary": "Get all groups",
+        "summary": "Get all groups (or templates)",
         "tags": [
           "groups"
         ]
@@ -1086,125 +1099,6 @@
         "summary": "Batch create classes",
         "tags": [
           "classes"
-        ]
-      }
-    },
-    "/api/group-templates": {
-      "get": {
-        "operationId": "GroupTemplatesController_getAll",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Returns all group templates"
-          }
-        },
-        "summary": "Get all group templates",
-        "tags": [
-          "group-templates"
-        ]
-      },
-      "post": {
-        "operationId": "GroupTemplatesController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateGroupTemplateDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Group template created"
-          }
-        },
-        "summary": "Create new group template",
-        "tags": [
-          "group-templates"
-        ]
-      }
-    },
-    "/api/group-templates/{id}": {
-      "get": {
-        "operationId": "GroupTemplatesController_getOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Group template ID",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Returns group template"
-          }
-        },
-        "summary": "Get group template by ID",
-        "tags": [
-          "group-templates"
-        ]
-      },
-      "patch": {
-        "operationId": "GroupTemplatesController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Group template ID",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateGroupTemplateDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Group template updated"
-          }
-        },
-        "summary": "Update group template",
-        "tags": [
-          "group-templates"
-        ]
-      },
-      "delete": {
-        "operationId": "GroupTemplatesController_delete",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "description": "Group template ID",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Group template deleted"
-          }
-        },
-        "summary": "Delete group template",
-        "tags": [
-          "group-templates"
         ]
       }
     },
@@ -2244,8 +2138,13 @@
           },
           "teacherId": {
             "type": "number",
-            "description": "Teacher ID",
+            "description": "Teacher ID. Required for a real group; optional for a template, which may not have one chosen yet.",
             "example": 1
+          },
+          "isTemplate": {
+            "type": "boolean",
+            "description": "Save as a reusable template rather than a real group. Defaults to false.",
+            "example": false
           },
           "cost": {
             "type": "number",
@@ -2288,10 +2187,7 @@
             "description": "Number of hours for the group",
             "example": 40
           }
-        },
-        "required": [
-          "teacherId"
-        ]
+        }
       },
       "UpdateGroupDto": {
         "type": "object",
@@ -2356,8 +2252,13 @@
           },
           "teacherId": {
             "type": "number",
-            "description": "Teacher ID",
+            "description": "Teacher ID. Required for a real group; optional for a template, which may not have one chosen yet.",
             "example": 1
+          },
+          "isTemplate": {
+            "type": "boolean",
+            "description": "Save as a reusable template rather than a real group. Defaults to false.",
+            "example": false
           },
           "cost": {
             "type": "number",
@@ -2696,225 +2597,6 @@
         "required": [
           "classes"
         ]
-      },
-      "CreateGroupTemplateDto": {
-        "type": "object",
-        "properties": {
-          "templateName": {
-            "type": "string",
-            "description": "Template name",
-            "example": "Evening Regular"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Active status",
-            "example": true,
-            "default": true
-          },
-          "studentIds": {
-            "description": "Student IDs",
-            "example": [
-              1,
-              2
-            ],
-            "default": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "classIds": {
-            "description": "Class IDs",
-            "example": [
-              1,
-              2
-            ],
-            "default": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "teacherId": {
-            "type": "number",
-            "description": "Teacher ID",
-            "example": 1
-          },
-          "cost": {
-            "type": "number",
-            "description": "Total course cost",
-            "example": 3325
-          },
-          "unitCost": {
-            "type": "number",
-            "description": "Cost per unit",
-            "example": 50
-          },
-          "comment": {
-            "type": "string",
-            "description": "Additional comments",
-            "example": ""
-          },
-          "minStartDate": {
-            "description": "Minimum start date constraint",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DateBoundaryDto"
-              }
-            ]
-          },
-          "maxEndDate": {
-            "description": "Maximum end date constraint",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DateBoundaryDto"
-              }
-            ]
-          },
-          "colorHex": {
-            "type": "string",
-            "description": "Template color hex for visual identification",
-            "example": "#4CAF50"
-          },
-          "startHour": {
-            "type": "string",
-            "description": "Default start time (HH:mm or HH:mm:ss)",
-            "example": "09:00",
-            "format": "time"
-          },
-          "lessonLength": {
-            "type": "string",
-            "description": "Lesson duration as time (HH:mm or HH:mm:ss)",
-            "example": "01:00",
-            "format": "time"
-          },
-          "roomId": {
-            "type": "number",
-            "description": "Room ID",
-            "example": 1
-          },
-          "courseId": {
-            "type": "number",
-            "description": "Course ID",
-            "example": 1
-          },
-          "numberOfHours": {
-            "type": "number",
-            "description": "Number of hours for the group template",
-            "example": 40
-          }
-        },
-        "required": [
-          "templateName"
-        ]
-      },
-      "UpdateGroupTemplateDto": {
-        "type": "object",
-        "properties": {
-          "templateName": {
-            "type": "string",
-            "description": "Template name",
-            "example": "Evening Regular"
-          },
-          "isActive": {
-            "type": "boolean",
-            "description": "Active status",
-            "example": true,
-            "default": true
-          },
-          "studentIds": {
-            "description": "Student IDs",
-            "example": [
-              1,
-              2
-            ],
-            "default": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "classIds": {
-            "description": "Class IDs",
-            "example": [
-              1,
-              2
-            ],
-            "default": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "teacherId": {
-            "type": "number",
-            "description": "Teacher ID",
-            "example": 1
-          },
-          "cost": {
-            "type": "number",
-            "description": "Total course cost",
-            "example": 3325
-          },
-          "unitCost": {
-            "type": "number",
-            "description": "Cost per unit",
-            "example": 50
-          },
-          "comment": {
-            "type": "string",
-            "description": "Additional comments",
-            "example": ""
-          },
-          "minStartDate": {
-            "description": "Minimum start date constraint",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DateBoundaryDto"
-              }
-            ]
-          },
-          "maxEndDate": {
-            "description": "Maximum end date constraint",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/DateBoundaryDto"
-              }
-            ]
-          },
-          "colorHex": {
-            "type": "string",
-            "description": "Template color hex for visual identification",
-            "example": "#4CAF50"
-          },
-          "startHour": {
-            "type": "string",
-            "description": "Default start time (HH:mm or HH:mm:ss)",
-            "example": "09:00",
-            "format": "time"
-          },
-          "lessonLength": {
-            "type": "string",
-            "description": "Lesson duration as time (HH:mm or HH:mm:ss)",
-            "example": "01:00",
-            "format": "time"
-          },
-          "roomId": {
-            "type": "number",
-            "description": "Room ID",
-            "example": 1
-          },
-          "courseId": {
-            "type": "number",
-            "description": "Course ID",
-            "example": 1
-          },
-          "numberOfHours": {
-            "type": "number",
-            "description": "Number of hours for the group template",
-            "example": 40
-          }
-        }
       },
       "UpdateSettingsDto": {
         "type": "object",

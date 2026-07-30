@@ -107,12 +107,29 @@ export class GroupsService {
     return patched;
   }
 
-  async findAll(isActive?: boolean): Promise<GroupWithMembership[]> {
+  // Templates live in the same table behind `isTemplate`. Callers always say
+  // which side they want, so a template can never leak into a list of real
+  // groups (or vice versa) by omission.
+  async findAll(
+    isTemplate: boolean,
+    isActive?: boolean,
+  ): Promise<GroupWithMembership[]> {
     const groups = await this.groupRepository.find({
-      where: isActive !== undefined ? { isActive } : {},
+      where: { isTemplate, ...(isActive !== undefined ? { isActive } : {}) },
       relations: { students: true, classes: true },
     });
     return groups.map((g) => this.toResponse(g));
+  }
+
+  /** A real group needs a teacher; a template is a blueprint and may not have one yet. */
+  private assertRequiredFields(dto: CreateGroupDto): void {
+    if (!dto.name) throw new BadRequestException('name is required');
+    if (dto.cost === undefined || dto.unitCost === undefined) {
+      throw new BadRequestException('cost and unitCost are required');
+    }
+    if (!dto.isTemplate && !dto.teacherId) {
+      throw new BadRequestException('teacherId is required for a group');
+    }
   }
 
   async findOne(id: number): Promise<GroupWithMembership> {
@@ -121,10 +138,7 @@ export class GroupsService {
 
   async create(createGroupDto: CreateGroupDto): Promise<GroupWithMembership> {
     const patchedDto = await this.applyCourseDefaults(createGroupDto);
-    if (!patchedDto.name) throw new BadRequestException('name is required');
-    if (patchedDto.cost === undefined || patchedDto.unitCost === undefined) {
-      throw new BadRequestException('cost and unitCost are required');
-    }
+    this.assertRequiredFields(patchedDto);
     const { studentIds, classIds, ...rest } = patchedDto;
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Group);
@@ -157,10 +171,7 @@ export class GroupsService {
     const patched: CreateGroupDto[] = [];
     for (const groupDto of groups) {
       const patchedDto = await this.applyCourseDefaults(groupDto);
-      if (!patchedDto.name) throw new BadRequestException('name is required');
-      if (patchedDto.cost === undefined || patchedDto.unitCost === undefined) {
-        throw new BadRequestException('cost and unitCost are required');
-      }
+      this.assertRequiredFields(patchedDto);
       patched.push(patchedDto);
     }
 

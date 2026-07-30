@@ -13,7 +13,6 @@ import { AuthService } from './auth/auth.service';
 import { AuthModule } from './auth/auth.module';
 import { ClassesModule } from './classes/classes.module';
 import { UsersModule } from './users/users.module';
-import { GroupTemplatesModule } from './group-templates/group-templates.module';
 import { SettingsModule } from './settings/settings.module';
 import { DebitsModule } from './debits/debits.module';
 import { PassportJwtAuthGuard } from './auth/guards/passport-jwt.guard';
@@ -35,7 +34,6 @@ import { entities } from './entities';
     CoursesModule,
     RoomsModule,
     ClassesModule,
-    GroupTemplatesModule,
     SettingsModule,
     AuthModule,
     UsersModule,
