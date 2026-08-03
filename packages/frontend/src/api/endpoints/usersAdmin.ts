@@ -10,10 +10,13 @@ export interface AdminUser {
   updatedAt: string;
 }
 
+/**
+ * No password field: the server generates a temporary one and emails it. See
+ * IssuedCredentials for what comes back.
+ */
 export interface CreateUserRequest {
   email: string;
   name?: string;
-  password: string;
   roles?: string[];
   studentId?: number | null;
 }
@@ -21,13 +24,22 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   email?: string;
   name?: string | null;
-  password?: string;
   roles?: string[];
   studentId?: number | null;
 }
 
-export interface ResetPasswordRequest {
-  newPassword: string;
+/**
+ * Result of creating a user or issuing a fresh temporary password.
+ * `tempPassword` is populated **only when the email failed** — it's the admin's
+ * fallback for passing the password on by hand, and the one and only time it
+ * can be read.
+ */
+export interface IssuedCredentials {
+  user: AdminUser;
+  emailSent: boolean;
+  emailError: string | null;
+  tempPasswordExpiresAt: string;
+  tempPassword: string | null;
 }
 
 /**
@@ -51,8 +63,8 @@ export const usersAdminApi = {
   /**
    * Create new user (admin only)
    */
-  createUser: async (data: CreateUserRequest): Promise<AdminUser> => {
-    return api.post<AdminUser>('/users', data);
+  createUser: async (data: CreateUserRequest): Promise<IssuedCredentials> => {
+    return api.post<IssuedCredentials>('/users', data);
   },
 
   /**
@@ -63,10 +75,12 @@ export const usersAdminApi = {
   },
 
   /**
-   * Reset user password (admin only)
+   * Issue a fresh temporary password and email it (admin only). Takes no body —
+   * the admin doesn't choose the password. Also the way back in for a user
+   * whose previous temporary password expired.
    */
-  resetPassword: async (userId: number, data: ResetPasswordRequest): Promise<{ message: string }> => {
-    return api.post<{ message: string }>(`/users/${userId}/reset-password`, data);
+  resetPassword: async (userId: number): Promise<IssuedCredentials> => {
+    return api.post<IssuedCredentials>(`/users/${userId}/reset-password`);
   },
 
   /**

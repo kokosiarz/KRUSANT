@@ -40,6 +40,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       name: payload.name,
       roles: user.roles ?? [],
       studentId: user.studentId ?? null,
+      // Read live for the same reason: baking it into the token would keep a
+      // user trapped on the change-password screen for the token's full 24h
+      // lifetime after they had already changed it.
+      mustChangePassword: user.mustChangePassword ?? false,
     };
   }
 }

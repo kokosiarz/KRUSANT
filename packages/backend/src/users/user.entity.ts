@@ -33,6 +33,18 @@ export class User {
   @Column({ type: 'integer', nullable: true })
   studentId?: number | null;
 
+  // Set when an admin issues a temporary password. While true the user can
+  // reach nothing but /auth/profile, /auth/logout and /auth/change-password
+  // (see ForcePasswordChangeGuard) — changing the password clears both fields.
+  @Column({ type: 'boolean', default: false })
+  mustChangePassword: boolean;
+
+  // Deadline for using the temporary password (24h from issue). Past this the
+  // password stops working and an admin has to issue a new one. Null for
+  // accounts whose password is self-chosen, and for Google-only accounts.
+  @Column({ type: 'datetime', nullable: true })
+  tempPasswordExpiresAt?: Date | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -23,16 +23,18 @@ const Teachers: React.FC = () => (
     ]}
     api={{
       getAll: async () => (await usersAdminApi.getAllUsers()).filter(hasTeacherRole),
-      create: (data) =>
-        usersAdminApi.createUser({
-          email: String(data.email),
-          name: data.name ? String(data.name) : undefined,
-          // Unusable placeholder: the account exists so the person can be
-          // assigned to groups/classes. An admin sets a real password via
-          // Użytkownicy → Resetuj hasło if they actually need to log in.
-          password: crypto.randomUUID(),
-          roles: [TEACHER_ROLE],
-        }),
+      // The server issues a temporary password and emails it, same as creating
+      // the user from Użytkownicy. This page shows only the created user, so a
+      // failed send isn't surfaced here — if the teacher never gets the mail,
+      // re-issue from Użytkownicy → Resetuj hasło, which does show it.
+      create: async (data) =>
+        (
+          await usersAdminApi.createUser({
+            email: String(data.email),
+            name: data.name ? String(data.name) : undefined,
+            roles: [TEACHER_ROLE],
+          })
+        ).user,
       // Preserve any other roles the account already holds (e.g. admin).
       update: (id, data) => usersAdminApi.updateUser(id, data),
       remove: async (id) => {

@@ -104,13 +104,34 @@ Module-per-domain: `auth`, `classes`, `common`, `courses`, `debits`, `groups`, `
   violation into a 409.
 
 **Auth:** Passport `local` / `jwt` / `google` strategies, JWT in an httpOnly cookie, 24h lifetime from
-`auth.constants.ts`. Closed by default — `PassportJwtAuthGuard` and `RolesGuard` are global `APP_GUARD`s;
-public routes opt out with `@Public()`. `ThrottlerGuard` is registered *first* so a hammered login is
-rate-limited before hitting auth (global 60/min, login 5/min).
+`auth.constants.ts`. Closed by default — `PassportJwtAuthGuard`, `ForcePasswordChangeGuard` and
+`RolesGuard` are global `APP_GUARD`s, in that order; public routes opt out with `@Public()`.
+`ThrottlerGuard` is registered *first* so a hammered login is rate-limited before hitting auth
+(global 60/min, login and change-password 5/min).
 
-`JwtStrategy.validate` **re-reads roles from the database on every request** rather than trusting the
-token payload, so a revoked role takes effect immediately instead of after 24h. Don't "optimise" that
-away. New Google sign-ins are created with **no roles** — an admin grants access explicitly.
+`JwtStrategy.validate` **re-reads roles and `mustChangePassword` from the database on every request**
+rather than trusting the token payload, so a revoked role takes effect immediately instead of after 24h —
+and a user who just changed their password isn't stuck behind a stale flag. Don't "optimise" that away.
+
+**There is no self-signup.** An admin creates every account on the Users page; there is no registration
+endpoint, and Google sign-in **rejects any email without an existing account** rather than provisioning
+one. The old auto-provisioning branch is kept behind `ALLOW_SELF_SIGNUP` (`auth.service.ts`, default
+off) so it can be turned back on without a rewrite — don't delete it. The frontend half is the
+commented-out `registerMutation` in `AuthContext` plus `authApi.register`, which points at a route that
+does not exist.
+
+**Temporary passwords.** Admins never choose or see a password. `POST /users` and
+`POST /users/:id/reset-password` (no body) both generate one, store its hash, and email it via
+`MailService`; the plaintext is returned to the admin **only if the email failed**, which is the one
+moment it can be read. `user.mustChangePassword` then blocks every route except `/auth/profile`,
+`/auth/logout` and `/auth/change-password` until it's changed, and `user.tempPasswordExpiresAt` (24h)
+makes the password itself stop authenticating — after that an admin has to re-issue. Signing in with
+Google clears `mustChangePassword` (reaching the mailbox proves ownership) but deliberately leaves the
+expiry alone, so the emailed password still dies on schedule.
+
+**SMTP is optional.** Without `MAIL_HOST`/`MAIL_FROM` the app runs normally and `MailService` reports a
+failed send, which is exactly the path that surfaces the password in the UI. A send failure never rolls
+back an account that was already created.
 
 **TypeScript is pinned to `^6.0.3` here, not 7.x** — `ts-jest` and `typescript-eslint` don't support TS7
 yet. `tsconfig.json` sets `"strict": false` and an explicit `"types": ["node", "jest"]` (auto @types
@@ -126,6 +147,11 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
 - **Routes are role-gated** by `<RequireRole>` in `App.tsx`, matching what the backend enforces. Dashboard
   is open to any authenticated user; `students`/`groups`/`classes` are admin+teacher; the rest admin-only.
   `Menu/index.tsx` must agree with `App.tsx` — if you change one, change the other.
+- **A pending password change replaces the whole app**, before routing is reached: `AppContent` renders
+  `<ChangePassword forced />` instead of the router whenever `mustChangePassword` is set. Don't turn this
+  into a redirect — with a temporary password the backend refuses every other endpoint, so any other
+  screen would just render errors. `MIN_PASSWORD_LENGTH` there must match the backend's
+  `users.constants.ts`.
 - **API layer**: `api/client.ts` (fetch, `credentials: 'include'`, unwraps `{data, success}`) +
   `api/endpoints/*.ts`, consumed through **TanStack React Query**. Auth state in `context/AuthContext`.
   Note `groupTemplatesApi` is a thin adapter over `/groups` that maps `name` ↔ `templateName`.

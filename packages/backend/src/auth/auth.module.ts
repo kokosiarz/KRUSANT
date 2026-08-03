@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 // import { AuthController } from './auth.controller';
 import { PassportAuthController } from './passport-auth.controller';
 import { AuthService } from './auth.service';
-import { UsersModule } from 'src/users/users.module';
+import { UsersModule } from '../users/users.module';
 import * as fs from 'fs';
 import * as path from 'path';
 

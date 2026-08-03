@@ -36,6 +36,17 @@ export interface User {
   name: string;
   roles?: string[];
   studentId?: number | null;
+  /**
+   * The account is on an admin-issued temporary password. Until it's changed
+   * the backend rejects every request except profile/logout/change-password,
+   * so the UI must show nothing but the change-password screen.
+   */
+  mustChangePassword?: boolean;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface UpdateUserRequest {
