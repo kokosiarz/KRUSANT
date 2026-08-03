@@ -1904,6 +1904,13 @@
   dependencies:
     undici-types "~8.3.0"
 
+"@types/nodemailer@^8.0.1":
+  version "8.0.1"
+  resolved "https://registry.npmjs.org/@types/nodemailer/-/nodemailer-8.0.1.tgz"
+  integrity sha512-PxpaInm8V1JQDd4j0ds5HfvWQk8JupS1C0Picb96QJsrrRDjBH+DlK7L4ZdNSqNULhiZRQHc40nLVShaGxXAMw==
+  dependencies:
+    "@types/node" "*"
+
 "@types/oauth@*":
   version "0.9.6"
   resolved "https://registry.npmjs.org/@types/oauth/-/oauth-0.9.6.tgz"
@@ -2740,6 +2747,7 @@ babel-preset-jest@30.4.0:
     class-transformer "^0.5.1"
     class-validator "^0.15.1"
     cookie-parser "^1.4.7"
+    nodemailer "^9.0.3"
     passport "^0.7.0"
     passport-google-oauth20 "^2.0.0"
     passport-jwt "^4.0.1"
@@ -5628,6 +5636,11 @@ node-releases@^2.0.27:
   resolved "https://registry.npmjs.org/node-releases/-/node-releases-2.0.27.tgz"
   integrity sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==
 
+nodemailer@^9.0.3:
+  version "9.0.3"
+  resolved "https://registry.npmjs.org/nodemailer/-/nodemailer-9.0.3.tgz"
+  integrity sha512-n+YP+NKwR5zRWa60k3GiQ6Q3B4KXCoAw40dAKeCtYn020iNN74aWK2liXIC3ZEATeGql7we3tE3t8QwhY0eskw==
+
 normalize-path@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/normalize-path/-/normalize-path-3.0.0.tgz"
@@ -6481,10 +6494,6 @@ setprototypeof@~1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/setprototypeof/-/setprototypeof-1.2.0.tgz"
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
-
-"shared@file:C:\\git\\web\\KRUSANT\\monorepo\\packages\\shared":
-  version "1.0.0"
-  resolved "file:packages/shared"
 
 shebang-command@^2.0.0:
   version "2.0.0"

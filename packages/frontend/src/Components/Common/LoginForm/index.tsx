@@ -22,9 +22,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
   const [submitting, setSubmitting] = useState(false);
   const { login, error } = useAuth();
 
+  // The Google callback can't render an error itself — it's a server-side
+  // redirect — so it hands the reason back on the query string. Read it once;
+  // a failed password login afterwards should replace it, not stack with it.
+  const [googleError, setGoogleError] = useState(() =>
+    new URLSearchParams(window.location.search).get('authError'),
+  );
+  const shownError = error ?? googleError;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setGoogleError(null);
     try {
       await login({ email, password });
       setPassword('');
@@ -48,9 +57,9 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
       <Typography variant="h4" component="h1" gutterBottom>
         Zaloguj się do KRUSANTA
       </Typography>
-      {error && (
+      {shownError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+          {shownError}
         </Alert>
       )}
       <Box component="form" onSubmit={handleSubmit}>

@@ -25,10 +25,12 @@ import {
   AdminUser,
   CreateUserRequest,
   UpdateUserRequest,
+  IssuedCredentials,
 } from '@/api/endpoints/usersAdmin';
 import { getRoleColor, getRoleLabel } from './roleLabels';
 import UserFormDialog, { UserFormValues } from './UserFormDialog';
 import ResetPasswordDialog from './ResetPasswordDialog';
+import TempPasswordDialog from './TempPasswordDialog';
 import DeleteUserDialog from './DeleteUserDialog';
 
 type DialogKind = 'create' | 'edit' | 'reset' | 'delete' | null;
@@ -41,6 +43,9 @@ const UsersManagement: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  // Set only when an email failed and the admin has to read the password off
+  // the screen instead.
+  const [issued, setIssued] = useState<IssuedCredentials | null>(null);
 
   const { data: users = [], isLoading } = useQuery<AdminUser[]>({
     queryKey: ['users'],
@@ -54,11 +59,24 @@ const UsersManagement: React.FC = () => {
   };
   const invalidateUsers = () => queryClient.invalidateQueries({ queryKey: ['users'] });
 
+  /**
+   * Creating a user and resetting a password both come back the same way: the
+   * password was emailed, or it wasn't and the plaintext is in the response for
+   * the admin to pass on by hand.
+   */
+  const handleIssued = (result: IssuedCredentials, sentMessage: string) => {
+    if (result.emailSent) {
+      showSuccess(`${sentMessage}. Hasło tymczasowe wysłano na ${result.user.email}.`);
+    } else {
+      setIssued(result);
+    }
+  };
+
   const createMutation = useMutation({
     mutationFn: (data: CreateUserRequest) => usersAdminApi.createUser(data),
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       closeDialog();
-      showSuccess('Użytkownik został utworzony');
+      handleIssued(result, 'Użytkownik został utworzony');
       await invalidateUsers();
     },
     onError: (err) => setError(errorMessage(err, 'Nie udało się utworzyć użytkownika')),
@@ -75,11 +93,10 @@ const UsersManagement: React.FC = () => {
   });
 
   const resetPasswordMutation = useMutation({
-    mutationFn: ({ id, newPassword }: { id: number; newPassword: string }) =>
-      usersAdminApi.resetPassword(id, { newPassword }),
-    onSuccess: () => {
+    mutationFn: (id: number) => usersAdminApi.resetPassword(id),
+    onSuccess: (result) => {
       closeDialog();
-      showSuccess('Hasło zostało zresetowane');
+      handleIssued(result, 'Hasło zostało zresetowane');
     },
     onError: (err) => setError(errorMessage(err, 'Nie udało się zresetować hasła')),
   });
@@ -105,7 +122,6 @@ const UsersManagement: React.FC = () => {
       createMutation.mutate({
         email: values.email,
         name: values.name || undefined,
-        password: values.password,
         roles: values.roles,
         studentId: values.studentId,
       });
@@ -116,7 +132,7 @@ const UsersManagement: React.FC = () => {
         roles: values.roles,
         studentId: values.studentId,
       };
-      if (values.password) data.password = values.password;
+      // Editing never touches the password — that's "Resetuj hasło" only.
       updateMutation.mutate({ id: selectedUser.id, data });
     }
   };
@@ -223,10 +239,12 @@ const UsersManagement: React.FC = () => {
         user={selectedUser}
         loading={resetPasswordMutation.isPending}
         onClose={closeDialog}
-        onSubmit={(newPassword) => {
-          if (selectedUser) resetPasswordMutation.mutate({ id: selectedUser.id, newPassword });
+        onSubmit={() => {
+          if (selectedUser) resetPasswordMutation.mutate(selectedUser.id);
         }}
       />
+
+      <TempPasswordDialog result={issued} onClose={() => setIssued(null)} />
 
       <DeleteUserDialog
         open={openDialog === 'delete'}

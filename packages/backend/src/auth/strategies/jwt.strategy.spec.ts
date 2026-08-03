@@ -34,7 +34,22 @@ describe('JwtStrategy', () => {
       name: 'Test User',
       roles: ['admin'],
       studentId: 42,
+      mustChangePassword: false,
     });
+  });
+
+  it('reflects a pending password change from the DB, which the token never carries', async () => {
+    const findById = jest.fn().mockResolvedValue({
+      id: 1,
+      roles: ['teacher'],
+      studentId: null,
+      mustChangePassword: true,
+    });
+    const strategy = makeStrategy({ findById });
+
+    const result = await strategy.validate(payload);
+
+    expect(result.mustChangePassword).toBe(true);
   });
 
   it('throws Unauthorized when the user no longer exists (deleted since the token was issued)', async () => {

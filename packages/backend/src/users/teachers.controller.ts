@@ -1,5 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '../auth/roles.enum';
@@ -16,7 +21,10 @@ export class TeachersController {
   constructor(private readonly usersService: UsersService) {}
 
   @ApiOperation({ summary: 'List users holding the teacher role' })
-  @ApiResponse({ status: 200, description: 'Returns id/name/email per teacher' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns id/name/email per teacher',
+  })
   // Deliberately open to any authenticated role: non-admin teachers need this
   // to populate teacher dropdowns. Mirrors the relaxation the old standalone
   // teachers controller had.

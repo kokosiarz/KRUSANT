@@ -38,6 +38,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     onError: (error: ApiClientError) => setError(error.message),
   });
 
+  // Self-signup is disabled — an admin creates every account (see
+  // authApi.register, and ALLOW_SELF_SIGNUP on the backend). Left here as the
+  // other half of that flow for whenever it's re-enabled.
   // const registerMutation = useMutation({
   //   mutationFn: authApi.register,
   //   onSuccess: (data) => {
@@ -69,10 +72,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await refetchUser();
   }, [refetchUser]);
 
+  const currentUser = (user as User | null) || null;
+
   const value: AuthContextType = {
-    user: (user as User | null) || null,
+    user: currentUser,
     isLoading,
     isAuthenticated: !!user,
+    mustChangePassword: currentUser?.mustChangePassword ?? false,
     error,
     login,
     logout,

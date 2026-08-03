@@ -15,15 +15,18 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
 import { useQuery } from '@tanstack/react-query';
 import { AdminUser } from '@/api/endpoints/usersAdmin';
 import { studentsApi } from '@/api/endpoints/students';
 import { AVAILABLE_ROLES, getRoleLabel } from './roleLabels';
 
+// No password field: on create the server generates a temporary one and emails
+// it, and an existing password is only ever replaced via "Resetuj hasło" (which
+// issues a fresh temporary one). An admin never types a user's password.
 export interface UserFormValues {
   email: string;
   name: string;
-  password: string;
   roles: string[];
   studentId: number | null;
 }
@@ -37,7 +40,7 @@ interface UserFormDialogProps {
   onSubmit: (values: UserFormValues) => void;
 }
 
-const emptyValues: UserFormValues = { email: '', name: '', password: '', roles: [], studentId: null };
+const emptyValues: UserFormValues = { email: '', name: '', roles: [], studentId: null };
 
 const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loading, onClose, onSubmit }) => {
   const [values, setValues] = useState<UserFormValues>(emptyValues);
@@ -55,7 +58,6 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loadi
         ? {
             email: user.email,
             name: user.name ?? '',
-            password: '',
             roles: user.roles || [],
             studentId: user.studentId ?? null,
           }
@@ -70,7 +72,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loadi
     }));
   };
 
-  const isValid = mode === 'create' ? !!values.email && !!values.password : !!values.email;
+  const isValid = !!values.email;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -93,15 +95,12 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({ open, mode, user, loadi
             disabled={loading}
             helperText="Wyświetlane w aplikacji i na listach nauczycieli"
           />
-          <TextField
-            fullWidth
-            label={mode === 'create' ? 'Hasło' : 'Nowe hasło (opcjonalne)'}
-            type="password"
-            value={values.password}
-            onChange={(e) => setValues((prev) => ({ ...prev, password: e.target.value }))}
-            disabled={loading}
-            helperText={mode === 'edit' ? 'Pozostaw puste, aby nie zmieniać hasła' : undefined}
-          />
+          {mode === 'create' && (
+            <Alert severity="info">
+              Użytkownik otrzyma e-mail z hasłem tymczasowym, które musi zmienić
+              w ciągu 24 godzin.
+            </Alert>
+          )}
           <FormControl component="fieldset">
             <Typography variant="subtitle2" sx={{ mb: 1 }}>Role</Typography>
             <FormGroup row>

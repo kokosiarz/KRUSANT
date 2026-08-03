@@ -8,6 +8,7 @@ import './App.css';
 import TopBar from './Components/TopBar';
 import RequireRole from './Components/RequireRole';
 import Login from './Pages/Login';
+import ChangePassword from './Pages/ChangePassword';
 import { createAppTheme } from './theme';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
@@ -35,7 +36,7 @@ const RouteFallback = () => (
 );
 
 function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, mustChangePassword } = useAuth();
   const [mode, setMode] = useState<ColorMode>('dark');
   const theme = useMemo(() => createAppTheme(mode), [mode]);
   const toggleMode = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -49,6 +50,11 @@ function AppContent() {
         </Box>
       ) : !isAuthenticated ? (
         <Login />
+      ) : mustChangePassword ? (
+        // Deliberately replaces the whole app rather than redirecting to a
+        // route: with a temporary password the backend refuses everything else
+        // anyway, so any other screen would just render errors.
+        <ChangePassword forced />
       ) : (
         <Box className="App">
           <TopBar mode={mode} onToggleTheme={toggleMode} />

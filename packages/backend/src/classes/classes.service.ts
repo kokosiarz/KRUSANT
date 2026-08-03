@@ -117,9 +117,14 @@ export class ClassesService {
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(ClassEntity);
       if (Object.keys(rest).length > 0) {
-        await repo.update(id, rest as Partial<ClassEntity>);
+        await repo.update(id, rest);
       }
-      await this.syncRoster(manager, id, attendedStudentsIds, plannedStudentsIds);
+      await this.syncRoster(
+        manager,
+        id,
+        attendedStudentsIds,
+        plannedStudentsIds,
+      );
       return this.loadOne(repo, id);
     });
   }

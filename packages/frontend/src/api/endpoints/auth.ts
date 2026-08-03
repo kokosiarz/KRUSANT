@@ -1,5 +1,11 @@
 import api from '../client';
-import { LoginRequest, LoginResponse, RegisterRequest, User } from '../types';
+import {
+  ChangePasswordRequest,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  User,
+} from '../types';
 
 /**
  * Authentication API endpoints
@@ -16,10 +22,24 @@ export const authApi = {
   },
 
   /**
-   * Register a new user
+   * SELF-SIGNUP IS DISABLED — accounts are created by an admin on the Users
+   * page. `POST /auth/register` does not exist on the backend, so calling this
+   * will 404; it is kept, unused, as the client half of the signup flow should
+   * it ever be turned back on (backend: ALLOW_SELF_SIGNUP in auth.service.ts).
    */
   register: async (data: RegisterRequest): Promise<LoginResponse> => {
     return api.post<LoginResponse>('/auth/register', data);
+  },
+
+  /**
+   * Change own password. Also how a user clears an admin-issued temporary
+   * password — on success `mustChangePassword` goes false and the rest of the
+   * app unlocks.
+   */
+  changePassword: async (
+    data: ChangePasswordRequest,
+  ): Promise<{ message: string }> => {
+    return api.post<{ message: string }>('/auth/change-password', data);
   },
 
   /**

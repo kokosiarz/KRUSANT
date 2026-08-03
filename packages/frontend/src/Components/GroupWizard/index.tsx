@@ -31,6 +31,15 @@ const GroupWizardInner: React.FC<GroupWizardProps> = ({ open, onClose, mode, id,
         queryFn: groupTemplatesApi.getGroupTemplates,
     });
 
+    // Same query the name step's input runs, so React Query serves both from one
+    // cache entry. Needed here so a duplicate name blocks Continue in group mode,
+    // the way allTemplates already does for templates.
+    const { data: allGroups = [] } = useQuery({
+        queryKey: ['groups'],
+        queryFn: groupsApi.getGroups,
+        staleTime: 60_000,
+    });
+
     const { formData, setFormData, resetFormData } = useGroupWizardData();
 
     const [currentStepNo, setCurrentStepNo] = useState(0);
@@ -86,8 +95,8 @@ const GroupWizardInner: React.FC<GroupWizardProps> = ({ open, onClose, mode, id,
     });
 
     // Centralized validation logic for step navigation
-    const canContinue = (step: EStep) => !validateStep(step, formData, mode, { allTemplates, id });
-    const getValidationError = (step: EStep) => validateStep(step, formData, mode, { allTemplates, id });
+    const canContinue = (step: EStep) => !validateStep(step, formData, mode, { allTemplates, allGroups, id });
+    const getValidationError = (step: EStep) => validateStep(step, formData, mode, { allTemplates, allGroups, id });
 
     const handleContinue = () => { 
         if (!canContinue(stepsList[currentStepNo].step)) {

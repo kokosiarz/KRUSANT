@@ -17,9 +17,8 @@ export class CreateUserDto {
   @IsString()
   name?: string;
 
-  @ApiProperty({ description: 'User password', example: 'password123' })
-  @IsString()
-  password: string;
+  // No password field on purpose: the server generates a temporary one and
+  // emails it. An admin never picks, sees, or transmits a chosen password.
 
   @ApiPropertyOptional({
     description: 'User roles',

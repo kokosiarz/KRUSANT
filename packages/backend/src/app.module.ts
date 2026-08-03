@@ -16,12 +16,15 @@ import { UsersModule } from './users/users.module';
 import { SettingsModule } from './settings/settings.module';
 import { DebitsModule } from './debits/debits.module';
 import { PassportJwtAuthGuard } from './auth/guards/passport-jwt.guard';
+import { ForcePasswordChangeGuard } from './auth/guards/force-password-change.guard';
 import { RolesGuard } from './auth/roles.guard';
+import { MailModule } from './mail/mail.module';
 import { entities } from './entities';
 
 @Module({
   imports: [
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
+    MailModule,
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: 'db.sqlite',
@@ -47,6 +50,9 @@ import { entities } from './entities';
     // reaches the auth/roles guards.
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: PassportJwtAuthGuard },
+    // After the JWT guard, which is what puts `user` on the request, and before
+    // RolesGuard so "change your password first" wins over "wrong role".
+    { provide: APP_GUARD, useClass: ForcePasswordChangeGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
