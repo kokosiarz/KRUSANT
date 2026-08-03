@@ -163,7 +163,7 @@ These each cost real debugging time. They are not hypothetical.
   with `netstat -ano | grep ":3002"` and use `powershell -Command "Stop-Process -Id <PID> -Force"`.
   Verify the port is actually free before trusting a smoke test against a "restarted" server.
 - **`nest build` uses swc with `typeCheck: false`** — type errors do not fail the build. Run
-  `npm run typecheck` separately; CI does.
+  `npm run typecheck` separately. **Nothing runs it for you** — there is no CI; see Deployment.
 
 ## Deployment
 
@@ -180,4 +180,8 @@ bash ci/deploy_frontend.sh   # build -> clear remote dir -> ship
   This has caught real bugs that typechecking and unit tests did not.
 - `deploy_frontend.sh` does `rm -rf` on the remote directory **before** scp. If the connection drops in
   between, production is left with an empty web root until the deploy is re-run.
-- `.github/workflows/deploy.yml` exists but is not the primary path; verify it before trusting it.
+- **There is no CI, and deploys are manual.** A `.github/workflows/deploy.yml` used to fire on pushes to
+  `release`, but it only scp'd build output — no `npm install`, no `migration:run`, no pm2 restart — so
+  after `synchronize: false` landed it would have left production running old code against an unmigrated
+  database. It was deleted rather than maintained as a second, divergent deploy path. The scripts above
+  are the only way to deploy; run `npm run typecheck && npm run lint && npm run test` yourself first.
