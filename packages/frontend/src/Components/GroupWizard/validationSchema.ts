@@ -1,16 +1,35 @@
 import dayjs from 'dayjs';
 import { GroupWizardData, TemplateData, GroupData, EMode } from './types';
 import { EStep } from './Steps/types';
+import { Group } from '../../Pages/Groups/types';
 
 export type ValidationResult = string | null;
 
+/**
+ * Extra data a validator may need beyond the form itself. `id` is the entity
+ * being edited, so a name only collides with *other* groups/templates.
+ */
+export interface ValidationContext {
+  allTemplates?: TemplateData[];
+  allGroups?: Group[];
+  id?: number;
+}
+
 // Per-field validation rules
-export const validators: Record<EStep, (data: GroupWizardData, mode: EMode, context?: { allTemplates?: TemplateData[], id?: number }) => ValidationResult> = {
+export const validators: Record<EStep, (data: GroupWizardData, mode: EMode, context?: ValidationContext) => ValidationResult> = {
   [EStep.Template]: () => null,
   [EStep.Course]: (data) => data.courseId ? null : 'Wybierz kurs',
   [EStep.Name]: (data, mode, ctx) => {
     if (mode === EMode.CreateGroup || mode === EMode.EditGroup) {
-      return (data as GroupData).groupName?.trim() ? null : 'Nazwa grupy jest wymagana';
+      const { groupName } = data as GroupData;
+      if (!groupName?.trim()) return 'Nazwa grupy jest wymagana';
+      if (ctx?.allGroups) {
+        const isDuplicate = ctx.allGroups.some(
+          (g) => g.name.toLowerCase() === groupName.toLowerCase() && g.id !== ctx.id
+        );
+        if (isDuplicate) return 'Grupa o tej nazwie już istnieje. Wybierz inną nazwę.';
+      }
+      return null;
     }
     if (!(data as TemplateData).templateName?.trim()) return 'Nazwa szablonu jest wymagana';
     if (ctx?.allTemplates && (data as TemplateData).templateName) {
@@ -53,12 +72,12 @@ export const validators: Record<EStep, (data: GroupWizardData, mode: EMode, cont
   [EStep.Summary]: () => null,
 };
 
-export function validateStep(step: EStep, data: GroupWizardData, mode: EMode, context?: { allTemplates?: TemplateData[], id?: number }): ValidationResult {
+export function validateStep(step: EStep, data: GroupWizardData, mode: EMode, context?: ValidationContext): ValidationResult {
   const validator = validators[step];
   return validator ? validator(data, mode, context) : null;
 }
 
-export function validateAllMandatory(steps: { step: EStep, isMandatory?: boolean }[], data: GroupWizardData, mode: EMode, context?: { allTemplates?: TemplateData[], id?: number }): ValidationResult {
+export function validateAllMandatory(steps: { step: EStep, isMandatory?: boolean }[], data: GroupWizardData, mode: EMode, context?: ValidationContext): ValidationResult {
   for (const s of steps) {
     if (!s.isMandatory) continue;
     const error = validateStep(s.step, data, mode, context);
