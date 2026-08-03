@@ -114,7 +114,9 @@ describe('ClassesService', () => {
     ).rejects.toThrow(/must be an array/);
     // Roster and debits must be untouched by the rejected call.
     const { attendedStudentsIds } = await service.findOne(classId);
-    expect(attendedStudentsIds.sort()).toEqual([studentA.id, studentB.id].sort());
+    expect(attendedStudentsIds.sort()).toEqual(
+      [studentA.id, studentB.id].sort(),
+    );
     expect(
       await dataSource.getRepository(Debit).count({ where: { classId } }),
     ).toBe(2);

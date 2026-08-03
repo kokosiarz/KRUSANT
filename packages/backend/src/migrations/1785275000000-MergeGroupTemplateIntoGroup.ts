@@ -24,9 +24,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 // (migration:run disables foreign_keys before opening its transaction), but
 // migration:revert's transaction opens first, making that pragma a no-op —
 // so down() uses `defer_foreign_keys` and backs the junction tables up.
-export class MergeGroupTemplateIntoGroup1785275000000
-  implements MigrationInterface
-{
+export class MergeGroupTemplateIntoGroup1785275000000 implements MigrationInterface {
   name = 'MergeGroupTemplateIntoGroup1785275000000';
 
   private static readonly GROUP_COLUMNS =

@@ -177,7 +177,9 @@ export class MergeTeacherIntoUser1785273000000 implements MigrationInterface {
     await queryRunner.query(
       `CREATE TABLE "teacher" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "name" varchar NOT NULL, "email" varchar NOT NULL, "createdAt" datetime NOT NULL DEFAULT (datetime('now')), "updatedAt" datetime NOT NULL DEFAULT (datetime('now')))`,
     );
-    await queryRunner.query(`ALTER TABLE "user" ADD COLUMN "teacherId" integer`);
+    await queryRunner.query(
+      `ALTER TABLE "user" ADD COLUMN "teacherId" integer`,
+    );
 
     const teacherUsers: { id: number; email: string; name: string | null }[] =
       await queryRunner.query(

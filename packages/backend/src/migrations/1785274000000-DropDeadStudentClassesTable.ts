@@ -10,9 +10,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 // Attendance is (and remains) tracked via ClassEntity.attendedStudentsIds /
 // plannedStudentsIds, so no data moves here — this is pure removal of a
 // half-finished attempt.
-export class DropDeadStudentClassesTable1785274000000
-  implements MigrationInterface
-{
+export class DropDeadStudentClassesTable1785274000000 implements MigrationInterface {
   name = 'DropDeadStudentClassesTable1785274000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

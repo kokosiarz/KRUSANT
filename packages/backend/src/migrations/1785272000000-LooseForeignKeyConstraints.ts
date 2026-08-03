@@ -26,9 +26,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 // transaction, per SQLite semantics) - documented footgun from the previous
 // migration. down() backs up those three junction tables before touching
 // group/class and restores them afterward.
-export class LooseForeignKeyConstraints1785272000000
-  implements MigrationInterface
-{
+export class LooseForeignKeyConstraints1785272000000 implements MigrationInterface {
   name = 'LooseForeignKeyConstraints1785272000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
