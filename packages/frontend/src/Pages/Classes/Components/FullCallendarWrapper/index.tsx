@@ -1,3 +1,4 @@
+import React, { useRef } from 'react';
 import { StyledCalendarWrapper } from './styles';
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -11,6 +12,11 @@ import plLocale from '@fullcalendar/core/locales/pl';
 import { Class } from '@/api/endpoints/classes';
 import { EventClickArg, EventDropArg } from '@fullcalendar/core';
 import EventContent from './EventContent';
+
+/** Below this a touch reads as a tap or a scroll, not a swipe. */
+const SWIPE_MIN_DISTANCE = 60;
+/** How much more horizontal than vertical the movement has to be. */
+const SWIPE_HORIZONTAL_RATIO = 1.5;
 
 interface FullCalendarWrapperProps {
     classes: Class[];
@@ -32,10 +38,42 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
     const events = useClassEventsWithNames(classes);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const calendarRef = useRef<FullCalendar | null>(null);
+    const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+    // Swiping left/right moves to the next/previous period — the natural
+    // gesture on a phone, where the prev/next buttons are small targets.
+    const onTouchStart = (e: React.TouchEvent) => {
+        const t = e.touches[0];
+        touchStart.current = t ? { x: t.clientX, y: t.clientY } : null;
+    };
+
+    const onTouchEnd = (e: React.TouchEvent) => {
+        const start = touchStart.current;
+        touchStart.current = null;
+        const t = e.changedTouches[0];
+        if (!start || !t) return;
+
+        const dx = t.clientX - start.x;
+        const dy = t.clientY - start.y;
+        // Must be clearly horizontal, or scrolling the agenda list vertically
+        // would flick the user into another week by accident.
+        if (Math.abs(dx) < SWIPE_MIN_DISTANCE) return;
+        if (Math.abs(dx) < Math.abs(dy) * SWIPE_HORIZONTAL_RATIO) return;
+
+        const api = calendarRef.current?.getApi();
+        if (!api) return;
+        if (dx < 0) api.next();
+        else api.prev();
+    };
 
     return (
-        <StyledCalendarWrapper>
+        <StyledCalendarWrapper
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+        >
             <FullCalendar
+                ref={calendarRef}
                 plugins={[timeGridPlugin, dayGridPlugin, listPlugin, interactionPlugin]}
                 // A 7-day grid on a 390px screen gives each day ~25px, which
                 // shredded every event title into vertical gibberish. Phones get
@@ -63,6 +101,10 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                 editable={!isMobile}
                 eventDurationEditable={false}
                 locale={plLocale}
+                // The Polish locale labels every list view "Plan dnia" (day
+                // plan), but listWeek spans a week — the button said one thing
+                // and showed another. Name it for what it actually displays.
+                views={{ listWeek: { buttonText: 'Tydzień' } }}
                 eventClick={handleEventClick}
                 dateClick={handleDateClick}
                 eventDragStart={onEventDragStart}
