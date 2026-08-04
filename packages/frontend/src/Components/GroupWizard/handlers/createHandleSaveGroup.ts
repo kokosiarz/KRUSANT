@@ -37,7 +37,8 @@ const buildGroupPayload = (data: GroupWizardData) => ({
   baseTemplateName: data.baseTemplateName || data.templateName,
   isActive: data.isActive,
   studentIds: data.studentIds,
-  classIds: data.classIds,
+  // classIds deliberately not sent: classes are attached to a group by their
+  // own groupId, through the Classes endpoints.
   cost: data.cost,
   unitCost: data.unitCost,
   courseId: data.courseId ?? null,

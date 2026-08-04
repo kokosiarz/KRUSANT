@@ -8,7 +8,6 @@ import {
   JoinTable,
 } from 'typeorm';
 import { Student } from '../students/student.entity';
-import { ClassEntity } from '../classes/class.entity';
 
 @Entity()
 export class Group {
@@ -28,9 +27,9 @@ export class Group {
   @Column({ default: true })
   isActive: boolean;
 
+  // Genuinely many-to-many: a student can sit in several groups at once.
   // Junction tables created via @JoinTable() default to ON DELETE CASCADE on
-  // both FKs (confirmed against Student.classes below, which relies on the
-  // same default) — deleting a Group/Student/Class cleans up membership rows
+  // both FKs, so deleting a Group or Student cleans up membership rows
   // automatically instead of leaving a dangling id like the old JSON arrays did.
   @ManyToMany(() => Student)
   @JoinTable({
@@ -40,13 +39,12 @@ export class Group {
   })
   students: Student[];
 
-  @ManyToMany(() => ClassEntity)
-  @JoinTable({
-    name: 'group_classes',
-    joinColumn: { name: 'groupId' },
-    inverseJoinColumn: { name: 'classId' },
-  })
-  classes: ClassEntity[];
+  // There is deliberately no `classes` relation. A class happens once, for one
+  // group — one-to-many, which `class.groupId` already expresses. The old
+  // `group_classes` junction table was dropped (see the migration): nothing
+  // ever wrote to it, and having a second way to say the same thing meant the
+  // group API reported every group as having no classes. Query classes by
+  // `groupId`; GroupsService derives its `classIds` response field that way.
 
   @Column({ type: 'json', nullable: true })
   minStartDate: { day: number; month: number; year?: number } | null;

@@ -7,7 +7,9 @@ export interface CreateGroupRequest {
   name: string;
   isActive?: boolean;
   studentIds?: Array<number | string>;
-  classIds?: Array<number | string>;
+  // No classIds — a class is attached to a group by setting its own groupId
+  // via the Classes endpoints. The server ignores it on group writes; it is
+  // still *returned* on Group (see Pages/Groups/types).
   cost: number;
   unitCost: number;
   courseId?: number | null;
@@ -24,7 +26,9 @@ export interface UpdateGroupRequest {
   name?: string;
   isActive?: boolean;
   studentIds?: Array<number | string>;
-  classIds?: Array<number | string>;
+  // No classIds — a class is attached to a group by setting its own groupId
+  // via the Classes endpoints. The server ignores it on group writes; it is
+  // still *returned* on Group (see Pages/Groups/types).
   cost?: number;
   unitCost?: number;
   courseId?: number | null;

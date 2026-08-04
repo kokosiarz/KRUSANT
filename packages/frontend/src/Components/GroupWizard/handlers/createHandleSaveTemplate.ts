@@ -52,7 +52,7 @@ export const createHandleSaveTemplate = ({
       cost: formData.cost,
       unitCost: formData.unitCost,
       studentIds: formData.studentIds,
-      classIds: formData.classIds,
+      // classIds deliberately not sent — see createHandleSaveGroup.
       teacherId: formData.teacherId,
       comment: formData.comment,
       minStartDate: formData.minStartDate,

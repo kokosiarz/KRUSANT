@@ -78,15 +78,10 @@ export class CreateGroupDto {
   @IsNumber({}, { each: true })
   studentIds?: number[];
 
-  @ApiPropertyOptional({
-    description: 'Array of class IDs',
-    example: [1, 2, 3],
-    default: [],
-  })
-  @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
-  classIds?: number[];
+  // No classIds: a class is assigned to a group by setting its own `groupId`
+  // through the Classes endpoints, not by pushing ids onto the group. This
+  // field used to exist but nothing ever populated it, and honouring it wrote
+  // to a junction table that has since been dropped.
 
   @ApiPropertyOptional({
     description: 'Minimum start date constraint',

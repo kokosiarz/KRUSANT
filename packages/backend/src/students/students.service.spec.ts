@@ -218,7 +218,7 @@ describe('StudentsService', () => {
       for (let i = 0; i < opts.count; i++) {
         const startTime = future((opts.startingInDays ?? 1) + i * 7);
         starts.push(startTime);
-        // Linked by class.groupId — group_classes is unused in practice.
+        // Linked by class.groupId, the only link between a class and a group.
         await dataSource.getRepository(ClassEntity).save({
           groupId: group.id,
           startTime,

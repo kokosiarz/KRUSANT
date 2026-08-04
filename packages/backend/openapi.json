@@ -1669,6 +1669,11 @@
             "description": "Start time of the first scheduled upcoming class the balance can no longer cover — i.e. when the money runs out. Null when the balance covers every scheduled class, or when nothing is scheduled.",
             "nullable": true
           },
+          "daysUntilFundsRunOut": {
+            "type": "object",
+            "description": "Whole days from now until fundsRunOutDate. Null when there is no run-out date.",
+            "nullable": true
+          },
           "scheduledLessonsCovered": {
             "type": "number",
             "description": "How many of the upcoming scheduled classes the current balance covers."
@@ -1691,6 +1696,7 @@
           "unitCost",
           "lessonsLeft",
           "fundsRunOutDate",
+          "daysUntilFundsRunOut",
           "scheduledLessonsCovered",
           "scheduledLessonsAhead"
         ]
@@ -2141,19 +2147,6 @@
               "type": "string"
             }
           },
-          "classIds": {
-            "description": "Array of class IDs",
-            "example": [
-              1,
-              2,
-              3
-            ],
-            "default": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "minStartDate": {
             "description": "Minimum start date constraint",
             "allOf": [
@@ -2244,19 +2237,6 @@
           },
           "studentIds": {
             "description": "Array of student IDs",
-            "example": [
-              1,
-              2,
-              3
-            ],
-            "default": [],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "classIds": {
-            "description": "Array of class IDs",
             "example": [
               1,
               2,

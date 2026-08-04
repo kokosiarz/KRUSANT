@@ -150,10 +150,9 @@ export class StudentsService extends BaseCrudService<Student> {
   /**
    * Upcoming classes per student, oldest first, for the funds forecast.
    *
-   * Joins classes to groups on `class.groupId`, **not** the `group_classes`
-   * table. Both exist, but `group_classes` is empty in practice while
-   * `class.groupId` is what ClassesService actually reads and writes — using
-   * the join table here would silently forecast nothing for everyone.
+   * Classes join to groups on `class.groupId`, the single source of truth for
+   * that link. Students join through `group_students`, which *is* genuinely
+   * many-to-many — a student can sit in several groups at once.
    */
   private async findUpcomingClassesByStudent(): Promise<
     Map<number, { startTime: string; cost: number }[]>

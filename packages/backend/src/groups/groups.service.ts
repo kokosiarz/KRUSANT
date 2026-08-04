@@ -16,14 +16,14 @@ import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { Course } from '../courses/course.entity';
 
-export type GroupWithMembership = Omit<Group, 'students' | 'classes'> & {
+export type GroupWithMembership = Omit<Group, 'students'> & {
   studentIds: number[];
   classIds: number[];
 };
 
 // Doesn't extend BaseCrudService: Group's response shape (studentIds/classIds
-// derived from the students/classes relations) differs from the entity shape
-// on every method, so there's nothing left to usefully share.
+// derived from the students relation and class.groupId) differs from the entity
+// shape on every method, so there's nothing left to usefully share.
 @Injectable()
 export class GroupsService {
   constructor(
@@ -38,13 +38,40 @@ export class GroupsService {
     await this.groupRepository.delete(id);
   }
 
-  private toResponse(group: Group): GroupWithMembership {
-    const { students, classes, ...rest } = group;
+  private toResponse(group: Group, classIds: number[]): GroupWithMembership {
+    const { students, ...rest } = group;
     return {
       ...rest,
       studentIds: (students ?? []).map((s) => s.id),
-      classIds: (classes ?? []).map((c) => c.id),
+      classIds,
     };
+  }
+
+  /**
+   * Class ids per group, read from `class.groupId` — the single source of truth
+   * for which group a class belongs to. This used to come from a `group_classes`
+   * junction table that nothing ever wrote to, so every group reported an empty
+   * class list.
+   */
+  private async findClassIdsByGroup(
+    manager: EntityManager | DataSource,
+    groupIds: number[],
+  ): Promise<Map<number, number[]>> {
+    const byGroup = new Map<number, number[]>();
+    if (groupIds.length === 0) return byGroup;
+
+    const rows = await manager.query<{ id: number; groupId: number }[]>(
+      `SELECT id, "groupId" FROM class
+        WHERE "groupId" IN (${groupIds.map(() => '?').join(',')})
+        ORDER BY "startTime" ASC`,
+      groupIds,
+    );
+    for (const { id, groupId } of rows) {
+      const list = byGroup.get(groupId) ?? [];
+      list.push(id);
+      byGroup.set(groupId, list);
+    }
+    return byGroup;
   }
 
   private async loadOneWithMembership(
@@ -53,35 +80,34 @@ export class GroupsService {
   ): Promise<GroupWithMembership> {
     const group = await repo.findOne({
       where: { id },
-      relations: { students: true, classes: true },
+      relations: { students: true },
     });
     if (!group) throw new NotFoundException(`Group ${id} not found`);
-    return this.toResponse(group);
+    const classIds = await this.findClassIdsByGroup(repo.manager, [id]);
+    return this.toResponse(group, classIds.get(id) ?? []);
   }
 
-  /** Only touches a relation when the caller actually supplied that field (PATCH semantics). */
+  /**
+   * Only touches the relation when the caller actually supplied studentIds
+   * (PATCH semantics). Classes aren't membership — a class is assigned to a
+   * group by setting its own `groupId`, via the Classes endpoints.
+   */
   private async syncMembership(
     manager: EntityManager,
     groupId: number,
     studentIds: number[] | undefined,
-    classIds: number[] | undefined,
   ): Promise<void> {
-    for (const [relation, ids] of [
-      ['students', studentIds] as const,
-      ['classes', classIds] as const,
-    ]) {
-      if (ids === undefined) continue;
-      const relationBuilder = manager
-        .createQueryBuilder()
-        .relation(Group, relation)
-        .of(groupId);
-      const current = await relationBuilder.loadMany<{ id: number }>();
-      const currentIds = current.map((r) => r.id);
-      const toAdd = ids.filter((id) => !currentIds.includes(id));
-      const toRemove = currentIds.filter((id) => !ids.includes(id));
-      if (toAdd.length || toRemove.length) {
-        await relationBuilder.addAndRemove(toAdd, toRemove);
-      }
+    if (studentIds === undefined) return;
+    const relationBuilder = manager
+      .createQueryBuilder()
+      .relation(Group, 'students')
+      .of(groupId);
+    const current = await relationBuilder.loadMany<{ id: number }>();
+    const currentIds = current.map((r) => r.id);
+    const toAdd = studentIds.filter((id) => !currentIds.includes(id));
+    const toRemove = currentIds.filter((id) => !studentIds.includes(id));
+    if (toAdd.length || toRemove.length) {
+      await relationBuilder.addAndRemove(toAdd, toRemove);
     }
   }
 
@@ -116,9 +142,14 @@ export class GroupsService {
   ): Promise<GroupWithMembership[]> {
     const groups = await this.groupRepository.find({
       where: { isTemplate, ...(isActive !== undefined ? { isActive } : {}) },
-      relations: { students: true, classes: true },
+      relations: { students: true },
     });
-    return groups.map((g) => this.toResponse(g));
+    // One lookup for the whole page rather than one per group.
+    const classIds = await this.findClassIdsByGroup(
+      this.dataSource,
+      groups.map((g) => g.id),
+    );
+    return groups.map((g) => this.toResponse(g, classIds.get(g.id) ?? []));
   }
 
   /** A real group needs a teacher; a template is a blueprint and may not have one yet. */
@@ -139,11 +170,11 @@ export class GroupsService {
   async create(createGroupDto: CreateGroupDto): Promise<GroupWithMembership> {
     const patchedDto = await this.applyCourseDefaults(createGroupDto);
     this.assertRequiredFields(patchedDto);
-    const { studentIds, classIds, ...rest } = patchedDto;
+    const { studentIds, ...rest } = patchedDto;
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Group);
       const saved = await repo.save(repo.create(rest as DeepPartial<Group>));
-      await this.syncMembership(manager, saved.id, studentIds, classIds);
+      await this.syncMembership(manager, saved.id, studentIds);
       return this.loadOneWithMembership(repo, saved.id);
     });
   }
@@ -152,13 +183,13 @@ export class GroupsService {
     id: number,
     updateGroupDto: UpdateGroupDto,
   ): Promise<GroupWithMembership> {
-    const { studentIds, classIds, ...rest } = updateGroupDto;
+    const { studentIds, ...rest } = updateGroupDto;
     return this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Group);
       if (Object.keys(rest).length > 0) {
         await repo.update(id, rest);
       }
-      await this.syncMembership(manager, id, studentIds, classIds);
+      await this.syncMembership(manager, id, studentIds);
       return this.loadOneWithMembership(repo, id);
     });
   }
@@ -187,7 +218,7 @@ export class GroupsService {
       let created = 0;
       let updated = 0;
       for (const dto of patched) {
-        const { studentIds, classIds, ...rest } = dto;
+        const { studentIds, ...rest } = dto;
         const match = dto.name ? existingByName.get(dto.name) : undefined;
         let saved: Group;
         if (match) {
@@ -199,7 +230,7 @@ export class GroupsService {
           saved = await repo.save(repo.create(rest as DeepPartial<Group>));
           created++;
         }
-        await this.syncMembership(manager, saved.id, studentIds, classIds);
+        await this.syncMembership(manager, saved.id, studentIds);
         results.push(await this.loadOneWithMembership(repo, saved.id));
       }
       return { created, updated, items: results };

@@ -91,12 +91,19 @@ Module-per-domain: `auth`, `classes`, `common`, `courses`, `debits`, `groups`, `
   `GroupsService.findAll` always takes an explicit `isTemplate` side so templates can't leak into a list
   of real groups. `group.teacherId` is nullable *only* because templates may not have one — a CHECK
   constraint (`isTemplate = 1 OR teacherId IS NOT NULL`) still requires it for real groups.
-- **Membership is join tables, never JSON arrays.** `group_students`, `group_classes`,
-  `class_attended_students`, `class_planned_students`. Services keep the old wire format
+- **Membership is join tables, never JSON arrays.** `group_students`,
+  `class_attended_students`, `class_planned_students` — all three are genuinely many-to-many (a
+  student sits in several groups; a class has many attendees). Services keep the old wire format
   (`studentIds` / `attendedStudentsIds` …) via a `toResponse` mapping, so the API shape is unchanged
   even though storage isn't. `GroupsService` and `ClassesService` both follow this pattern and
   deliberately do **not** extend `BaseCrudService` (their response shape differs from the entity on
   every method).
+- **A class belongs to a group through `class.groupId` — one-to-many, no join table.** A class
+  happens once, for one group, so there is deliberately no `Group.classes` relation. A `group_classes`
+  junction table used to exist alongside it; nothing ever wrote to it, so `GET /groups` reported every
+  group as having zero classes. It was dropped. `GroupsService` derives the `classIds` response field
+  from `class.groupId`, and group writes ignore `classIds` entirely — assign a class to a group by
+  setting its own `groupId` via the Classes endpoints.
 - **Cross-domain links are plain int columns with real FK constraints**, not `@ManyToOne` relations.
   Required/financial links (`group.teacherId`, `payment.studentId`, `debits.studentId`) are
   `ON DELETE RESTRICT`; optional ones (`roomId`, `groupId`, `class.teacherId`, `debits.classId`) are
@@ -194,9 +201,6 @@ These each cost real debugging time. They are not hypothetical.
 - **MUI v9 dropped the colour-specific `styleOverrides` slots.** `containedPrimary`, `standardInfo`
   and friends no longer typecheck — per-colour/severity styling goes in a `variants: [{ props, style }]`
   array on the component instead. See `MuiButton`/`MuiAlert` in `theme.ts`.
-- **`class.groupId` is what links a class to a group, not `group_classes`.** Both exist, but the join
-  table is empty in production while `groupId` is what ClassesService reads and writes. Query through
-  `groupId` — the students funds forecast silently returned nothing for everyone until it did.
 - **MUI v9 dropped system props.** `<Stack alignItems="center" mb={2}>` must become `sx={{...}}`;
   `TextField`'s `inputProps`/`InputProps` became `slotProps={{ htmlInput, input, inputLabel }}`;
   `Autocomplete`'s `renderTags` became `renderValue`. A `TS2769`/`TS2322` on an MUI prop is almost always
