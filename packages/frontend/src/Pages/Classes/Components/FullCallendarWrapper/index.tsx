@@ -84,6 +84,10 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                 weekends={true}
                 events={events}
                 allDaySlot={false}
+                // Without this a busy day in month view grows the row until the
+                // grid loses its shape; anything beyond what fits collapses
+                // into a "+N więcej" link.
+                dayMaxEvents={true}
                 height="auto"
                 slotMinTime="09:00:00"
                 slotMaxTime="22:00:00"

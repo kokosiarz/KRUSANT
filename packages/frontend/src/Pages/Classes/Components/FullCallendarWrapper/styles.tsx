@@ -1,53 +1,70 @@
 import { alpha, styled } from '@mui/material/styles';
 
 /**
- * FullCalendar ships its own CSS and knows nothing about the MUI theme, so the
- * calendar has to be dressed to match by hand. This aims at the same language
- * as the DataGrid: hairline borders, a quiet tinted header, outlined controls,
- * and the bronze reserved for state (today, selected view, events).
+ * FullCalendar dressed to match the MUI theme.
  *
- * Previously the header was a solid `primary.main` bar with `text.secondary`
- * on top — grey on gold, effectively unreadable — and the disabled button set
- * background *and* colour to `action.disabled`, so "Dziś" vanished when there
- * was nothing to go back to.
+ * **Set variables, don't fight selectors.** FullCalendar 6 exposes ~27 `--fc-*`
+ * custom properties and styles itself from them. Earlier versions of this file
+ * overrode its rules directly, which meant losing specificity battles against
+ * things like `.fc-button-primary:not(:disabled).fc-button-active` and then
+ * escalating to match them. Every colour below that *can* be a variable is one;
+ * the handful of real rules that remain are for shape and typography, which
+ * FullCalendar doesn't expose.
  */
 export const StyledCalendarWrapper = styled('div')(({ theme }) => {
   const isLight = theme.palette.mode === 'light';
-  const headerTint = isLight ? '#fafbfc' : alpha('#ffffff', 0.02);
+  const surfaceTint = isLight ? '#fafbfc' : alpha('#ffffff', 0.02);
   const gold = theme.palette.primary.main;
 
   return {
     '& .fc': {
       fontFamily: theme.typography.fontFamily,
-      '--fc-border-color': theme.palette.divider,
+      fontSize: '0.875rem',
+
+      // --- surfaces and lines -------------------------------------------
       '--fc-page-bg-color': theme.palette.background.paper,
-      '--fc-neutral-bg-color': headerTint,
+      '--fc-border-color': theme.palette.divider,
+      '--fc-neutral-bg-color': surfaceTint,
+      '--fc-neutral-text-color': theme.palette.text.secondary,
+      '--fc-small-font-size': '0.75rem',
+
       // Was a strong cream block; now a whisper of the brand bronze.
       '--fc-today-bg-color': alpha(gold, isLight ? 0.06 : 0.1),
+      '--fc-highlight-color': alpha(gold, isLight ? 0.12 : 0.18),
+      '--fc-now-indicator-color': theme.palette.error.main,
+      '--fc-non-business-color': alpha(theme.palette.text.disabled, 0.08),
+
+      // --- toolbar buttons ----------------------------------------------
+      // These are exactly the properties the old file was overriding by
+      // selector. As variables they simply win, with no specificity contest.
+      '--fc-button-bg-color': 'transparent',
+      '--fc-button-border-color': theme.palette.divider,
+      '--fc-button-text-color': theme.palette.text.primary,
+      '--fc-button-hover-bg-color': theme.palette.action.hover,
+      '--fc-button-hover-border-color': alpha(gold, 0.5),
+      '--fc-button-active-bg-color': alpha(gold, isLight ? 0.12 : 0.2),
+      '--fc-button-active-border-color': alpha(gold, 0.5),
+
+      // --- events --------------------------------------------------------
       '--fc-event-bg-color': gold,
       '--fc-event-border-color': gold,
       '--fc-event-text-color': theme.palette.primary.contrastText,
-      fontSize: '0.875rem',
+      '--fc-event-selected-overlay-color': alpha(theme.palette.common.black, 0.15),
+      '--fc-bg-event-color': alpha(gold, 0.25),
+      '--fc-bg-event-opacity': '0.3',
+
+      // --- month-view overflow + agenda ----------------------------------
+      '--fc-more-link-bg-color': surfaceTint,
+      '--fc-more-link-text-color': theme.palette.text.secondary,
+      '--fc-list-event-hover-bg-color': theme.palette.action.hover,
     },
 
-    '& .fc-scrollgrid, & .fc-scrollgrid table, & .fc-daygrid, & .fc-daygrid-table, & .fc-timegrid, & .fc-timegrid-table':
-      {
-        borderCollapse: 'collapse',
-        borderSpacing: 0,
-      },
-    '& .fc-scrollgrid': {
-      borderRadius: 12,
-      overflow: 'hidden',
-    },
-    '& .fc-scrollgrid, & .fc-scrollgrid table, & .fc-daygrid-day, & .fc-timegrid-slot, & .fc-timegrid-col, & .fc-timegrid-axis, & .fc-timegrid-slot-label, & .fc-timegrid-slot-lane, & .fc-col-header-cell':
-      {
-        borderColor: theme.palette.divider,
-      },
+    // ---- shape and typography: not expressible as variables -------------
 
-    // Day-of-week header: legible dark-on-tint, matching the DataGrid header.
+    '& .fc-scrollgrid': { borderRadius: 12, overflow: 'hidden' },
+
     '& .fc-col-header-cell': {
-      background: headerTint,
-      color: theme.palette.text.secondary,
+      background: surfaceTint,
       fontWeight: 650,
       fontSize: '0.75rem',
       letterSpacing: '0.04em',
@@ -60,7 +77,6 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
     },
     '& .fc-col-header-cell a': { color: 'inherit', textDecoration: 'none' },
 
-    // Hour gutter and day numbers.
     '& .fc-timegrid-slot-label-cushion, & .fc-daygrid-day-number': {
       color: theme.palette.text.secondary,
       fontSize: '0.75rem',
@@ -74,11 +90,7 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
       color: theme.palette.text.primary,
     },
 
-    // Toolbar controls styled as outlined MUI buttons rather than gold slabs.
     '& .fc-button': {
-      background: 'transparent',
-      color: theme.palette.text.primary,
-      border: `1px solid ${theme.palette.divider}`,
       borderRadius: 8,
       padding: theme.spacing(0.75, 1.75),
       textTransform: 'none',
@@ -89,36 +101,18 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
       transition: theme.transitions.create(['background-color', 'border-color'], {
         duration: theme.transitions.duration.shortest,
       }),
-      cursor: 'pointer',
       '&:focus': { boxShadow: 'none', outline: 'none' },
     },
-    '& .fc-button:hover': {
-      background: theme.palette.action.hover,
-      borderColor: alpha(gold, 0.5),
-    },
+    // The variable covers the colour; this keeps the label readable, which
+    // `--fc-button-text-color` alone would not (it applies to every state).
     '& .fc-button:disabled': {
-      background: 'transparent',
-      // The old rule painted the label the same colour as the fill.
       color: theme.palette.text.disabled,
-      borderColor: theme.palette.divider,
       opacity: 1,
       cursor: 'not-allowed',
     },
-    // Selector mirrors FullCalendar's own
-    // `.fc-button-primary:not(:disabled).fc-button-active` — a plain
-    // `.fc-button.fc-button-active` loses to it on specificity and the active
-    // view button stayed FullCalendar's default navy slab.
-    '& .fc-button-primary:not(:disabled).fc-button-active, & .fc-button-primary:not(:disabled):active':
-      {
-        background: alpha(gold, isLight ? 0.12 : 0.2),
-        borderColor: alpha(gold, 0.5),
-        color: gold,
-        boxShadow: 'none',
-      },
-    '& .fc-button-primary:not(:disabled).fc-button-active:hover': {
-      background: alpha(gold, isLight ? 0.18 : 0.26),
-    },
-    // Prev/next sit as one segmented control.
+    '& .fc-button-primary:not(:disabled).fc-button-active': { color: gold },
+
+    // Prev/next read as one segmented control.
     '& .fc-button-group': { gap: 0 },
     '& .fc-button-group .fc-button:not(:last-of-type)': {
       borderTopRightRadius: 0,
@@ -143,8 +137,58 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
       fontWeight: 600,
       cursor: 'pointer',
     },
-    '& .fc-timegrid-now-indicator-line': {
-      borderColor: theme.palette.error.main,
+
+    // Month cells are narrow and the custom eventContent doesn't wrap, so a
+    // long group name ran straight over the cell border. Clip it with an
+    // ellipsis instead; the full text is in the class dialog.
+    '& .fc-daygrid-event': {
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+      '& *': {
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+      },
+    },
+    '& .fc-daygrid-more-link': {
+      fontSize: '0.6875rem',
+      fontWeight: 650,
+      color: theme.palette.text.secondary,
+    },
+
+    // ---- agenda (mobile) -------------------------------------------------
+    // This view had no styling at all: it rendered in FullCalendar's defaults
+    // while everything around it followed the theme.
+    '& .fc-list': {
+      borderRadius: 12,
+      overflow: 'hidden',
+      borderColor: theme.palette.divider,
+    },
+    '& .fc-list-day-cushion': {
+      background: surfaceTint,
+      padding: theme.spacing(1, 1.5),
+    },
+    '& .fc-list-day-text, & .fc-list-day-side-text': {
+      fontWeight: 650,
+      fontSize: '0.8125rem',
+      color: theme.palette.text.primary,
+      textDecoration: 'none',
+    },
+    '& .fc-list-event-time': {
+      color: theme.palette.text.secondary,
+      fontVariantNumeric: 'tabular-nums',
+      whiteSpace: 'nowrap',
+    },
+    '& .fc-list-event-title a': {
+      color: theme.palette.text.primary,
+      fontWeight: 600,
+      textDecoration: 'none',
+    },
+    '& .fc-list-event-dot': { borderColor: gold },
+    '& .fc-list-empty': {
+      background: 'transparent',
+      color: theme.palette.text.secondary,
     },
   };
 });
