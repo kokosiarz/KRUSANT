@@ -144,10 +144,19 @@ const Classes: React.FC = () => {
   }, [classes, deleteTargetId]);
 
   return (
-    <Box sx={{ p: 3, width: '100%' }}>
-      <Paper sx={{ maxHeight: 'calc(100vh - 200px)', overflow: 'auto' }}>
+    <Box sx={{ p: { xs: 1.5, sm: 3 }, width: '100%' }}>
+      {/* The height cap keeps the desktop week grid (22 hourly rows) inside
+          the viewport instead of pushing the footer off-screen. On mobile the
+          view is an agenda list with `height="auto"` — capping it there just
+          adds a second scrollbar in a page with room to spare. */}
+      <Paper
+        sx={{
+          maxHeight: { xs: 'none', md: 'calc(100vh - 200px)' },
+          overflow: { xs: 'visible', md: 'auto' },
+        }}
+      >
         <LoadingErrorHandler loading={loading} error={error ? error.message : null}>
-          <Box sx={{ p: 3 }} id='callendar-container'>
+          <Box sx={{ p: { xs: 1.5, sm: 3 } }} id='callendar-container'>
             <FullCalendarWrapper
               classes={classes}
               handleDateClick={handleDateClick}
