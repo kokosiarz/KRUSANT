@@ -54,8 +54,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
 
   return (
     <>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Zaloguj się do KRUSANTA
+      {/* Just "Zaloguj się" — the KRUSANT wordmark now sits above the card, so
+          repeating it here read as stuttering. */}
+      <Typography variant="h5" component="h1" sx={{ fontWeight: 650 }}>
+        Zaloguj się
+      </Typography>
+      <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, mb: 3 }}>
+        Użyj konta otrzymanego od administratora
       </Typography>
       {shownError && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -105,21 +110,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess }) => {
             {submitting ? <CircularProgress size={24} /> : 'Zaloguj'}
           </Button>
           
-          <Divider sx={{ my: 2 }}>lub</Divider>
-          
+          <Divider sx={{ my: 1, color: 'text.secondary', fontSize: '0.8125rem' }}>
+            lub
+          </Divider>
+
+          {/* Neutral rather than Google-blue: one saturated brand blue in the
+              middle of a bronze/neutral palette was the loudest thing on the
+              screen. The icon still identifies it. */}
           <Button
             variant="outlined"
             size="large"
             fullWidth
-            startIcon={<GoogleIcon />}
+            color="inherit"
+            startIcon={<GoogleIcon sx={{ color: '#4285f4' }} />}
             onClick={handleGoogleLogin}
             sx={{
-              textTransform: 'none',
-              borderColor: '#4285f4',
-              color: '#4285f4',
+              borderColor: 'divider',
+              color: 'text.primary',
               '&:hover': {
-                borderColor: '#357ae8',
-                backgroundColor: 'rgba(66, 133, 244, 0.04)',
+                borderColor: 'text.secondary',
+                backgroundColor: 'action.hover',
               },
             }}
           >

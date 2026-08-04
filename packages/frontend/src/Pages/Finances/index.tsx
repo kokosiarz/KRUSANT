@@ -11,6 +11,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import CommonTable from '@/Components/Common/Table';
+import PageHeaderActions from '@/Components/Common/PageHeaderActions';
 import { createColumns } from './createColumns';
 import { FinanceEntry } from './types';
 import { useFinanceEntries } from './useFinanceEntries';
@@ -50,7 +51,7 @@ const Finances: React.FC = () => {
   const columns = useMemo(() => createColumns(), []);
 
   const headerButtons = (
-    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+    <PageHeaderActions>
       <ToggleButtonGroup
         value={filter}
         exclusive
@@ -58,7 +59,6 @@ const Finances: React.FC = () => {
           setFilter(newValue || 'all');
         }}
         aria-label="filtr finansów"
-        size="small"
       >
         <ToggleButton value="all" aria-label="wszystko">
           Wszystko
@@ -70,13 +70,16 @@ const Finances: React.FC = () => {
           Obciążenia
         </ToggleButton>
       </ToggleButtonGroup>
-      <Button variant="outlined" onClick={() => setAddPaymentOpen(true)} sx={{ ml: 2 }}>
+      {/* The ml:2 that used to sit on this button doubled up with the row gap,
+          so the space after the toggles didn't match the space between the
+          buttons. Spacing is the row's job now. */}
+      <Button variant="outlined" onClick={() => setAddPaymentOpen(true)}>
         Dodaj wpłatę
       </Button>
       <Button variant="outlined" onClick={() => setAddDebitOpen(true)}>
         Dodaj obciążenie
       </Button>
-    </Box>
+    </PageHeaderActions>
   );
 
 

@@ -47,11 +47,29 @@ function CommonTable<T extends { id: string | number }>({
   }));
 
   return (
-    <Box sx={{ p: 3, width: '100%', height: 'calc(100vh - 120px)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">{tableTitle}</Typography>
-        {dialogs}
-        {headerButtons}
+    <Box sx={{ p: { xs: 2, sm: 3 }, width: '100%', height: 'calc(100vh - 120px)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 2,
+          flexWrap: 'wrap',
+          mb: 2.5,
+        }}
+      >
+        <Box>
+          <Typography variant="h4" component="h1">
+            {tableTitle}
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+            {rows.length === 0 ? emptyMessage : `Pozycji: ${rows.length}`}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {dialogs}
+          {headerButtons}
+        </Box>
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, width: '100%' }}>
         <DataGrid
@@ -69,18 +87,14 @@ function CommonTable<T extends { id: string | number }>({
             }
             return '';
           }}
+          // Header/cell/row styling now comes from the theme's MuiDataGrid
+          // overrides so every grid in the app matches; only the inactive-row
+          // treatment is specific to this component.
           sx={{
-            '& .MuiDataGrid-columnHeaders': {
-              fontWeight: 700,
-              borderBottom: '2px solid',
-              borderColor: 'primary.dark',
-            },
-            '& .MuiDataGrid-columnHeaderTitle': {
-              fontWeight: 700,
-            },
             '& .inactive-row': {
-              opacity: 0.5,
-              backgroundColor: (theme) => theme.palette.action.disabledBackground,
+              color: 'text.disabled',
+              backgroundColor: (theme) => theme.palette.action.hover,
+              '& .MuiDataGrid-cell': { opacity: 0.65 },
             },
           }}
           autoHeight={false}

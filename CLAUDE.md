@@ -159,6 +159,22 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
   form dialog + delete confirm). Prefer extending it over hand-rolling another CRUD screen.
 - **UI kit: MUI v9** (+ x-data-grid, x-date-pickers-pro), FullCalendar for scheduling, `dayjs`/`luxon`
   both present — check which a file already uses.
+- **Styling lives in `theme.ts`, not in pages.** One bronze accent (the school is a goldsmithing
+  school) over cool neutrals, hairline borders instead of shadows, and `textTransform: none` on
+  Button/ToggleButton. Component overrides there cover AppBar, Paper/Card, inputs, Dialog, Alert,
+  DataGrid and the toggle groups — restyle there rather than adding `sx` to individual pages.
+  Typeface is **self-hosted Inter** (`@fontsource-variable/inter`, imported in `index.tsx`); the theme
+  asked for Inter for a long time while nothing loaded it, so everything silently rendered in Segoe UI.
+- **Page header actions go through `Components/Common/PageHeaderActions`.** Every page had its own
+  flex row with a different gap (one also added `ml: 2` to a single button), so controls sat at
+  different heights and spacings per screen. Keep header controls at the default size — the theme
+  matches ToggleButton's padding to Button's so the two line up.
+- **Colour mode is persisted** in `localStorage` under `krusant.colorMode`, defaulting to the OS
+  preference. It used to be plain component state, so every reload snapped back to dark.
+- **FullCalendar knows nothing about the MUI theme** — it's dressed to match by hand in
+  `Pages/Classes/Components/FullCallendarWrapper/styles.tsx`. Its own rules are specific
+  (`.fc-button-primary:not(:disabled).fc-button-active`), so overrides have to match that shape or
+  they lose silently.
 - Test runner is **Vitest**, not Jest.
 
 ## Gotchas
@@ -175,6 +191,9 @@ These each cost real debugging time. They are not hypothetical.
 - **`POST /classes/:id/attendance` takes a bare JSON array** (`[1,2,3]`), not `{attendedStudentsIds:[…]}`.
   A malformed body now 400s; it used to be coerced to `[]`, which silently wiped the roster *and deleted
   every debit for that class*.
+- **MUI v9 dropped the colour-specific `styleOverrides` slots.** `containedPrimary`, `standardInfo`
+  and friends no longer typecheck — per-colour/severity styling goes in a `variants: [{ props, style }]`
+  array on the component instead. See `MuiButton`/`MuiAlert` in `theme.ts`.
 - **MUI v9 dropped system props.** `<Stack alignItems="center" mb={2}>` must become `sx={{...}}`;
   `TextField`'s `inputProps`/`InputProps` became `slotProps={{ htmlInput, input, inputLabel }}`;
   `Autocomplete`'s `renderTags` became `renderValue`. A `TS2769`/`TS2322` on an MUI prop is almost always

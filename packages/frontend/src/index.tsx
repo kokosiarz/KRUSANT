@@ -1,5 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+// Self-hosted variable Inter — the theme has always asked for Inter, but
+// nothing loaded it, so every screen silently fell back to Segoe UI. Bundled
+// rather than pulled from a CDN so it also works offline and adds no
+// third-party request.
+import '@fontsource-variable/inter';
 import './index.css';
 
 

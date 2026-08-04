@@ -35,11 +35,27 @@ const RouteFallback = () => (
   </Box>
 );
 
+const THEME_STORAGE_KEY = 'krusant.colorMode';
+
 function AppContent() {
   const { isAuthenticated, isLoading, mustChangePassword } = useAuth();
-  const [mode, setMode] = useState<ColorMode>('dark');
+  // Persisted: this was plain component state, so every page reload threw the
+  // user back to dark and they had to re-toggle. Falls back to the OS
+  // preference the first time, rather than assuming dark.
+  const [mode, setMode] = useState<ColorMode>(() => {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia?.('(prefers-color-scheme: light)').matches
+      ? 'light'
+      : 'dark';
+  });
   const theme = useMemo(() => createAppTheme(mode), [mode]);
-  const toggleMode = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+  const toggleMode = () =>
+    setMode((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      localStorage.setItem(THEME_STORAGE_KEY, next);
+      return next;
+    });
 
   return (
     <ThemeProvider theme={theme}>

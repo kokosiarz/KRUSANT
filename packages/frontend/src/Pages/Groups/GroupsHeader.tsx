@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, ToggleButton, ToggleButtonGroup, Button } from '@mui/material';
+import { ToggleButton, ToggleButtonGroup, Button } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
+import PageHeaderActions from '@/Components/Common/PageHeaderActions';
 
 interface Props {
   filters: string[];
@@ -26,24 +27,23 @@ const GroupsHeader: React.FC<Props> = ({ filters, onFilterChange, onAddGroup }) 
   };
 
   return (
-      <Box className="header-controls">
-        <ToggleButtonGroup
-          value={filters}
-          onChange={handleFilterChange}
-          aria-label="filtr grup"
-          size="small"
-        >
-          <ToggleButton value="all" aria-label="wszystkie grupy">
-            Wszystkie
-          </ToggleButton>
-          <ToggleButton value="active" aria-label="aktywne grupy">
-            Aktywne
-          </ToggleButton>
-        </ToggleButtonGroup>
-        <Button variant="outlined" startIcon={<AddIcon />} onClick={onAddGroup}>
-          Dodaj grupę
-        </Button>
-      </Box>
+    <PageHeaderActions>
+      <ToggleButtonGroup
+        value={filters}
+        onChange={handleFilterChange}
+        aria-label="filtr grup"
+      >
+        <ToggleButton value="all" aria-label="wszystkie grupy">
+          Wszystkie
+        </ToggleButton>
+        <ToggleButton value="active" aria-label="aktywne grupy">
+          Aktywne
+        </ToggleButton>
+      </ToggleButtonGroup>
+      <Button variant="outlined" startIcon={<AddIcon />} onClick={onAddGroup}>
+        Dodaj grupę
+      </Button>
+    </PageHeaderActions>
   );
 };
 

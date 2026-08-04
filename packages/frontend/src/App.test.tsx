@@ -17,6 +17,8 @@ test('renders the login form when not authenticated', async () => {
     </QueryClientProvider>,
   );
 
-  const heading = await screen.findByRole('heading', { name: /zaloguj się do krusanta/i });
+  // The card heading is just "Zaloguj się" — the KRUSANT wordmark sits above
+  // the card as branding rather than being repeated in the heading.
+  const heading = await screen.findByRole('heading', { name: /^zaloguj się$/i });
   expect(heading).toBeInTheDocument();
 });

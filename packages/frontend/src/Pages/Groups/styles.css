@@ -21,11 +21,8 @@
   margin-bottom: 24px;
 }
 
-.header-controls {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
+/* .header-controls removed — the header action row is now the shared
+   PageHeaderActions component, so every page spaces these the same way. */
 
 .table-container {
   max-height: calc(100vh - 200px);

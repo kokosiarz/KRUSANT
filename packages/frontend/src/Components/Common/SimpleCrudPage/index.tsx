@@ -16,6 +16,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
 import CommonTable, { TableColumn } from '../Table';
+import PageHeaderActions from '../PageHeaderActions';
 import DeleteItemDialog from '../DeleteItemDialog';
 
 export interface SimpleCrudField {
@@ -188,9 +189,11 @@ function SimpleCrudPage<T extends { id: number }>({
         rows={items}
         tableTitle={title}
         headerButtons={
-          <Button variant="outlined" startIcon={<AddIcon />} onClick={openCreate}>
-            Dodaj
-          </Button>
+          <PageHeaderActions>
+            <Button variant="outlined" startIcon={<AddIcon />} onClick={openCreate}>
+              Dodaj
+            </Button>
+          </PageHeaderActions>
         }
         getRowKey={(row) => row.id}
         emptyMessage={loadError ? loadError.message : `Brak zdefiniowanych pozycji`}
