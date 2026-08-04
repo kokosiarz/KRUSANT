@@ -14,6 +14,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
 import GroupsIcon from '@mui/icons-material/Groups';
 import SettingsIcon from '@mui/icons-material/Settings';
+import HistoryIcon from '@mui/icons-material/History';
 import LayersIcon from '@mui/icons-material/Layers';
 import PaidIcon from '@mui/icons-material/Paid';
 import SchoolIcon from '@mui/icons-material/School';
@@ -66,6 +67,7 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
         { label: 'Szablony', path: '/templates', roles: ['admin'], icon: <LayersIcon /> },
         { label: 'Finanse', path: '/finances', roles: ['admin'], icon: <PaidIcon /> },
         { label: 'Użytkownicy', path: '/users', roles: ['admin'], icon: <PeopleIcon /> },
+        { label: 'Historia zmian', path: '/historia', roles: ['admin'], icon: <HistoryIcon /> },
         { label: 'Administracja', path: '/administration', roles: ['admin'], icon: <SettingsIcon /> },
       ],
     },

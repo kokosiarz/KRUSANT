@@ -19,12 +19,14 @@ import { PassportJwtAuthGuard } from './auth/guards/passport-jwt.guard';
 import { ForcePasswordChangeGuard } from './auth/guards/force-password-change.guard';
 import { RolesGuard } from './auth/roles.guard';
 import { MailModule } from './mail/mail.module';
+import { ActionLogModule } from './action-log/action-log.module';
 import { entities } from './entities';
 
 @Module({
   imports: [
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
     MailModule,
+    ActionLogModule,
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: 'db.sqlite',

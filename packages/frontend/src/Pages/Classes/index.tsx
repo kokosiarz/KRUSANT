@@ -4,6 +4,7 @@ import ClassEditDialog from './Components/ClassEditDialog';
 import Box from '@mui/material/Box';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import DeleteOutlineIcon from '@mui/icons-material/Delete';
 import LoadingErrorHandler from '@components/Common/LoadingErrorHandler';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { classesApi } from '@api/endpoints/classes';
@@ -32,6 +33,8 @@ const Classes: React.FC = () => {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [rescheduleError, setRescheduleError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [overDropZone, setOverDropZone] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -105,11 +108,40 @@ const Classes: React.FC = () => {
     jsEvent: MouseEvent,
     event: any
   }) => {
+    setDragging(false);
+    setOverDropZone(false);
     if (!isInside(jsEvent, 'callendar-container')) {
       setDeleteTargetId(event.id);
       setDeleteDialogOpen(true);
     }
   }
+
+  // Drag-out-to-delete had no feedback at all: nothing told you it was possible,
+  // and nothing confirmed you had dragged far enough. While a drag is in
+  // progress we show a hint bar that lights up once the pointer leaves the
+  // calendar, so the gesture is visible and its threshold is obvious.
+  const onEventDragStart = () => setDragging(true);
+
+  React.useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: MouseEvent) =>
+      setOverDropZone(!isInside(e, 'callendar-container'));
+    window.addEventListener('mousemove', onMove);
+    return () => window.removeEventListener('mousemove', onMove);
+  }, [dragging]);
+
+  const deleteTargetLabel = React.useMemo(() => {
+    const target = classes.find((c) => String(c.id) === String(deleteTargetId));
+    if (!target) return deleteTargetId ? `zajęcia #${deleteTargetId}` : '';
+    const when = target.startTime
+      ? new Intl.DateTimeFormat('pl-PL', {
+          dateStyle: 'short',
+          timeStyle: 'short',
+        }).format(new Date(target.startTime))
+      : '';
+    // "zajęcia #123" told the user nothing about what they were about to lose.
+    return `zajęcia ${when}`.trim();
+  }, [classes, deleteTargetId]);
 
   return (
     <Box sx={{ p: 3, width: '100%' }}>
@@ -120,17 +152,29 @@ const Classes: React.FC = () => {
               classes={classes}
               handleDateClick={handleDateClick}
               handleEventClick={handleEventClick}
+              onEventDragStart={onEventDragStart}
               onEventDragStop={onEventDragStop}
               onEventDrop={handleEventDrop}
             />
             {/* Keyed by classId so switching classes fully remounts the dialog
                 instead of reusing stale local state (e.g. attendance
                 selection) from whichever class was open before. */}
-            <ClassEditDialog key={editingClassId ?? 'new'} open={editDialogOpen} onClose={handleDialogClose} classId={editingClassId || 0} />
+            <ClassEditDialog
+              key={editingClassId ?? 'new'}
+              open={editDialogOpen}
+              onClose={handleDialogClose}
+              classId={editingClassId || 0}
+              onRequestDelete={(id) => {
+                setEditDialogOpen(false);
+                setDeleteTargetId(String(id));
+                setDeleteError(null);
+                setDeleteDialogOpen(true);
+              }}
+            />
             <ClassCreationDialog open={creationDialogOpen} onClose={handleDialogClose} initialDate={dialogDate} />
             <DeleteItemDialog
               open={deleteDialogOpen}
-              itemName={deleteTargetId ? `zajęcia #${deleteTargetId}` : ''}
+              itemName={deleteTargetLabel}
               deleting={deleting}
               error={deleteError}
               onCancel={handleDeleteDialogCancel}
@@ -139,6 +183,55 @@ const Classes: React.FC = () => {
           </Box>
         </LoadingErrorHandler>
       </Paper>
+      {dragging && (
+        <Box
+          sx={{
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: (t) => t.zIndex.modal - 1,
+            p: 2,
+            display: 'flex',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              px: 2.5,
+              py: 1.25,
+              borderRadius: 2,
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              border: 2,
+              borderStyle: 'dashed',
+              transition: 'background-color .15s ease, border-color .15s ease',
+              ...(overDropZone
+                ? {
+                    bgcolor: 'error.main',
+                    color: 'error.contrastText',
+                    borderColor: 'error.dark',
+                    borderStyle: 'solid',
+                  }
+                : {
+                    bgcolor: 'background.paper',
+                    color: 'text.secondary',
+                    borderColor: 'divider',
+                  }),
+            }}
+          >
+            <DeleteOutlineIcon fontSize="small" />
+            {overDropZone
+              ? 'Upuść, aby usunąć zajęcia'
+              : 'Przeciągnij poza kalendarz, aby usunąć'}
+          </Box>
+        </Box>
+      )}
+
       <Snackbar
         open={!!rescheduleError}
         autoHideDuration={6000}

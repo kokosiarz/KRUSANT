@@ -52,6 +52,6 @@ export interface GroupWizardProps {
   mode: EMode;
   id?: number;
 
-  onSuccess?: () => void;
+  onSuccess?: (createdGroup?: { id: number; name: string }) => void;
   onClose: () => void;
 }

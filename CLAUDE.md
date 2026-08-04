@@ -110,6 +110,25 @@ Module-per-domain: `auth`, `classes`, `common`, `courses`, `debits`, `groups`, `
   `SET NULL`. `BaseCrudService.remove` and `UsersService.remove` translate the resulting constraint
   violation into a 409.
 
+**Action log / undo.** Every create, update and delete on **groups and classes** is recorded in
+`action_log` with a JSON snapshot of the record `before` and `after` (the API-level shape, so an undo
+replays through the same service methods that handle membership). `GET /history` lists it and
+`POST /history/:id/undo` reverses one — both admin-only.
+
+Three things keep undo safe, and none should be removed:
+- **Conflict check.** `afterUpdatedAt` stores the record's `updatedAt` right after the logged write.
+  Undo requires it to still match; if someone edited the record since, it refuses with 409 rather
+  than discarding their change. For a delete, the check is that the id isn't taken again.
+- **`schemaVersion`.** Bump `ACTION_LOG_SCHEMA_VERSION` whenever a migration changes the shape of
+  `class` or `group`. Older entries stay in the log (the audit trail is the point) but their undo is
+  disabled with a reason, instead of failing when someone presses the button.
+- **`undoneAt`** so an entry can't be applied twice.
+
+`GroupsService`/`ClassesService` call `registerHandler` in `onModuleInit` to teach the log how to
+load/restore/revert/remove their records — the dependency points one way, they know about the log and
+not the reverse, which would be circular since they call it on every write. The actor comes from
+`request.user`, threaded through the controllers as an optional `actor` argument.
+
 **Auth:** Passport `local` / `jwt` / `google` strategies, JWT in an httpOnly cookie, 24h lifetime from
 `auth.constants.ts`. Closed by default — `PassportJwtAuthGuard`, `ForcePasswordChangeGuard` and
 `RolesGuard` are global `APP_GUARD`s, in that order; public routes opt out with `@Public()`.
@@ -150,7 +169,8 @@ Vite (migrated from CRA — env vars are `VITE_`-prefixed). TypeScript tracks la
 the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconfig.json`.
 
 - **Pages/routes**: `/` Dashboard, `/students`, `/groups`, `/classes`, `/finances`, `/templates`,
-  `/teachers`, `/rooms`, `/courses`, `/users`, `/administration`. All lazy-loaded via `React.lazy`.
+  `/teachers`, `/rooms`, `/courses`, `/users`, `/historia`, `/administration`. All lazy-loaded via
+  `React.lazy`.
 - **Routes are role-gated** by `<RequireRole>` in `App.tsx`, matching what the backend enforces. Dashboard
   is open to any authenticated user; `students`/`groups`/`classes` are admin+teacher; the rest admin-only.
   `Menu/index.tsx` must agree with `App.tsx` — if you change one, change the other.
@@ -172,6 +192,14 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
   DataGrid and the toggle groups — restyle there rather than adding `sx` to individual pages.
   Typeface is **self-hosted Inter** (`@fontsource-variable/inter`, imported in `index.tsx`); the theme
   asked for Inter for a long time while nothing loaded it, so everything silently rendered in Segoe UI.
+- **`CommonTable` renders cards below `md`, a DataGrid above it.** A DataGrid at phone width silently
+  drops to ~3 columns with no horizontal scroll, so balance, the funds forecast and the row's
+  edit/delete buttons were unreachable on a phone. The card branch shows every column as a
+  label/value pair; `primaryColumnId` / `actionsColumnId` control the card heading and footer. Add
+  columns normally — both layouts pick them up.
+- **The calendar switches to an agenda list (`listWeek`) on mobile** and disables drag-to-reschedule
+  there. A 7-day `timeGridWeek` gives each day ~25px, which shredded every event title. The view is
+  keyed on the breakpoint so FullCalendar remounts rather than keeping the desktop view.
 - **Page header actions go through `Components/Common/PageHeaderActions`.** Every page had its own
   flex row with a different gap (one also added `ml: 2` to a single button), so controls sat at
   different heights and spacings per screen. Keep header controls at the default size — the theme

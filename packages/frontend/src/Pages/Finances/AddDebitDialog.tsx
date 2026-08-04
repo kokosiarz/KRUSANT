@@ -20,15 +20,24 @@ interface AddDebitDialogProps {
   onSubmit: (data: { amount: number; dueDate: string; comment?: string; studentId: number }) => void;
   submitting?: boolean;
   error?: string | null;
+  /** Pre-selects and locks the student — see AddPaymentDialog. */
+  lockedStudentId?: number;
+  lockedStudentName?: string;
 }
 
-const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit, submitting, error }) => {
+const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit, submitting, error, lockedStudentId, lockedStudentName }) => {
 
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [comment, setComment] = useState('');
-  const [studentId, setStudentId] = useState('');
+  const [studentId, setStudentId] = useState(lockedStudentId ? String(lockedStudentId) : '');
   const [amountError, setAmountError] = useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    if (lockedStudentId) setStudentId(String(lockedStudentId));
+    setDueDate((prev) => prev || new Date().toISOString().slice(0, 10));
+  }, [open, lockedStudentId]);
 
   const { data: students = [] } = useQuery({
     queryKey: ['students'],
@@ -48,26 +57,30 @@ const AddDebitDialog: React.FC<AddDebitDialogProps> = ({ open, onClose, onSubmit
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Dodaj obciążenie</DialogTitle>
+      <DialogTitle>
+        {lockedStudentName ? `Dodaj obciążenie — ${lockedStudentName}` : 'Dodaj obciążenie'}
+      </DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="student-label">Kursant</InputLabel>
-          <Select
-            labelId="student-label"
-            value={studentId}
-            label="Kursant"
-            onChange={e => setStudentId(e.target.value)}
-          >
-            {students.map((s: any) => (
-              <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {!lockedStudentId && (
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="student-label">Kursant</InputLabel>
+            <Select
+              labelId="student-label"
+              value={studentId}
+              label="Kursant"
+              onChange={e => setStudentId(e.target.value)}
+            >
+              {students.map((s: any) => (
+                <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
         <TextField
           label="Kwota"
           type="number"

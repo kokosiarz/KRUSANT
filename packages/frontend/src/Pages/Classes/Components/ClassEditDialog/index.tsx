@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogActions, Tabs, Tab, Button, CircularProgress, Alert } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
+import DeleteOutlineIcon from '@mui/icons-material/Delete';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useClassDialogData } from './hooks/useClassDialogData';
@@ -19,10 +20,16 @@ interface ClassEditDialogProps {
   open: boolean;
   onClose: () => void;
   classId: number;
+  /**
+   * Deleting used to be possible only by dragging the event off the calendar,
+   * which nobody discovers on their own. Opening the class and pressing a
+   * labelled button is the obvious path; the drag still works as a shortcut.
+   */
+  onRequestDelete?: (classId: number) => void;
 }
 
 
-export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose, classId }) => {
+export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose, classId, onRequestDelete }) => {
   const queryClient = useQueryClient();
   const {
     teacherList,
@@ -203,6 +210,20 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
         </DialogContent>
 
         <DialogActions>
+          {/* Only for a class that exists — the same dialog is used to create one. */}
+          {onRequestDelete && classId > 0 && (
+            <Button
+              onClick={() => onRequestDelete(classId)}
+              disabled={saving}
+              color="error"
+              startIcon={<DeleteOutlineIcon />}
+              // Pushed to the far left, away from Zapisz — a destructive action
+              // shouldn't sit next to the one people click without looking.
+              sx={{ mr: 'auto' }}
+            >
+              Usuń zajęcia
+            </Button>
+          )}
           <Button onClick={onClose} disabled={saving}>
             Anuluj
           </Button>

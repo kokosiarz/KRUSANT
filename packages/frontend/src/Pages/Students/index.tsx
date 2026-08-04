@@ -16,7 +16,11 @@ import { StudentWithBalance } from './types';
 import { useAuth } from '../../hooks/useAuth';
 import StudentForm from '../../Components/StudentForm';
 import { useSettings } from '../../context/Settings';
-import { createColumns } from './createColumns';
+import { createColumns, MoneyKind } from './createColumns';
+import AddPaymentDialog from '../Finances/AddPaymentDialog';
+import AddDebitDialog from '../Finances/AddDebitDialog';
+import { paymentsApi } from '@api/endpoints/payments';
+import { debitsApi } from '@api/endpoints/debits';
 
 export const Students: React.FC = () => {
   const { user } = useAuth();
@@ -25,6 +29,11 @@ export const Students: React.FC = () => {
   const [editingStudentId, setEditingStudentId] = useState<number | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<StudentWithBalance | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [moneyTarget, setMoneyTarget] = useState<{
+    kind: MoneyKind;
+    student: StudentWithBalance;
+  } | null>(null);
+  const [moneyError, setMoneyError] = useState<string | null>(null);
 
   const { data: students = [], isLoading: loading, error, refetch } = useQuery<StudentWithBalance[], Error>({
     queryKey: ['students-with-balance'],
@@ -119,6 +128,20 @@ export const Students: React.FC = () => {
       setDeleteError(err.message || 'Nie udało się usunąć kursanta'),
   });
 
+  const addMoneyMutation = useMutation({
+    mutationFn: async (payload: { kind: MoneyKind; data: any }) =>
+      payload.kind === 'payment'
+        ? paymentsApi.create(payload.data)
+        : debitsApi.create(payload.data),
+    onSuccess: async () => {
+      setMoneyTarget(null);
+      setMoneyError(null);
+      await refetch();
+    },
+    onError: (err: Error) =>
+      setMoneyError(err.message || 'Nie udało się zapisać'),
+  });
+
   const columns = useMemo(
     () =>
       createColumns(
@@ -133,6 +156,10 @@ export const Students: React.FC = () => {
               setDeleteTarget(student);
             }
           : undefined,
+        (kind, student) => {
+          setMoneyError(null);
+          setMoneyTarget({ kind, student });
+        },
       ),
     [handleEditStudent, currency, isAdmin]
   );
@@ -183,6 +210,24 @@ export const Students: React.FC = () => {
           setDeleteError(null);
         }}
         onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+      />
+      <AddPaymentDialog
+        open={moneyTarget?.kind === 'payment'}
+        onClose={() => setMoneyTarget(null)}
+        submitting={addMoneyMutation.isPending}
+        error={moneyError}
+        lockedStudentId={moneyTarget?.student.id}
+        lockedStudentName={moneyTarget?.student.name}
+        onSubmit={(data) => addMoneyMutation.mutate({ kind: 'payment', data })}
+      />
+      <AddDebitDialog
+        open={moneyTarget?.kind === 'debit'}
+        onClose={() => setMoneyTarget(null)}
+        submitting={addMoneyMutation.isPending}
+        error={moneyError}
+        lockedStudentId={moneyTarget?.student.id}
+        lockedStudentName={moneyTarget?.student.name}
+        onSubmit={(data) => addMoneyMutation.mutate({ kind: 'debit', data })}
       />
     </>
   );

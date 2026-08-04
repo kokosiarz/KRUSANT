@@ -12,6 +12,8 @@ import { mapGroupToClassData } from './mapGroupToClassData';
 import { classesApi } from '@/api/endpoints/classes';
 import { teachersApi } from '@/api/endpoints/teachers';
 import { roomsApi } from '@/api/endpoints/rooms';
+import { groupsApi } from '@/api/endpoints/groups';
+import type { Group } from '@/Pages/Groups/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import 'dayjs/locale/pl';
 import BatchClassForm from '../BatchClassForm';
@@ -21,12 +23,22 @@ interface ClassCreationDialogProps {
   open: boolean;
   initialDate?: string; // ISO string date
   onClose?: () => void;
+  /**
+   * Pre-selects the group. Set when this is opened straight after creating one,
+   * so the user isn't asked to pick the group they just made.
+   */
+  initialGroupId?: number;
 }
 
 type Step = 'form' | 'confirm';
 
-export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, onClose, initialDate = new Date().toISOString() }) => {
+export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, onClose, initialDate = new Date().toISOString(), initialGroupId }) => {
   const queryClient = useQueryClient();
+  const { data: allGroups = [] } = useQuery<Group[]>({
+    queryKey: ['groups'],
+    queryFn: groupsApi.getGroups,
+    enabled: open && initialGroupId !== undefined,
+  });
   const { data: teachers = [] } = useQuery({ queryKey: ['teachers'], queryFn: teachersApi.getTeachers });
   const { data: rooms = [] } = useQuery({ queryKey: ['rooms'], queryFn: roomsApi.getRooms });
   const teacherNamesById: Record<number, string> = Object.fromEntries(
@@ -62,6 +74,15 @@ export const ClassCreationDialog: React.FC<ClassCreationDialogProps> = ({ open, 
       setStep('form');
     }
   }, [initialDate, open]);
+
+  // Apply the pre-selected group once the list has loaded. The selector holds
+  // the whole group object (mapGroupToClassData reads its cost/room/teacher),
+  // so an id alone isn't enough.
+  React.useEffect(() => {
+    if (!open || initialGroupId === undefined) return;
+    const match = allGroups.find((g) => g.id === initialGroupId);
+    if (match) setSelectedGroup(match);
+  }, [open, initialGroupId, allGroups]);
   const [reocurrance, setReocurrance] = useState('everyday');
   const [customDays, setCustomDays] = useState<number[]>([]); // 0=Sunday, 1=Monday...
   const [skipHolidays, setSkipHolidays] = useState(true);

@@ -7,6 +7,12 @@ import Stack from '@mui/material/Stack';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import { StudentWithBalance } from './types';
 import { TableColumn } from '@/Components/Common/Table';
 
@@ -65,6 +71,53 @@ const FundsRunOut: React.FC<{ student: StudentWithBalance }> = ({ student }) => 
   );
 };
 
+export type MoneyKind = 'payment' | 'debit';
+
+/**
+ * Compact "+" beside the balance that opens a two-item menu. A menu rather than
+ * two icon buttons because the balance cell is narrow and the two actions are
+ * easy to confuse at icon size — the labels say which is which.
+ */
+const BalanceQuickAdd: React.FC<{
+  student: StudentWithBalance;
+  onAddMoney: (kind: MoneyKind, student: StudentWithBalance) => void;
+}> = ({ student, onAddMoney }) => {
+  const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
+
+  const pick = (kind: MoneyKind) => {
+    setAnchor(null);
+    onAddMoney(kind, student);
+  };
+
+  return (
+    <>
+      <Tooltip title="Dodaj wpłatę lub obciążenie">
+        <IconButton
+          size="small"
+          onClick={(e) => setAnchor(e.currentTarget)}
+          aria-label={`Dodaj wpłatę lub obciążenie dla ${student.name}`}
+        >
+          <AddIcon fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
+        <MenuItem onClick={() => pick('payment')}>
+          <ListItemIcon>
+            <PaymentsIcon fontSize="small" color="success" />
+          </ListItemIcon>
+          Dodaj wpłatę
+        </MenuItem>
+        <MenuItem onClick={() => pick('debit')}>
+          <ListItemIcon>
+            <ReceiptLongIcon fontSize="small" color="warning" />
+          </ListItemIcon>
+          Dodaj obciążenie
+        </MenuItem>
+      </Menu>
+    </>
+  );
+};
+
 const HeaderWithTooltip: React.FC<{ label: string; tooltip: string }> = ({ label, tooltip }) => (
   <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
     <span>{label}</span>
@@ -85,6 +138,8 @@ export function createColumns(
    * would only 403.
    */
   handleDeleteStudent?: (student: StudentWithBalance) => void,
+  /** Opens the payment/debit dialog for one student, straight from the balance cell. */
+  onAddMoney?: (kind: MoneyKind, student: StudentWithBalance) => void,
 ) {
   const columns: TableColumn<StudentWithBalance>[] = [
     {
@@ -135,9 +190,23 @@ export function createColumns(
           />
         ),
         render: (student: StudentWithBalance) => (
-          <span style={{ fontWeight: 'bold', color: student.balance < 0 ? 'red' : 'inherit' }}>
-            {student.balance.toFixed(2)} {currency}
-          </span>
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+            <Box
+              component="span"
+              sx={{
+                fontWeight: 700,
+                color: student.balance < 0 ? 'error.main' : 'inherit',
+              }}
+            >
+              {student.balance.toFixed(2)} {currency}
+            </Box>
+            {/* Money is entered against a student far more often than anything
+                else on this page, and doing it from Finances meant re-picking
+                them from a dropdown. */}
+            {onAddMoney && (
+              <BalanceQuickAdd student={student} onAddMoney={onAddMoney} />
+            )}
+          </Stack>
         ),
       },
       {

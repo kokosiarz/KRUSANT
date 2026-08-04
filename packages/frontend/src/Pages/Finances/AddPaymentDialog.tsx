@@ -23,16 +23,31 @@ interface AddPaymentDialogProps {
   onSubmit: (data: { amount: number; date: string; comment?: string; studentId: number; proofType: 'receipt' | 'invoice'; fiscalized: boolean }) => void;
   submitting?: boolean;
   error?: string | null;
+  /**
+   * Pre-selects and locks the student. Set when the dialog is opened from a
+   * specific student's row, where re-picking them from a dropdown would be
+   * pointless and easy to get wrong.
+   */
+  lockedStudentId?: number;
+  lockedStudentName?: string;
 }
 
 
-const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSubmit, submitting, error }) => {
+const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSubmit, submitting, error, lockedStudentId, lockedStudentName }) => {
 
 
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState('');
   const [comment, setComment] = useState('');
-  const [studentId, setStudentId] = useState('');
+  const [studentId, setStudentId] = useState(lockedStudentId ? String(lockedStudentId) : '');
+
+  // Today by default and the locked student applied whenever the dialog opens:
+  // a quick-add is meant to be two fields and done.
+  React.useEffect(() => {
+    if (!open) return;
+    if (lockedStudentId) setStudentId(String(lockedStudentId));
+    setDate((prev) => prev || new Date().toISOString().slice(0, 10));
+  }, [open, lockedStudentId]);
   const [proofType, setProofType] = useState<'receipt' | 'invoice'>('receipt');
   const [fiscalized, setFiscalized] = useState(false);
   const [amountError, setAmountError] = useState(false);
@@ -55,26 +70,30 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({ open, onClose, onSu
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Dodaj wpłatę</DialogTitle>
+      <DialogTitle>
+        {lockedStudentName ? `Dodaj wpłatę — ${lockedStudentName}` : 'Dodaj wpłatę'}
+      </DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="student-label">Kursant</InputLabel>
-          <Select
-            labelId="student-label"
-            value={studentId}
-            label="Kursant"
-            onChange={e => setStudentId(e.target.value)}
-          >
-            {students.map((s: any) => (
-              <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        {!lockedStudentId && (
+          <FormControl fullWidth margin="normal">
+            <InputLabel id="student-label">Kursant</InputLabel>
+            <Select
+              labelId="student-label"
+              value={studentId}
+              label="Kursant"
+              onChange={e => setStudentId(e.target.value)}
+            >
+              {students.map((s: any) => (
+                <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
         <TextField
           label="Kwota"
           type="number"

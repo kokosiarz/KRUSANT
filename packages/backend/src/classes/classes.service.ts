@@ -4,7 +4,9 @@ import {
   forwardRef,
   NotFoundException,
   BadRequestException,
+  OnModuleInit,
 } from '@nestjs/common';
+import { ActionLogService, Actor } from '../action-log/action-log.service';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { ClassEntity } from './class.entity';
@@ -25,7 +27,7 @@ export type ClassWithRoster = Omit<
 // (attendedStudentsIds/plannedStudentsIds derived from relations) differs from
 // the entity shape on every method, leaving nothing useful to share.
 @Injectable()
-export class ClassesService {
+export class ClassesService implements OnModuleInit {
   constructor(
     @InjectRepository(ClassEntity)
     private classRepository: Repository<ClassEntity>,
@@ -33,7 +35,53 @@ export class ClassesService {
     private groupsService: GroupsService,
     @InjectDataSource()
     private dataSource: DataSource,
+    private readonly actionLog: ActionLogService,
   ) {}
+
+  /** Teaches the action log how to reverse a class write. */
+  onModuleInit(): void {
+    this.actionLog.registerHandler('class', {
+      load: async (id) => {
+        try {
+          return await this.findOne(id);
+        } catch {
+          return null;
+        }
+      },
+      // Keeps the original id so debits pointing at this class line up again.
+      restore: async (snapshot) => {
+        await this.dataSource.transaction(async (manager) => {
+          const repo = manager.getRepository(ClassEntity);
+          const { attendedStudentsIds, plannedStudentsIds, ...rest } = snapshot;
+          await repo.save(repo.create(rest as Partial<ClassEntity>));
+          await this.syncRoster(
+            manager,
+            Number(snapshot.id),
+            attendedStudentsIds,
+            plannedStudentsIds,
+          );
+        });
+      },
+      revert: async (id, snapshot) => {
+        const {
+          id: _id,
+          createdAt,
+          updatedAt,
+          attendedStudentsIds,
+          plannedStudentsIds,
+          ...rest
+        } = snapshot;
+        await this.update(id, {
+          ...rest,
+          attendedStudentsIds,
+          plannedStudentsIds,
+        });
+      },
+      remove: async (id) => {
+        await this.classRepository.delete(id);
+      },
+    });
+  }
 
   private toResponse(entity: ClassEntity): ClassWithRoster {
     const { attendedStudents, plannedStudents, ...rest } = entity;
@@ -94,9 +142,12 @@ export class ClassesService {
     return this.loadOne(this.classRepository, id);
   }
 
-  async create(createDto: CreateClassDto): Promise<ClassWithRoster> {
+  async create(
+    createDto: CreateClassDto,
+    actor?: Actor,
+  ): Promise<ClassWithRoster> {
     const { attendedStudentsIds, plannedStudentsIds, ...rest } = createDto;
-    return this.dataSource.transaction(async (manager) => {
+    const created = await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(ClassEntity);
       const saved = await repo.save(repo.create(rest as Partial<ClassEntity>));
       await this.syncRoster(
@@ -107,14 +158,26 @@ export class ClassesService {
       );
       return this.loadOne(repo, saved.id);
     });
+    await this.actionLog.record({
+      actor,
+      entity: 'class',
+      entityId: created.id,
+      operation: 'create',
+      label: `Utworzono ${describeClass(created)}`,
+      after: created,
+    });
+    return created;
   }
 
   async update(
     id: number,
     updateDto: Partial<CreateClassDto>,
+    actor?: Actor,
   ): Promise<ClassWithRoster> {
+    // Snapshot first — after the write the previous state is gone.
+    const before = await this.findOne(id);
     const { attendedStudentsIds, plannedStudentsIds, ...rest } = updateDto;
-    return this.dataSource.transaction(async (manager) => {
+    const updated = await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(ClassEntity);
       if (Object.keys(rest).length > 0) {
         await repo.update(id, rest);
@@ -127,10 +190,29 @@ export class ClassesService {
       );
       return this.loadOne(repo, id);
     });
+    await this.actionLog.record({
+      actor,
+      entity: 'class',
+      entityId: id,
+      operation: 'update',
+      label: `Zmieniono ${describeClass(updated)}`,
+      before,
+      after: updated,
+    });
+    return updated;
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number, actor?: Actor): Promise<void> {
+    const before = await this.findOne(id);
     await this.classRepository.delete(id);
+    await this.actionLog.record({
+      actor,
+      entity: 'class',
+      entityId: id,
+      operation: 'delete',
+      label: `Usunięto ${describeClass(before)}`,
+      before,
+    });
   }
 
   async setAttendance(
@@ -257,4 +339,19 @@ export class ClassesService {
     }
     return created;
   }
+}
+
+/**
+ * Short human description used in the history list — "zajęcia 04.08.2026, 09:00"
+ * rather than an opaque id, so the log is readable without cross-referencing.
+ */
+function describeClass(cls: { startTime?: string }): string {
+  if (!cls?.startTime) return 'zajęcia';
+  const when = new Date(cls.startTime);
+  if (Number.isNaN(when.getTime())) return 'zajęcia';
+  return `zajęcia ${new Intl.DateTimeFormat('pl-PL', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'Europe/Warsaw',
+  }).format(when)}`;
 }

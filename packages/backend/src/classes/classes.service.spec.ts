@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { ActionLogService } from '../action-log/action-log.service';
 import { ClassesService } from './classes.service';
 import { ClassEntity } from './class.entity';
 import { Student } from '../students/student.entity';
@@ -28,6 +29,12 @@ describe('ClassesService', () => {
         TypeOrmModule.forFeature([ClassEntity]),
       ],
       providers: [
+        // The services record every write; this spec is about the write
+        // itself, so the log is a no-op stand-in.
+        {
+          provide: ActionLogService,
+          useValue: { record: jest.fn(), registerHandler: jest.fn() },
+        },
         ClassesService,
         {
           provide: GroupsService,

@@ -23,6 +23,7 @@ const Finances = lazy(() => import('./Pages/Finances'));
 const TemplatesSettings = lazy(() => import('./Pages/Settings/Pages/TemplatesSettings'));
 const UsersManagement = lazy(() => import('./Pages/UsersManagement'));
 const Administration = lazy(() => import('./Pages/Administration'));
+const History = lazy(() => import('./Pages/History'));
 const Teachers = lazy(() => import('./Pages/Teachers'));
 const Rooms = lazy(() => import('./Pages/Rooms'));
 const Courses = lazy(() => import('./Pages/Courses'));
@@ -147,6 +148,14 @@ function AppContent() {
                   element={
                     <RequireRole roles={['admin']}>
                       <UsersManagement />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="/historia"
+                  element={
+                    <RequireRole roles={['admin']}>
+                      <History />
                     </RequireRole>
                   }
                 />

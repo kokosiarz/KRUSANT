@@ -8,6 +8,7 @@ import {
   Post,
   Patch,
   Delete,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -60,8 +61,8 @@ export class ClassesController {
   @ApiBody({ type: CreateClassDto })
   @ApiResponse({ status: 201, description: 'Class created' })
   @Post()
-  async create(@Body() body: CreateClassDto) {
-    return await this.classesService.create(body);
+  async create(@Body() body: CreateClassDto, @Request() request) {
+    return await this.classesService.create(body, request.user);
   }
 
   @ApiOperation({ summary: 'Update class' })
@@ -72,16 +73,17 @@ export class ClassesController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateClassDto,
+    @Request() request,
   ) {
-    return await this.classesService.update(id, body);
+    return await this.classesService.update(id, body, request.user);
   }
 
   @ApiOperation({ summary: 'Delete class' })
   @ApiParam({ name: 'id', description: 'Class ID' })
   @ApiResponse({ status: 200, description: 'Class deleted' })
   @Delete(':id')
-  async delete(@Param('id', ParseIntPipe) id: number) {
-    await this.classesService.remove(id);
+  async delete(@Param('id', ParseIntPipe) id: number, @Request() request) {
+    await this.classesService.remove(id, request.user);
     return { message: 'Class deleted successfully' };
   }
 

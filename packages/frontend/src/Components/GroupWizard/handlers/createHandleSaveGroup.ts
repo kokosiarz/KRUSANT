@@ -21,7 +21,7 @@ type Params = {
   groupId?: number;
   setLoading: SetLoading;
   setError: SetError;
-  onSuccess?: () => void;
+  onSuccess?: (createdGroup?: { id: number; name: string }) => void;
   handleClose: () => void;
 };
 
@@ -76,12 +76,16 @@ export const createHandleSaveGroup = ({
 
     const payload = buildGroupPayload(formData);
 
+    // The created group is handed back so the caller can offer to schedule its
+    // classes straight away — otherwise you create a group and then have to go
+    // find it again in the class-series creator.
+    let created: { id: number; name: string } | undefined;
     if (groupId) {
       await groupsApi.updateGroup(groupId, payload);
     } else {
-      await groupsApi.createGroup(payload);
+      created = await groupsApi.createGroup(payload);
     }
-    onSuccess?.();
+    onSuccess?.(created);
     handleClose();
   } catch (err) {
     setError(err instanceof Error ? err.message : 'Błąd podczas zapisywania grupy');

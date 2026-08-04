@@ -7,6 +7,7 @@ import { Settings } from './settings/settings.entity';
 import { User } from './users/user.entity';
 import { Payment } from './payments/payment.entity';
 import { Debit } from './debits/debit.entity';
+import { ActionLog } from './action-log/action-log.entity';
 
 export const entities = [
   Student,
@@ -18,4 +19,5 @@ export const entities = [
   User,
   Payment,
   Debit,
+  ActionLog,
 ];

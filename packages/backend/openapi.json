@@ -16,6 +16,67 @@
         ]
       }
     },
+    "/api/history": {
+      "get": {
+        "operationId": "ActionLogController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History entries"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Recent recorded actions, newest first",
+        "tags": [
+          "history"
+        ]
+      }
+    },
+    "/api/history/{id}/undo": {
+      "post": {
+        "operationId": "ActionLogController_undo",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Undone"
+          },
+          "409": {
+            "description": "The record changed since — undo refused."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Undo a recorded action",
+        "tags": [
+          "history"
+        ]
+      }
+    },
     "/api/students": {
       "get": {
         "operationId": "StudentsController_getAll",

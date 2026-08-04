@@ -8,6 +8,7 @@ import {
   Post,
   Patch,
   Delete,
+  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -72,8 +73,8 @@ export class GroupsController {
   @ApiBody({ type: CreateGroupDto })
   @ApiResponse({ status: 201, description: 'Group created' })
   @Post()
-  async create(@Body() group: CreateGroupDto) {
-    return await this.groupsService.create(group);
+  async create(@Body() group: CreateGroupDto, @Request() request) {
+    return await this.groupsService.create(group, request.user);
   }
 
   @ApiOperation({ summary: 'Update group' })
@@ -84,16 +85,17 @@ export class GroupsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() group: UpdateGroupDto,
+    @Request() request,
   ) {
-    return await this.groupsService.update(id, group);
+    return await this.groupsService.update(id, group, request.user);
   }
 
   @ApiOperation({ summary: 'Delete group' })
   @ApiParam({ name: 'id', description: 'Group ID' })
   @ApiResponse({ status: 200, description: 'Group deleted' })
   @Delete(':id')
-  async deleteGroup(@Param('id', ParseIntPipe) id: number) {
-    await this.groupsService.remove(id);
+  async deleteGroup(@Param('id', ParseIntPipe) id: number, @Request() request) {
+    await this.groupsService.remove(id, request.user);
     return { message: 'Group deleted successfully' };
   }
 

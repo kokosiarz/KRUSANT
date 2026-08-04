@@ -14,9 +14,19 @@ import { EMode } from '../../Components/GroupWizard/types';
 import CommonTable from '@/Components/Common/Table';
 import { createColumns } from './createColumns';
 import DeleteItemDialog from '@/Components/Common/DeleteItemDialog';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import Typography from '@mui/material/Typography';
+import ClassCreationDialog from '@/Pages/Classes/Components/ClassCreateDialog';
 
 const Groups: React.FC = () => {
   const [filters, setFilters] = useState<string[]>(['active']);
+  // Set right after a group is created, to offer scheduling its classes.
+  const [scheduleFor, setScheduleFor] = useState<{ id: number; name: string } | null>(null);
+  const [scheduleGroupId, setScheduleGroupId] = useState<number | undefined>(undefined);
   const [formParams, setFormParams] = useState<{ open: boolean; mode: EMode; groupId?: number }>({ open: false, mode: EMode.EditGroup });
   const [deleteParams, setDeleteParams] = useState<{ open: boolean; groupId?: number }>({ open: false });
   const [deleting, setDeleting] = useState(false);
@@ -102,7 +112,44 @@ const Groups: React.FC = () => {
         open={formParams.open}
         onClose={handleFormClose}
         id={formParams.groupId}
-        onSuccess={handleFormSuccess}
+        onSuccess={(createdGroup) => {
+          handleFormSuccess();
+          // A group on its own does nothing until it has classes, and finding
+          // it again in the series creator is an easy step to forget. Offer it
+          // straight away instead.
+          if (createdGroup) setScheduleFor(createdGroup);
+        }}
+      />
+
+      <Dialog open={!!scheduleFor} onClose={() => setScheduleFor(null)}>
+        <DialogTitle>Grupa utworzona</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Grupa <strong>{scheduleFor?.name}</strong> została utworzona. Czy
+            chcesz teraz zaplanować dla niej zajęcia?
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1.5 }}>
+            Możesz to zrobić także później w zakładce Zajęcia.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setScheduleFor(null)}>Nie teraz</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setScheduleGroupId(scheduleFor?.id);
+              setScheduleFor(null);
+            }}
+          >
+            Zaplanuj zajęcia
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <ClassCreationDialog
+        open={scheduleGroupId !== undefined}
+        initialGroupId={scheduleGroupId}
+        onClose={() => setScheduleGroupId(undefined)}
       />
       <DeleteItemDialog
         open={deleteParams.open}

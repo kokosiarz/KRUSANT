@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
+import { ActionLogService, Actor } from '../action-log/action-log.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   DataSource,
@@ -25,17 +27,68 @@ export type GroupWithMembership = Omit<Group, 'students'> & {
 // derived from the students relation and class.groupId) differs from the entity
 // shape on every method, so there's nothing left to usefully share.
 @Injectable()
-export class GroupsService {
+export class GroupsService implements OnModuleInit {
   constructor(
     @InjectRepository(Group)
     private groupRepository: Repository<Group>,
     @InjectRepository(Course)
     private courseRepository: Repository<Course>,
     private dataSource: DataSource,
+    private readonly actionLog: ActionLogService,
   ) {}
 
-  async remove(id: number): Promise<void> {
+  /**
+   * Teaches the action log how to reverse a group write. Registered here rather
+   * than imported there, so the dependency only points one way.
+   */
+  onModuleInit(): void {
+    this.actionLog.registerHandler('group', {
+      load: async (id) => {
+        try {
+          return await this.findOne(id);
+        } catch {
+          return null;
+        }
+      },
+      // Re-creates with the original id so anything referencing it (classes via
+      // groupId) points at the right group again.
+      restore: async (snapshot) => {
+        await this.dataSource.transaction(async (manager) => {
+          const repo = manager.getRepository(Group);
+          const { studentIds, classIds, ...rest } = snapshot;
+          await repo.save(repo.create(rest as DeepPartial<Group>));
+          await this.syncMembership(manager, Number(snapshot.id), studentIds);
+        });
+      },
+      revert: async (id, snapshot) => {
+        const {
+          studentIds,
+          classIds,
+          id: _id,
+          createdAt,
+          updatedAt,
+          ...rest
+        } = snapshot;
+        await this.update(id, { ...rest, studentIds });
+      },
+      remove: async (id) => {
+        await this.groupRepository.delete(id);
+      },
+    });
+  }
+
+  async remove(id: number, actor?: Actor): Promise<void> {
+    // Captured before the delete so undo has something to restore.
+    const before = await this.findOne(id);
     await this.groupRepository.delete(id);
+    await this.actionLog.record({
+      actor,
+      entity: 'group',
+      entityId: id,
+      operation: 'delete',
+      label: `Usunięto ${before.isTemplate ? 'szablon' : 'grupę'} „${before.name}”`,
+      before,
+    });
   }
 
   private toResponse(group: Group, classIds: number[]): GroupWithMembership {
@@ -167,24 +220,39 @@ export class GroupsService {
     return this.loadOneWithMembership(this.groupRepository, id);
   }
 
-  async create(createGroupDto: CreateGroupDto): Promise<GroupWithMembership> {
+  async create(
+    createGroupDto: CreateGroupDto,
+    actor?: Actor,
+  ): Promise<GroupWithMembership> {
     const patchedDto = await this.applyCourseDefaults(createGroupDto);
     this.assertRequiredFields(patchedDto);
     const { studentIds, ...rest } = patchedDto;
-    return this.dataSource.transaction(async (manager) => {
+    const created = await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Group);
       const saved = await repo.save(repo.create(rest as DeepPartial<Group>));
       await this.syncMembership(manager, saved.id, studentIds);
       return this.loadOneWithMembership(repo, saved.id);
     });
+    await this.actionLog.record({
+      actor,
+      entity: 'group',
+      entityId: created.id,
+      operation: 'create',
+      label: `Utworzono ${created.isTemplate ? 'szablon' : 'grupę'} „${created.name}”`,
+      after: created,
+    });
+    return created;
   }
 
   async update(
     id: number,
     updateGroupDto: UpdateGroupDto,
+    actor?: Actor,
   ): Promise<GroupWithMembership> {
+    // Snapshot first — after the write the previous state is gone.
+    const before = await this.findOne(id);
     const { studentIds, ...rest } = updateGroupDto;
-    return this.dataSource.transaction(async (manager) => {
+    const updated = await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(Group);
       if (Object.keys(rest).length > 0) {
         await repo.update(id, rest);
@@ -192,6 +260,16 @@ export class GroupsService {
       await this.syncMembership(manager, id, studentIds);
       return this.loadOneWithMembership(repo, id);
     });
+    await this.actionLog.record({
+      actor,
+      entity: 'group',
+      entityId: id,
+      operation: 'update',
+      label: `Zmieniono ${updated.isTemplate ? 'szablon' : 'grupę'} „${updated.name}”`,
+      before,
+      after: updated,
+    });
+    return updated;
   }
 
   async batchUpsert(groups: CreateGroupDto[]): Promise<{
