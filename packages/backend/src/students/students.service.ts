@@ -15,6 +15,60 @@ function hhmmToMinutes(time: string | null | undefined): number {
   return (hours || 0) * 60 + (minutes || 0);
 }
 
+/**
+ * Walks the student's upcoming classes in date order, charging each against the
+ * current balance, and reports the first one they can't cover — "this is when
+ * the money runs out".
+ *
+ * Charges `class.cost` with the student's discount, which is exactly what
+ * ClassesService.setAttendance debits when a student is marked present, so the
+ * forecast and the eventual real debits agree. Free classes (cost 0) are
+ * skipped rather than counted as covered — they consume nothing, so letting
+ * them inflate the count would overstate how far the balance stretches.
+ */
+function forecastFundsRunOut(
+  balance: number,
+  discountPercent: number,
+  upcoming: { startTime: string; cost: number }[],
+): {
+  fundsRunOutDate: string | null;
+  daysUntilFundsRunOut: number | null;
+  scheduledLessonsCovered: number;
+  scheduledLessonsAhead: number;
+} {
+  const payable = upcoming.filter((c) => Number(c.cost) > 0);
+  let remaining = Number(balance);
+  let covered = 0;
+
+  for (const cls of payable) {
+    const charge = Number(cls.cost) * (1 - discountPercent / 100);
+    if (remaining < charge) {
+      return {
+        fundsRunOutDate: cls.startTime,
+        // Sent from here rather than derived in the browser: the server
+        // already fixed "now" when it picked the upcoming classes, so deriving
+        // it client-side would measure against a different clock (and calling
+        // Date.now() during render is impure anyway).
+        daysUntilFundsRunOut: Math.ceil(
+          (new Date(cls.startTime).getTime() - Date.now()) / 86_400_000,
+        ),
+        scheduledLessonsCovered: covered,
+        scheduledLessonsAhead: payable.length,
+      };
+    }
+    remaining -= charge;
+    covered += 1;
+  }
+
+  // Balance stretches past everything currently on the calendar.
+  return {
+    fundsRunOutDate: null,
+    daysUntilFundsRunOut: null,
+    scheduledLessonsCovered: covered,
+    scheduledLessonsAhead: payable.length,
+  };
+}
+
 @Injectable()
 export class StudentsService extends BaseCrudService<Student> {
   constructor(
@@ -63,6 +117,8 @@ export class StudentsService extends BaseCrudService<Student> {
         groupLessonLength: string | null;
       }
     >();
+    const upcomingByStudent = await this.findUpcomingClassesByStudent();
+
     return rows.map(({ groupUnitCost, groupLessonLength, ...row }) => {
       const hourlyRate = groupUnitCost ?? null;
       const lessonMinutes = hhmmToMinutes(groupLessonLength);
@@ -80,8 +136,49 @@ export class StudentsService extends BaseCrudService<Student> {
           : costPerLesson;
       const lessonsLeft =
         unitCost && unitCost > 0 ? Math.floor(row.balance / unitCost) : null;
-      return { ...row, unitCost, lessonsLeft };
+
+      const forecast = forecastFundsRunOut(
+        row.balance,
+        Number(row.discount) || 0,
+        upcomingByStudent.get(row.id) ?? [],
+      );
+
+      return { ...row, unitCost, lessonsLeft, ...forecast };
     });
+  }
+
+  /**
+   * Upcoming classes per student, oldest first, for the funds forecast.
+   *
+   * Joins classes to groups on `class.groupId`, **not** the `group_classes`
+   * table. Both exist, but `group_classes` is empty in practice while
+   * `class.groupId` is what ClassesService actually reads and writes — using
+   * the join table here would silently forecast nothing for everyone.
+   */
+  private async findUpcomingClassesByStudent(): Promise<
+    Map<number, { startTime: string; cost: number }[]>
+  > {
+    const rows = await this.dataSource.query<
+      { studentId: number; startTime: string; cost: number }[]
+    >(
+      `SELECT gs."studentId" AS studentId, c."startTime" AS startTime, c.cost AS cost
+         FROM class c
+         INNER JOIN "group" g ON g.id = c."groupId"
+         INNER JOIN group_students gs ON gs."groupId" = g.id
+        WHERE c."startTime" > ?
+          AND g."isActive" = 1
+          AND g."isTemplate" = 0
+        ORDER BY c."startTime" ASC`,
+      [new Date().toISOString()],
+    );
+
+    const byStudent = new Map<number, { startTime: string; cost: number }[]>();
+    for (const { studentId, startTime, cost } of rows) {
+      const list = byStudent.get(studentId) ?? [];
+      list.push({ startTime, cost: Number(cost) });
+      byStudent.set(studentId, list);
+    }
+    return byStudent;
   }
 
   async findAll(active?: boolean): Promise<Student[]> {

@@ -194,6 +194,9 @@ These each cost real debugging time. They are not hypothetical.
 - **MUI v9 dropped the colour-specific `styleOverrides` slots.** `containedPrimary`, `standardInfo`
   and friends no longer typecheck — per-colour/severity styling goes in a `variants: [{ props, style }]`
   array on the component instead. See `MuiButton`/`MuiAlert` in `theme.ts`.
+- **`class.groupId` is what links a class to a group, not `group_classes`.** Both exist, but the join
+  table is empty in production while `groupId` is what ClassesService reads and writes. Query through
+  `groupId` — the students funds forecast silently returned nothing for everyone until it did.
 - **MUI v9 dropped system props.** `<Stack alignItems="center" mb={2}>` must become `sx={{...}}`;
   `TextField`'s `inputProps`/`InputProps` became `slotProps={{ htmlInput, input, inputLabel }}`;
   `Autocomplete`'s `renderTags` became `renderValue`. A `TS2769`/`TS2322` on an MUI prop is almost always

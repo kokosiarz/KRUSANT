@@ -7,9 +7,11 @@ import AddIcon from '@mui/icons-material/Add';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import CommonTable from '@/Components/Common/Table';
+import PageHeaderActions from '@/Components/Common/PageHeaderActions';
 import { studentsApi } from '../../api/endpoints/students';
 import { groupsApi } from '../../api/endpoints/groups';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import DeleteItemDialog from '@/Components/Common/DeleteItemDialog';
 import { StudentWithBalance } from './types';
 import { useAuth } from '../../hooks/useAuth';
 import StudentForm from '../../Components/StudentForm';
@@ -21,6 +23,8 @@ export const Students: React.FC = () => {
   const [filters, setFilters] = useState<string[]>(['active']);
   const [formOpen, setFormOpen] = useState<boolean>(false);
   const [editingStudentId, setEditingStudentId] = useState<number | undefined>(undefined);
+  const [deleteTarget, setDeleteTarget] = useState<StudentWithBalance | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const { data: students = [], isLoading: loading, error, refetch } = useQuery<StudentWithBalance[], Error>({
     queryKey: ['students-with-balance'],
@@ -102,18 +106,43 @@ export const Students: React.FC = () => {
   };
 
 
+  const isAdmin = !!user?.roles?.includes('admin');
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => studentsApi.deleteStudent(id),
+    onSuccess: async () => {
+      setDeleteTarget(null);
+      setDeleteError(null);
+      await refetch();
+    },
+    onError: (err: Error) =>
+      setDeleteError(err.message || 'Nie udało się usunąć kursanta'),
+  });
+
   const columns = useMemo(
-    () => createColumns(handleEditStudent, currency, true),
-    [handleEditStudent, currency]
+    () =>
+      createColumns(
+        handleEditStudent,
+        currency,
+        true,
+        // Only admins get the delete action; DELETE /students/:id is admin-only
+        // on the server, so showing it to anyone else would just 403.
+        isAdmin
+          ? (student: StudentWithBalance) => {
+              setDeleteError(null);
+              setDeleteTarget(student);
+            }
+          : undefined,
+      ),
+    [handleEditStudent, currency, isAdmin]
   );
 
   const headerButtons = (
-    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+    <PageHeaderActions>
       <ToggleButtonGroup
         value={filters}
         onChange={handleFilterChange}
         aria-label="student filter"
-        size="small"
       >
         <ToggleButton value="all" aria-label="Wszyscy kursanci">
           Wszyscy
@@ -132,16 +161,30 @@ export const Students: React.FC = () => {
       >
         Dodaj kursanta
       </Button>
-    </Box>
+    </PageHeaderActions>
   );
 
   const dialogs = (
-    <StudentForm
-      open={formOpen}
-      onClose={handleFormClose}
-      studentId={editingStudentId}
-      onSuccess={handleFormSuccess}
-    />
+    <>
+      <StudentForm
+        open={formOpen}
+        onClose={handleFormClose}
+        studentId={editingStudentId}
+        onSuccess={handleFormSuccess}
+      />
+      <DeleteItemDialog
+        open={!!deleteTarget}
+        itemName={deleteTarget?.name}
+        deleting={deleteMutation.isPending}
+        error={deleteError}
+        onCancel={() => {
+          if (deleteMutation.isPending) return;
+          setDeleteTarget(null);
+          setDeleteError(null);
+        }}
+        onConfirm={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+      />
+    </>
   );
 
   return (

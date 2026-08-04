@@ -39,4 +39,30 @@ export class StudentWithBalanceDto {
       'Estimated number of lessons still covered by the current balance (balance / unitCost, floored). Null when no rate could be determined.',
   })
   lessonsLeft?: number | null;
+
+  @ApiProperty({
+    description:
+      'Start time of the first scheduled upcoming class the balance can no longer cover — i.e. when the money runs out. Null when the balance covers every scheduled class, or when nothing is scheduled.',
+    nullable: true,
+  })
+  fundsRunOutDate?: string | null;
+
+  @ApiProperty({
+    description:
+      'Whole days from now until fundsRunOutDate. Null when there is no run-out date.',
+    nullable: true,
+  })
+  daysUntilFundsRunOut?: number | null;
+
+  @ApiProperty({
+    description:
+      'How many of the upcoming scheduled classes the current balance covers.',
+  })
+  scheduledLessonsCovered?: number;
+
+  @ApiProperty({
+    description:
+      'Total upcoming scheduled classes across the groups this student belongs to. 0 means nothing is on the calendar, so no prediction is possible.',
+  })
+  scheduledLessonsAhead?: number;
 }

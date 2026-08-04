@@ -176,4 +176,119 @@ describe('StudentsService', () => {
       expect(result.lessonsLeft).toBeNull();
     });
   });
+
+  describe('funds run-out forecast', () => {
+    const future = (days: number) =>
+      new Date(Date.now() + days * 86_400_000).toISOString();
+
+    /** Student in one active group, with `count` upcoming classes at `cost`. */
+    async function seed(opts: {
+      balance: number;
+      discount?: number;
+      cost: number;
+      count: number;
+      startingInDays?: number;
+    }) {
+      const student = await service.create({
+        name: 'Forecast Student',
+        email: `forecast${Math.random()}@example.com`,
+        semester: 'I',
+        discount: opts.discount,
+      });
+      const group = await dataSource.getRepository(Group).save({
+        name: `Group ${Math.random()}`,
+        isActive: true,
+        teacherId: 1,
+        cost: 1000,
+        unitCost: 100,
+        lessonLength: '01:00',
+      });
+      await dataSource
+        .createQueryBuilder()
+        .relation(Group, 'students')
+        .of(group)
+        .add(student.id);
+      await dataSource.getRepository(Payment).save({
+        studentId: student.id,
+        date: '2026-01-01',
+        amount: opts.balance,
+        proofType: 'receipt',
+      });
+      const starts: string[] = [];
+      for (let i = 0; i < opts.count; i++) {
+        const startTime = future((opts.startingInDays ?? 1) + i * 7);
+        starts.push(startTime);
+        // Linked by class.groupId — group_classes is unused in practice.
+        await dataSource.getRepository(ClassEntity).save({
+          groupId: group.id,
+          startTime,
+          lessonLength: '01:00',
+          cost: opts.cost,
+        });
+      }
+      return { student, starts };
+    }
+
+    it('flags the first scheduled class the balance cannot cover', async () => {
+      const { starts } = await seed({ balance: 250, cost: 100, count: 5 });
+
+      const [result] = await service.findAllWithBalance();
+
+      // 250 covers two 100 classes; the third is where it runs out.
+      expect(result.scheduledLessonsCovered).toBe(2);
+      expect(result.fundsRunOutDate).toBe(starts[2]);
+      expect(result.scheduledLessonsAhead).toBe(5);
+    });
+
+    it('applies the student discount, which stretches the balance further', async () => {
+      const { starts } = await seed({
+        balance: 250,
+        discount: 50,
+        cost: 100,
+        count: 6,
+      });
+
+      const [result] = await service.findAllWithBalance();
+
+      // At 50 per class the same 250 now covers five, not two.
+      expect(result.scheduledLessonsCovered).toBe(5);
+      expect(result.fundsRunOutDate).toBe(starts[5]);
+    });
+
+    it('returns no run-out date when the balance covers every scheduled class', async () => {
+      await seed({ balance: 10_000, cost: 100, count: 3 });
+
+      const [result] = await service.findAllWithBalance();
+
+      expect(result.fundsRunOutDate).toBeNull();
+      expect(result.scheduledLessonsCovered).toBe(3);
+    });
+
+    it('predicts nothing when no classes are scheduled ahead', async () => {
+      await seed({ balance: 100, cost: 100, count: 0 });
+
+      const [result] = await service.findAllWithBalance();
+
+      expect(result.fundsRunOutDate).toBeNull();
+      expect(result.scheduledLessonsAhead).toBe(0);
+    });
+
+    it('ignores free classes rather than counting them as covered', async () => {
+      await seed({ balance: 0, cost: 0, count: 4 });
+
+      const [result] = await service.findAllWithBalance();
+
+      expect(result.scheduledLessonsAhead).toBe(0);
+      expect(result.fundsRunOutDate).toBeNull();
+    });
+
+    it('runs out immediately on the next class when the balance is already spent', async () => {
+      const { starts } = await seed({ balance: 0, cost: 100, count: 2 });
+
+      const [result] = await service.findAllWithBalance();
+
+      expect(result.scheduledLessonsCovered).toBe(0);
+      expect(result.fundsRunOutDate).toBe(starts[0]);
+    });
+  });
 });

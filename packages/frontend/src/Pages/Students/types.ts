@@ -38,4 +38,13 @@ export interface StudentWithBalance {
   balance: number;
   unitCost?: number | null;
   lessonsLeft?: number | null;
+  /**
+   * Start of the first scheduled class the balance can't cover. Null both when
+   * the balance covers everything on the calendar and when nothing is
+   * scheduled — `scheduledLessonsAhead` separates those two cases.
+   */
+  fundsRunOutDate?: string | null;
+  daysUntilFundsRunOut?: number | null;
+  scheduledLessonsCovered?: number;
+  scheduledLessonsAhead?: number;
 }
