@@ -1,20 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Brand bronze: colours the address bar and the installed app's title bar. -->
+    <meta name="theme-color" content="#987d3f" />
     <meta
       name="description"
-      content="KRUSANT - School Management Application"
+      content="KRUSANT — panel administracyjny Szkoły Złotnictwa: kursanci, grupy, zajęcia, obecność i finanse."
     />
-    <link rel="apple-touch-icon" href="/logo192.png" />
+    <!-- iOS ignores the manifest for these; they have to be declared here. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="KRUSANT" />
     <link rel="manifest" href="/manifest.json" />
     <title>KRUSANT</title>
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>Ta aplikacja wymaga włączonej obsługi JavaScript.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
   </body>

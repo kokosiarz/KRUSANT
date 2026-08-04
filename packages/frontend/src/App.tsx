@@ -9,6 +9,7 @@ import TopBar from './Components/TopBar';
 import RequireRole from './Components/RequireRole';
 import Login from './Pages/Login';
 import ChangePassword from './Pages/ChangePassword';
+import PwaPrompts from './Components/PwaPrompts';
 import { createAppTheme } from './theme';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './hooks/useAuth';
@@ -61,6 +62,10 @@ function AppContent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      {/* Outside the auth branches: the install offer and the update notice
+          are about the app itself, so they shouldn't disappear on the login
+          screen or while a password change is being forced. */}
+      <PwaPrompts />
       {isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
           <CircularProgress />

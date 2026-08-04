@@ -204,6 +204,17 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
   flex row with a different gap (one also added `ml: 2` to a single button), so controls sat at
   different heights and spacings per screen. Keep header controls at the default size — the theme
   matches ToggleButton's padding to Button's so the two line up.
+- **It's an installable PWA.** `vite-plugin-pwa` generates `sw.js` at build time; the manifest is
+  hand-written in `public/manifest.json` (the plugin is set to `manifest: false` so branding stays
+  readable). `src/pwa.ts` registers the worker and `Components/PwaPrompts` offers the install.
+  Two rules worth keeping:
+  - **`/api/*` is `NetworkOnly` and excluded from the navigation fallback.** Serving a cached balance,
+    roster or attendance record would be worse than an honest offline error.
+  - **`registerType: 'prompt'`, never `autoUpdate`.** A new version must not swap itself in under
+    someone mid-edit; the worker waits and the user presses "Odśwież".
+  iOS never fires `beforeinstallprompt`, so `PwaPrompts` detects it and shows Share-sheet
+  instructions instead of a button that cannot work. A dismissal is remembered for 30 days under
+  `krusant.installPromptDismissedAt`.
 - **Colour mode is persisted** in `localStorage` under `krusant.colorMode`, defaulting to the OS
   preference. It used to be plain component state, so every reload snapped back to dark.
 - **FullCalendar knows nothing about the MUI theme** — it's dressed to match by hand in
