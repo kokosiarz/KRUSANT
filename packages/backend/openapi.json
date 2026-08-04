@@ -1328,6 +1328,105 @@
         ]
       }
     },
+    "/api/auth/passkey": {
+      "get": {
+        "operationId": "PasskeyController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "List the signed-in user's passkeys",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkey/{id}": {
+      "delete": {
+        "operationId": "PasskeyController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Remove one of your own passkeys",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkey/register/options": {
+      "post": {
+        "operationId": "PasskeyController_registerOptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Begin registering a passkey for the signed-in user",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkey/register/verify": {
+      "post": {
+        "operationId": "PasskeyController_registerVerify",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Complete passkey registration",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkey/login/options": {
+      "post": {
+        "operationId": "PasskeyController_loginOptions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Challenge and WebAuthn options"
+          }
+        },
+        "summary": "Begin passkey sign-in (no username needed)",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
+    "/api/auth/passkey/login/verify": {
+      "post": {
+        "operationId": "PasskeyController_loginVerify",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Complete passkey sign-in and set the session cookie",
+        "tags": [
+          "passkeys"
+        ]
+      }
+    },
     "/api/users": {
       "get": {
         "operationId": "UsersController_getAll",

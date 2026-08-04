@@ -139,6 +139,21 @@ not the reverse, which would be circular since they call it on every write. The 
 rather than trusting the token payload, so a revoked role takes effect immediately instead of after 24h —
 and a user who just changed their password isn't stuck behind a stale flag. Don't "optimise" that away.
 
+**Passkeys (WebAuthn).** Face ID / Touch ID / Windows Hello sign-in lives in `auth/passkey/`.
+Registration requires an authenticated session — that's what binds a credential to a known account
+and keeps this from becoming a self-signup backdoor; login is public and usernameless
+(`residentKey: 'required'` makes the credential discoverable). It issues the *same* JWT cookie as the
+password and Google paths, so guards and roles behave identically.
+
+Three things there are load-bearing and easy to "fix" wrongly:
+- **`rpID` is a bare domain** derived from `FRONTEND_URL` (override: `WEBAUTHN_RP_ID`). Credentials
+  are bound to it permanently — changing it invalidates every existing passkey.
+- **The signature counter is recorded, never enforced.** iCloud/Google-synced passkeys report 0
+  forever; rejecting a non-increasing counter would lock out every one of them.
+- **`ChallengeStore` is in memory.** Fine for one pm2 process; if this ever runs as more than one
+  instance it must move to the DB or Redis, or verify can land on a process that never issued the
+  challenge.
+
 **There is no self-signup.** An admin creates every account on the Users page; there is no registration
 endpoint, and Google sign-in **rejects any email without an existing account** rather than provisioning
 one. The old auto-provisioning branch is kept behind `ALLOW_SELF_SIGNUP` (`auth.service.ts`, default

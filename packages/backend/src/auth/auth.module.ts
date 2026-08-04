@@ -6,7 +6,12 @@ import { UsersModule } from '../users/users.module';
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
+import { Passkey } from './passkey/passkey.entity';
+import { PasskeyService } from './passkey/passkey.service';
+import { PasskeyController } from './passkey/passkey.controller';
+import { ChallengeStore } from './passkey/challenge.store';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -30,9 +35,17 @@ const envFile =
 loadEnvFile(path.resolve(process.cwd(), envFile));
 
 @Module({
-  controllers: [PassportAuthController],
-  providers: [AuthService, JwtStrategy, LocalStrategy, GoogleStrategy],
+  controllers: [PassportAuthController, PasskeyController],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    LocalStrategy,
+    GoogleStrategy,
+    PasskeyService,
+    ChallengeStore,
+  ],
   imports: [
+    TypeOrmModule.forFeature([Passkey]),
     UsersModule,
     JwtModule.register({
       global: true,
