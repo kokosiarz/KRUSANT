@@ -145,8 +145,8 @@ const PwaPrompts: React.FC = () => {
                   Zainstaluj KRUSANT
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  Dodaj aplikację do ekranu głównego — otwiera się jak zwykły
-                  program, bez paska przeglądarki.
+                  Dodaj aplikację do ekranu głównego — otwiera się jak zwykła
+                  aplikacja, bez paska przeglądarki.
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
                   <Button
