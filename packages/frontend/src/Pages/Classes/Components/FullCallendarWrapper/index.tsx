@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { StyledCalendarWrapper } from './styles';
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -50,6 +51,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const calendarRef = useRef<FullCalendar | null>(null);
     const wrapperRef = useRef<HTMLDivElement | null>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
     const touchStart = useRef<{ x: number; y: number } | null>(null);
 
     // Live drag offset applied as a transform, plus whether it should animate
@@ -117,7 +119,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
         const goingNext = dx < 0;
         const exitDistance = getWidth() * EXIT_RATIO;
 
-        // Slide the current week fully off in the swipe direction first...
+        // Slide the outgoing week off in the direction of the swipe...
         setIsSettling(true);
         setDragX(goingNext ? -exitDistance : exitDistance);
 
@@ -126,17 +128,22 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                 if (goingNext) api.next();
                 else api.prev();
             }
-            // ...jump to the trailing edge with no transition (the new week is
-            // already in place underneath)...
-            setIsSettling(false);
-            setDragX(goingNext ? exitDistance : -exitDistance);
-            requestAnimationFrame(() => {
-                // ...then slide it back to center, reading as the new week
-                // arriving from the direction the user swiped.
+            // ...park the incoming week just off the *opposite* edge with no
+            // transition, and force the browser to compute style there before
+            // animating back. The forced reflow between the two is what makes
+            // this work: batched together, both updates land in one style
+            // recalculation, the browser only ever sees "old position -> 0",
+            // and the new week slides in from the side the old one just left.
+            flushSync(() => {
+                setIsSettling(false);
+                setDragX(goingNext ? exitDistance : -exitDistance);
+            });
+            contentRef.current?.getBoundingClientRect();
+            flushSync(() => {
                 setIsSettling(true);
                 setDragX(0);
-                window.setTimeout(() => setIsSettling(false), SETTLE_MS);
             });
+            window.setTimeout(() => setIsSettling(false), SETTLE_MS);
         }, SETTLE_MS);
     };
 
@@ -182,6 +189,7 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                 </Box>
             )}
             <Box
+                ref={contentRef}
                 sx={{
                     transform: `translateX(${dragX}px)`,
                     transition: isSettling ? `transform ${SETTLE_MS}ms cubic-bezier(0.22, 1, 0.36, 1)` : 'none',
