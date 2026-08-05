@@ -101,6 +101,11 @@ const Menu: React.FC<MenuProps> = ({ open, onClose, onOpen }) => {
       onOpen={onOpen ?? (() => {})}
       disableSwipeToOpen
       ModalProps={{ keepMounted: true }}
+      // The width belongs on the paper, not on the content inside it. With it
+      // on the child, the paper stayed shrink-to-fit and ended up wider than
+      // its own contents, leaving a dead strip along the edge that dividers
+      // and text stopped short of.
+      slotProps={{ paper: { sx: { width: { xs: '88%', sm: 360 }, maxWidth: 420 } } }}
     >
       <Box
         role="presentation"
@@ -108,17 +113,18 @@ const Menu: React.FC<MenuProps> = ({ open, onClose, onOpen }) => {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          width: { xs: '82%', sm: 340 },
+          width: '100%',
           backgroundColor: 'background.paper',
         }}
       >
-        <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* px matches the list items below, so everything shares one gutter. */}
+        <Box sx={{ px: 2, py: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Menu
           </Typography>
-                  <IconButton onClick={onClose}>
-                    <CloseIcon />
-                  </IconButton>
+          <IconButton onClick={onClose} aria-label="Zamknij menu">
+            <CloseIcon />
+          </IconButton>
         </Box>
 
         <Divider />

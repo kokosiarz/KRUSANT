@@ -41,15 +41,22 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, onOpen, mode
             onOpen={onOpen ?? (() => {})}
             disableSwipeToOpen
             ModalProps={{ keepMounted: true }}
+            // The width belongs on the paper, not on the content inside it.
+            // With it on the child, the paper stayed shrink-to-fit and ended up
+            // wider than its own contents, leaving a dead strip down the right
+            // that dividers never reached and text wrapped short of.
+            slotProps={{ paper: { sx: { width: { xs: '88%', sm: 360 }, maxWidth: 420 } } }}
         >
             <Box
                 role="presentation"
                 sx={{
-                    height: '100%', display: 'flex', flexDirection: 'column', width: { xs: '82%', sm: 340 },
+                    height: '100%', display: 'flex', flexDirection: 'column', width: '100%',
                     backgroundColor: 'background.paper',
                 }}
             >
-                <Box sx={{ p: 3, pb: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {/* px matches PasskeySection and the list items below, so every
+                    section shares the same gutter on both sides. */}
+                <Box sx={{ px: 2, pt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="h6" sx={{ fontWeight: 700 }}>
                         Profil
                     </Typography>
@@ -59,7 +66,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, onOpen, mode
                 </Box>
 
                 {/* User Profile Section */}
-                <Box sx={{ p: 3, textAlign: 'center' }}>
+                <Box sx={{ px: 2, pt: 2, pb: 3, textAlign: 'center' }}>
                     <Avatar
                         sx={{
                             width: 80,
