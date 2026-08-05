@@ -17,7 +17,7 @@ export default defineConfig({
         // The chunked bundle is large (FullCalendar, DataGrid); the default
         // 2 MB cap would silently skip precaching them.
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
         // SPA: any navigation that isn't a real file falls back to the shell.
         navigateFallback: '/index.html',
         // The API must never be served from cache — stale students, balances
