@@ -43,11 +43,30 @@ export class CreateClassDto {
 
   @ApiPropertyOptional({
     type: [Number],
-    description: 'IDs of attended students',
+    description:
+      'IDs of students marked present (obecność) — bills the student',
   })
   @IsOptional()
   @IsArray()
   attendedStudentsIds?: number[];
+
+  @ApiPropertyOptional({
+    type: [Number],
+    description:
+      'IDs of students marked absent without excuse (nieobecność) — still bills the student',
+  })
+  @IsOptional()
+  @IsArray()
+  absentStudentsIds?: number[];
+
+  @ApiPropertyOptional({
+    type: [Number],
+    description:
+      'IDs of students whose lesson was excused/rescheduled (przełożone) — no bill, counts toward their make-up balance',
+  })
+  @IsOptional()
+  @IsArray()
+  rescheduledStudentsIds?: number[];
 
   @ApiPropertyOptional({ type: Number, description: 'Teacher ID' })
   @IsOptional()

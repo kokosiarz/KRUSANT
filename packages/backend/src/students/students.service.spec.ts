@@ -7,6 +7,10 @@ import { Payment } from '../payments/payment.entity';
 import { Debit } from '../debits/debit.entity';
 import { Group } from '../groups/group.entity';
 import { ClassEntity } from '../classes/class.entity';
+import {
+  ClassAttendance,
+  AttendanceStatus,
+} from '../classes/class-attendance.entity';
 
 describe('StudentsService', () => {
   let service: StudentsService;
@@ -18,7 +22,14 @@ describe('StudentsService', () => {
         TypeOrmModule.forRoot({
           type: 'better-sqlite3',
           database: ':memory:',
-          entities: [Student, Payment, Debit, Group, ClassEntity],
+          entities: [
+            Student,
+            Payment,
+            Debit,
+            Group,
+            ClassEntity,
+            ClassAttendance,
+          ],
           synchronize: true,
           retryAttempts: 0,
         }),
@@ -289,6 +300,156 @@ describe('StudentsService', () => {
 
       expect(result.scheduledLessonsCovered).toBe(0);
       expect(result.fundsRunOutDate).toBe(starts[0]);
+    });
+  });
+
+  describe('rescheduledLessonsOwed', () => {
+    it('is 0 for a student with no attendance history', async () => {
+      await service.create({
+        name: 'No History',
+        email: 'nohistory@example.com',
+        semester: 'I',
+      });
+
+      const [result] = await service.findAllWithBalance();
+
+      expect(result.rescheduledLessonsOwed).toBe(0);
+    });
+
+    it('counts every rescheduled marking', async () => {
+      const student = await service.create({
+        name: 'Owed Student',
+        email: 'owed@example.com',
+        semester: 'I',
+      });
+      const group = await dataSource.getRepository(Group).save({
+        name: 'Owed Group',
+        isActive: true,
+        teacherId: 1,
+        cost: 100,
+        unitCost: 100,
+        lessonLength: '01:00',
+      });
+      const cls = await dataSource.getRepository(ClassEntity).save({
+        groupId: group.id,
+        startTime: '2026-01-01T10:00:00.000Z',
+        lessonLength: '01:00',
+        cost: 100,
+      });
+      await dataSource.getRepository(ClassAttendance).save({
+        classId: cls.id,
+        studentId: student.id,
+        status: AttendanceStatus.Rescheduled,
+      });
+
+      const [result] = await service.findAllWithBalance();
+
+      expect(result.rescheduledLessonsOwed).toBe(1);
+    });
+
+    it('is reduced by attending a make-up lesson in a group the student does not belong to', async () => {
+      const student = await service.create({
+        name: 'Makeup Student',
+        email: 'makeup@example.com',
+        semester: 'I',
+      });
+      const ownGroup = await dataSource.getRepository(Group).save({
+        name: 'Own Group',
+        isActive: true,
+        teacherId: 1,
+        cost: 100,
+        unitCost: 100,
+        lessonLength: '01:00',
+      });
+      await dataSource
+        .createQueryBuilder()
+        .relation(Group, 'students')
+        .of(ownGroup)
+        .add(student.id);
+      const missedClass = await dataSource.getRepository(ClassEntity).save({
+        groupId: ownGroup.id,
+        startTime: '2026-01-01T10:00:00.000Z',
+        lessonLength: '01:00',
+        cost: 100,
+      });
+      await dataSource.getRepository(ClassAttendance).save({
+        classId: missedClass.id,
+        studentId: student.id,
+        status: AttendanceStatus.Rescheduled,
+      });
+
+      // A make-up lesson in a different group the student isn't a member of.
+      const otherGroup = await dataSource.getRepository(Group).save({
+        name: 'Other Group',
+        isActive: true,
+        teacherId: 1,
+        cost: 100,
+        unitCost: 100,
+        lessonLength: '01:00',
+      });
+      const makeupClass = await dataSource.getRepository(ClassEntity).save({
+        groupId: otherGroup.id,
+        startTime: '2026-01-08T10:00:00.000Z',
+        lessonLength: '01:00',
+        cost: 100,
+      });
+      await dataSource.getRepository(ClassAttendance).save({
+        classId: makeupClass.id,
+        studentId: student.id,
+        status: AttendanceStatus.Present,
+      });
+
+      const [result] = await service.findAllWithBalance();
+
+      expect(result.rescheduledLessonsOwed).toBe(0);
+    });
+
+    it("does not reduce the balance for attendance in the student's own group", async () => {
+      const student = await service.create({
+        name: 'Own Group Attendee',
+        email: 'owngroup@example.com',
+        semester: 'I',
+      });
+      const group = await dataSource.getRepository(Group).save({
+        name: 'Own Group Only',
+        isActive: true,
+        teacherId: 1,
+        cost: 100,
+        unitCost: 100,
+        lessonLength: '01:00',
+      });
+      await dataSource
+        .createQueryBuilder()
+        .relation(Group, 'students')
+        .of(group)
+        .add(student.id);
+      const missedClass = await dataSource.getRepository(ClassEntity).save({
+        groupId: group.id,
+        startTime: '2026-01-01T10:00:00.000Z',
+        lessonLength: '01:00',
+        cost: 100,
+      });
+      await dataSource.getRepository(ClassAttendance).save({
+        classId: missedClass.id,
+        studentId: student.id,
+        status: AttendanceStatus.Rescheduled,
+      });
+      const normalClass = await dataSource.getRepository(ClassEntity).save({
+        groupId: group.id,
+        startTime: '2026-01-08T10:00:00.000Z',
+        lessonLength: '01:00',
+        cost: 100,
+      });
+      await dataSource.getRepository(ClassAttendance).save({
+        classId: normalClass.id,
+        studentId: student.id,
+        status: AttendanceStatus.Present,
+      });
+
+      const [result] = await service.findAllWithBalance();
+
+      // Attending their own group's regular class isn't a make-up — still owed.
+      expect(result.rescheduledLessonsOwed).toBe(1);
     });
   });
 });

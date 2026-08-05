@@ -6,7 +6,7 @@ import DeleteOutlineIcon from '@mui/icons-material/Delete';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useClassDialogData } from './hooks/useClassDialogData';
-import { CreateClassRequest, classesApi } from '@/api/endpoints/classes';
+import { CreateClassRequest, classesApi, AttendanceEntry } from '@/api/endpoints/classes';
 import _ from 'lodash';
 import type { Group } from '@/Pages/Groups/types';
 import type { Class as ClassItem } from '@/api/endpoints/classes';
@@ -116,8 +116,8 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
   });
 
   const setAttendanceMutation = useMutation({
-    mutationFn: async ({ classId, ids }: { classId: number; ids: number[] }) => {
-      await classesApi.setAttendance(classId, ids);
+    mutationFn: async ({ classId, entries }: { classId: number; entries: AttendanceEntry[] }) => {
+      await classesApi.setAttendance(classId, entries);
       return { classId };
     },
     onSuccess: ({ classId }: { classId: number }) => {
@@ -161,19 +161,24 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
     onClose();
   };
 
-  const presenceCheckerStudentsIds = useMemo(() => {
-    if (classDataFromDb?.attendedStudentsIds?.length) {
-      return classDataFromDb.attendedStudentsIds;
-    }
-    if (classDataFromDb?.plannedStudentsIds?.length) {
-      return classDataFromDb.plannedStudentsIds;
-    }
-    return [];
-  }, [classDataFromDb]);
+  // What's actually saved — used both to seed the draft (when something has
+  // been marked already) and to detect whether the draft still matches what
+  // was last confirmed.
+  const savedAttendanceEntries = useMemo<AttendanceEntry[]>(() => [
+    ...(classDataFromDb?.attendedStudentsIds ?? []).map((studentId) => ({ studentId, status: 'present' as const })),
+    ...(classDataFromDb?.absentStudentsIds ?? []).map((studentId) => ({ studentId, status: 'absent' as const })),
+    ...(classDataFromDb?.rescheduledStudentsIds ?? []).map((studentId) => ({ studentId, status: 'rescheduled' as const })),
+  ], [classDataFromDb]);
 
-  const onAttandanceChecked = (ids: number[]) => {
+  const presenceCheckerInitialEntries = useMemo<AttendanceEntry[]>(() => {
+    if (savedAttendanceEntries.length) return savedAttendanceEntries;
+    // Nothing marked yet — fall back to the planned roster, all defaulted to present.
+    return (classDataFromDb?.plannedStudentsIds ?? []).map((studentId) => ({ studentId, status: 'present' as const }));
+  }, [savedAttendanceEntries, classDataFromDb]);
+
+  const onAttandanceChecked = (entries: AttendanceEntry[]) => {
     if (!classId) return;
-    setAttendanceMutation.mutate({ classId, ids });
+    setAttendanceMutation.mutate({ classId, entries });
   };
 
   return (
@@ -190,9 +195,9 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
             <Tab icon={<SettingsIcon />} iconPosition="start" label="Właściwości" />
           </Tabs>
           <PresenceCheckerTab
-            studentIds={presenceCheckerStudentsIds}
-            setStudentIds={onAttandanceChecked}
-            attendedStudentsIds={classDataFromDb?.attendedStudentsIds || []}
+            initialEntries={presenceCheckerInitialEntries}
+            savedEntries={savedAttendanceEntries}
+            onSave={onAttandanceChecked}
             active={tab === ETab.Attendance}
           />
           <AdvancedTab

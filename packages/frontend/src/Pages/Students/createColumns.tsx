@@ -238,6 +238,27 @@ export function createColumns(
           <FundsRunOut student={student} />
         ),
       },
+      {
+        id: 'rescheduledLessonsOwed',
+        label: (
+          <HeaderWithTooltip
+            label="Przełożone"
+            tooltip="Liczba przełożonych (usprawiedliwionych) zajęć, za które kursant nie został jeszcze rozliczony. Zmniejsza się, gdy kursant zostanie odnotowany jako obecny na zajęciach innej grupy (odrabianie)."
+          />
+        ),
+        render: (student: StudentWithBalance) => {
+          const owed = student.rescheduledLessonsOwed ?? 0;
+          return owed > 0 ? (
+            <Box component="span" sx={{ color: 'warning.main', fontWeight: 700 }}>
+              {owed}
+            </Box>
+          ) : (
+            <Box component="span" sx={{ color: 'text.disabled' }}>
+              0
+            </Box>
+          );
+        },
+      },
     );
   }
 

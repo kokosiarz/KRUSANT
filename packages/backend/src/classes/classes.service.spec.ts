@@ -4,6 +4,8 @@ import { DataSource } from 'typeorm';
 import { ActionLogService } from '../action-log/action-log.service';
 import { ClassesService } from './classes.service';
 import { ClassEntity } from './class.entity';
+import { ClassAttendance, AttendanceStatus } from './class-attendance.entity';
+import { AttendanceEntryDto } from './dto/attendance-entry.dto';
 import { Student } from '../students/student.entity';
 import { Debit } from '../debits/debit.entity';
 import { Payment } from '../payments/payment.entity';
@@ -22,11 +24,11 @@ describe('ClassesService', () => {
         TypeOrmModule.forRoot({
           type: 'better-sqlite3',
           database: ':memory:',
-          entities: [ClassEntity, Student, Debit, Payment],
+          entities: [ClassEntity, ClassAttendance, Student, Debit, Payment],
           synchronize: true,
           retryAttempts: 0,
         }),
-        TypeOrmModule.forFeature([ClassEntity]),
+        TypeOrmModule.forFeature([ClassEntity, ClassAttendance]),
       ],
       providers: [
         // The services record every write; this spec is about the write
@@ -71,10 +73,23 @@ describe('ClassesService', () => {
     await dataSource.destroy();
   });
 
-  it("creates a debit per attending student, applying each student's discount", async () => {
+  const present = (studentId: number): AttendanceEntryDto => ({
+    studentId,
+    status: AttendanceStatus.Present,
+  });
+  const absent = (studentId: number): AttendanceEntryDto => ({
+    studentId,
+    status: AttendanceStatus.Absent,
+  });
+  const rescheduled = (studentId: number): AttendanceEntryDto => ({
+    studentId,
+    status: AttendanceStatus.Rescheduled,
+  });
+
+  it("creates a debit per present student, applying each student's discount", async () => {
     const { createdDebits } = await service.setAttendance(classId, [
-      studentA.id,
-      studentB.id,
+      present(studentA.id),
+      present(studentB.id),
     ]);
 
     expect(createdDebits).toHaveLength(2);
@@ -89,10 +104,13 @@ describe('ClassesService', () => {
   });
 
   it('is idempotent: marking the same students again creates no duplicate debits', async () => {
-    await service.setAttendance(classId, [studentA.id, studentB.id]);
+    await service.setAttendance(classId, [
+      present(studentA.id),
+      present(studentB.id),
+    ]);
     const { createdDebits } = await service.setAttendance(classId, [
-      studentA.id,
-      studentB.id,
+      present(studentA.id),
+      present(studentB.id),
     ]);
 
     expect(createdDebits).toHaveLength(0);
@@ -103,9 +121,12 @@ describe('ClassesService', () => {
   });
 
   it('removes the debit for a student who is un-marked, leaving the others untouched', async () => {
-    await service.setAttendance(classId, [studentA.id, studentB.id]);
+    await service.setAttendance(classId, [
+      present(studentA.id),
+      present(studentB.id),
+    ]);
 
-    await service.setAttendance(classId, [studentA.id]);
+    await service.setAttendance(classId, [present(studentA.id)]);
 
     const remaining = await dataSource
       .getRepository(Debit)
@@ -114,10 +135,55 @@ describe('ClassesService', () => {
     expect(remaining[0].studentId).toBe(studentA.id);
   });
 
+  it('bills an unexcused absence the same as presence', async () => {
+    const { createdDebits } = await service.setAttendance(classId, [
+      absent(studentA.id),
+    ]);
+
+    expect(createdDebits).toHaveLength(1);
+    expect(createdDebits[0].studentId).toBe(studentA.id);
+    const { absentStudentsIds, attendedStudentsIds } =
+      await service.findOne(classId);
+    expect(absentStudentsIds).toEqual([studentA.id]);
+    expect(attendedStudentsIds).toEqual([]);
+  });
+
+  it('does not bill a rescheduled (excused) lesson', async () => {
+    const { createdDebits } = await service.setAttendance(classId, [
+      rescheduled(studentA.id),
+    ]);
+
+    expect(createdDebits).toHaveLength(0);
+    const debits = await dataSource
+      .getRepository(Debit)
+      .find({ where: { classId } });
+    expect(debits).toHaveLength(0);
+    const { rescheduledStudentsIds } = await service.findOne(classId);
+    expect(rescheduledStudentsIds).toEqual([studentA.id]);
+  });
+
+  it('removes the debit when a present student is switched to rescheduled', async () => {
+    await service.setAttendance(classId, [present(studentA.id)]);
+    let debits = await dataSource
+      .getRepository(Debit)
+      .find({ where: { classId } });
+    expect(debits).toHaveLength(1);
+
+    await service.setAttendance(classId, [rescheduled(studentA.id)]);
+    debits = await dataSource.getRepository(Debit).find({ where: { classId } });
+    expect(debits).toHaveLength(0);
+  });
+
   it('rejects a malformed body instead of silently wiping attendance and debits', async () => {
-    await service.setAttendance(classId, [studentA.id, studentB.id]);
+    await service.setAttendance(classId, [
+      present(studentA.id),
+      present(studentB.id),
+    ]);
     await expect(
-      service.setAttendance(classId, undefined as unknown as number[]),
+      service.setAttendance(
+        classId,
+        undefined as unknown as AttendanceEntryDto[],
+      ),
     ).rejects.toThrow(/must be an array/);
     // Roster and debits must be untouched by the rejected call.
     const { attendedStudentsIds } = await service.findOne(classId);
@@ -130,7 +196,10 @@ describe('ClassesService', () => {
   });
 
   it('removes a deleted student from attendance automatically (cascade)', async () => {
-    await service.setAttendance(classId, [studentA.id, studentB.id]);
+    await service.setAttendance(classId, [
+      present(studentA.id),
+      present(studentB.id),
+    ]);
     // Debits reference students with ON DELETE RESTRICT, so clear this
     // class's debits first — we are exercising the roster cascade, not that.
     await dataSource.getRepository(Debit).delete({ classId });
@@ -142,7 +211,7 @@ describe('ClassesService', () => {
 
   it('updates the class attendedStudentsIds to match what was passed in', async () => {
     const { class: updated } = await service.setAttendance(classId, [
-      studentA.id,
+      present(studentA.id),
     ]);
     expect(updated.attendedStudentsIds).toEqual([studentA.id]);
   });

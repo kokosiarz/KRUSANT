@@ -91,13 +91,25 @@ Module-per-domain: `auth`, `classes`, `common`, `courses`, `debits`, `groups`, `
   `GroupsService.findAll` always takes an explicit `isTemplate` side so templates can't leak into a list
   of real groups. `group.teacherId` is nullable *only* because templates may not have one — a CHECK
   constraint (`isTemplate = 1 OR teacherId IS NOT NULL`) still requires it for real groups.
-- **Membership is join tables, never JSON arrays.** `group_students`,
-  `class_attended_students`, `class_planned_students` — all three are genuinely many-to-many (a
-  student sits in several groups; a class has many attendees). Services keep the old wire format
-  (`studentIds` / `attendedStudentsIds` …) via a `toResponse` mapping, so the API shape is unchanged
-  even though storage isn't. `GroupsService` and `ClassesService` both follow this pattern and
-  deliberately do **not** extend `BaseCrudService` (their response shape differs from the entity on
-  every method).
+- **Membership is join tables, never JSON arrays.** `group_students`, `class_planned_students` —
+  both genuinely many-to-many (a student sits in several groups; a class has a roster planned before
+  it happens). Services keep the old wire format (`studentIds` / `plannedStudentsIds` …) via a
+  `toResponse` mapping, so the API shape is unchanged even though storage isn't. `GroupsService` and
+  `ClassesService` both follow this pattern and deliberately do **not** extend `BaseCrudService`
+  (their response shape differs from the entity on every method).
+- **Attendance is three states, not a join table.** `class_attendance` (`ClassAttendance` entity) has
+  one row per marked `(classId, studentId)` with a `status`: `present` (obecność), `absent`
+  (nieobecność, still billed — same as present), or `rescheduled` (przełożone, excused, **not**
+  billed). A plain `@ManyToMany`/`@JoinTable` — what the old `class_attended_students` binary table
+  was — has no room for that status column, so this had to become a real entity; a missing row still
+  means "unmarked", same convention as before. `ClassesService.setAttendance` (`POST
+  /classes/:id/attendance`) is a full replace: an id absent from the incoming array goes back to
+  unmarked, and it creates/removes the matching `Debit` based on billable status (present/absent → debit,
+  rescheduled → no debit). A student's outstanding przełożone balance shown on `/students` is
+  **computed, not linked**: every `rescheduled` marking minus every `present` marking in a class
+  belonging to a group the student doesn't belong to (a make-up lesson attended elsewhere), clamped at
+  0 — see `StudentsService.findAllWithBalance`. There is no explicit link between a specific
+  reschedule and the make-up that settles it.
 - **A class belongs to a group through `class.groupId` — one-to-many, no join table.** A class
   happens once, for one group, so there is deliberately no `Group.classes` relation. A `group_classes`
   junction table used to exist alongside it; nothing ever wrote to it, so `GET /groups` reported every
@@ -249,9 +261,13 @@ These each cost real debugging time. They are not hypothetical.
   `migration:run` disables foreign_keys before opening its transaction.
 - **Never remap ids with a loop of per-row `UPDATE`s.** Use a temp mapping table and one `UPDATE` per
   table, or rows already remapped get caught again when one entity's old id equals another's new id.
-- **`POST /classes/:id/attendance` takes a bare JSON array** (`[1,2,3]`), not `{attendedStudentsIds:[…]}`.
-  A malformed body now 400s; it used to be coerced to `[]`, which silently wiped the roster *and deleted
-  every debit for that class*.
+- **`POST /classes/:id/attendance` takes a bare JSON array of `{studentId, status}`**, not
+  `{attendedStudentsIds:[…]}` and not a bare array of ids either (that was the shape before the
+  three-state attendance refactor). `status` is `'present' | 'absent' | 'rescheduled'`. A malformed
+  body 400s rather than being coerced to `[]`, which used to silently wipe the roster *and delete every
+  debit for that class* — `ClassesService.setAttendance` still does its own manual validation instead
+  of a class-validator DTO, because Nest's `ValidationPipe` doesn't validate item-by-item against a
+  bare-array-of-objects `@Body()` parameter.
 - **MUI v9 dropped the colour-specific `styleOverrides` slots.** `containedPrimary`, `standardInfo`
   and friends no longer typecheck — per-colour/severity styling goes in a `variants: [{ props, style }]`
   array on the component instead. See `MuiButton`/`MuiAlert` in `theme.ts`.

@@ -10,27 +10,33 @@ import { ActionLogService, Actor } from '../action-log/action-log.service';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { ClassEntity } from './class.entity';
+import { ClassAttendance, AttendanceStatus } from './class-attendance.entity';
 import { CreateClassDto } from './dto/create-class.dto';
+import { AttendanceEntryDto } from './dto/attendance-entry.dto';
 import { Student } from '../students/student.entity';
 import { Debit } from '../debits/debit.entity';
 import { GroupsService } from '../groups/groups.service';
 
-export type ClassWithRoster = Omit<
-  ClassEntity,
-  'attendedStudents' | 'plannedStudents'
-> & {
-  attendedStudentsIds: number[];
+export type ClassWithRoster = Omit<ClassEntity, 'plannedStudents'> & {
   plannedStudentsIds: number[];
+  attendedStudentsIds: number[];
+  absentStudentsIds: number[];
+  rescheduledStudentsIds: number[];
 };
 
+const ATTENDANCE_STATUSES = Object.values(AttendanceStatus);
+
 // Doesn't extend BaseCrudService: like Group, the response shape
-// (attendedStudentsIds/plannedStudentsIds derived from relations) differs from
-// the entity shape on every method, leaving nothing useful to share.
+// (plannedStudentsIds/attendedStudentsIds/... derived from relations and the
+// class_attendance table) differs from the entity shape on every method,
+// leaving nothing useful to share.
 @Injectable()
 export class ClassesService implements OnModuleInit {
   constructor(
     @InjectRepository(ClassEntity)
     private classRepository: Repository<ClassEntity>,
+    @InjectRepository(ClassAttendance)
+    private classAttendanceRepository: Repository<ClassAttendance>,
     @Inject(forwardRef(() => GroupsService))
     private groupsService: GroupsService,
     @InjectDataSource()
@@ -52,13 +58,25 @@ export class ClassesService implements OnModuleInit {
       restore: async (snapshot) => {
         await this.dataSource.transaction(async (manager) => {
           const repo = manager.getRepository(ClassEntity);
-          const { attendedStudentsIds, plannedStudentsIds, ...rest } = snapshot;
+          const {
+            attendedStudentsIds,
+            absentStudentsIds,
+            rescheduledStudentsIds,
+            plannedStudentsIds,
+            ...rest
+          } = snapshot;
           await repo.save(repo.create(rest as Partial<ClassEntity>));
-          await this.syncRoster(
+          await this.syncPlannedRoster(
+            manager,
+            Number(snapshot.id),
+            plannedStudentsIds,
+          );
+          await this.syncAttendance(
             manager,
             Number(snapshot.id),
             attendedStudentsIds,
-            plannedStudentsIds,
+            absentStudentsIds,
+            rescheduledStudentsIds,
           );
         });
       },
@@ -68,12 +86,16 @@ export class ClassesService implements OnModuleInit {
           createdAt,
           updatedAt,
           attendedStudentsIds,
+          absentStudentsIds,
+          rescheduledStudentsIds,
           plannedStudentsIds,
           ...rest
         } = snapshot;
         await this.update(id, {
           ...rest,
           attendedStudentsIds,
+          absentStudentsIds,
+          rescheduledStudentsIds,
           plannedStudentsIds,
         });
       },
@@ -83,80 +105,156 @@ export class ClassesService implements OnModuleInit {
     });
   }
 
-  private toResponse(entity: ClassEntity): ClassWithRoster {
-    const { attendedStudents, plannedStudents, ...rest } = entity;
+  private toResponse(
+    entity: ClassEntity,
+    attendance: ClassAttendance[],
+  ): ClassWithRoster {
+    const { plannedStudents, ...rest } = entity;
+    const byStatus = (status: AttendanceStatus) =>
+      attendance.filter((a) => a.status === status).map((a) => a.studentId);
     return {
       ...rest,
-      attendedStudentsIds: (attendedStudents ?? []).map((s) => s.id),
       plannedStudentsIds: (plannedStudents ?? []).map((s) => s.id),
+      attendedStudentsIds: byStatus(AttendanceStatus.Present),
+      absentStudentsIds: byStatus(AttendanceStatus.Absent),
+      rescheduledStudentsIds: byStatus(AttendanceStatus.Rescheduled),
     };
   }
 
   private async loadOne(
-    repo: Repository<ClassEntity>,
+    manager: EntityManager,
     id: number,
   ): Promise<ClassWithRoster> {
-    const entity = await repo.findOne({
+    const entity = await manager.getRepository(ClassEntity).findOne({
       where: { id },
-      relations: { attendedStudents: true, plannedStudents: true },
+      relations: { plannedStudents: true },
     });
     if (!entity) throw new NotFoundException(`Class ${id} not found`);
-    return this.toResponse(entity);
+    const attendance = await manager
+      .getRepository(ClassAttendance)
+      .find({ where: { classId: id } });
+    return this.toResponse(entity, attendance);
   }
 
-  /** Only touches a roster when the caller actually supplied it (PATCH semantics). */
-  private async syncRoster(
+  /** Only touches the planned roster when the caller actually supplied it (PATCH semantics). */
+  private async syncPlannedRoster(
+    manager: EntityManager,
+    classId: number,
+    plannedStudentsIds: number[] | undefined,
+  ): Promise<void> {
+    if (plannedStudentsIds === undefined) return;
+    const builder = manager
+      .createQueryBuilder()
+      .relation(ClassEntity, 'plannedStudents')
+      .of(classId);
+    const current = await builder.loadMany<{ id: number }>();
+    const currentIds = current.map((r) => r.id);
+    const toAdd = plannedStudentsIds.filter((id) => !currentIds.includes(id));
+    const toRemove = currentIds.filter(
+      (id) => !plannedStudentsIds.includes(id),
+    );
+    if (toAdd.length || toRemove.length) {
+      await builder.addAndRemove(toAdd, toRemove);
+    }
+  }
+
+  /**
+   * Only touches attendance when the caller supplied at least one of the
+   * three status arrays (PATCH semantics, like syncPlannedRoster) — once any
+   * one is present the other two are treated as empty, since together they
+   * describe the complete tri-state picture for the class.
+   */
+  private async syncAttendance(
     manager: EntityManager,
     classId: number,
     attendedStudentsIds: number[] | undefined,
-    plannedStudentsIds: number[] | undefined,
+    absentStudentsIds: number[] | undefined,
+    rescheduledStudentsIds: number[] | undefined,
   ): Promise<void> {
-    for (const [relation, ids] of [
-      ['attendedStudents', attendedStudentsIds] as const,
-      ['plannedStudents', plannedStudentsIds] as const,
-    ]) {
-      if (ids === undefined) continue;
-      const builder = manager
-        .createQueryBuilder()
-        .relation(ClassEntity, relation)
-        .of(classId);
-      const current = await builder.loadMany<{ id: number }>();
-      const currentIds = current.map((r) => r.id);
-      const toAdd = ids.filter((id) => !currentIds.includes(id));
-      const toRemove = currentIds.filter((id) => !ids.includes(id));
-      if (toAdd.length || toRemove.length) {
-        await builder.addAndRemove(toAdd, toRemove);
+    if (
+      attendedStudentsIds === undefined &&
+      absentStudentsIds === undefined &&
+      rescheduledStudentsIds === undefined
+    ) {
+      return;
+    }
+
+    const target = new Map<number, AttendanceStatus>();
+    for (const id of rescheduledStudentsIds ?? [])
+      target.set(id, AttendanceStatus.Rescheduled);
+    for (const id of absentStudentsIds ?? [])
+      target.set(id, AttendanceStatus.Absent);
+    // Present last: if a caller (accidentally) lists the same id in more than
+    // one array, presence wins.
+    for (const id of attendedStudentsIds ?? [])
+      target.set(id, AttendanceStatus.Present);
+
+    const attendanceRepo = manager.getRepository(ClassAttendance);
+    const current = await attendanceRepo.find({ where: { classId } });
+    const currentByStudent = new Map(current.map((a) => [a.studentId, a]));
+
+    const toRemove = current.filter((a) => !target.has(a.studentId));
+    if (toRemove.length) await attendanceRepo.remove(toRemove);
+
+    const toSave: ClassAttendance[] = [];
+    for (const [studentId, status] of target) {
+      const existing = currentByStudent.get(studentId);
+      if (!existing || existing.status !== status) {
+        toSave.push(attendanceRepo.create({ classId, studentId, status }));
       }
     }
+    if (toSave.length) await attendanceRepo.save(toSave);
   }
 
   async findAll(groupId?: number): Promise<ClassWithRoster[]> {
     const classes = await this.classRepository.find({
       where: groupId !== undefined ? { groupId } : {},
-      relations: { attendedStudents: true, plannedStudents: true },
+      relations: { plannedStudents: true },
     });
-    return classes.map((c) => this.toResponse(c));
+    if (classes.length === 0) return [];
+
+    const attendance = await this.classAttendanceRepository.find({
+      where: { classId: In(classes.map((c) => c.id)) },
+    });
+    const attendanceByClass = new Map<number, ClassAttendance[]>();
+    for (const a of attendance) {
+      const list = attendanceByClass.get(a.classId) ?? [];
+      list.push(a);
+      attendanceByClass.set(a.classId, list);
+    }
+
+    return classes.map((c) =>
+      this.toResponse(c, attendanceByClass.get(c.id) ?? []),
+    );
   }
 
   async findOne(id: number): Promise<ClassWithRoster> {
-    return this.loadOne(this.classRepository, id);
+    return this.loadOne(this.dataSource.manager, id);
   }
 
   async create(
     createDto: CreateClassDto,
     actor?: Actor,
   ): Promise<ClassWithRoster> {
-    const { attendedStudentsIds, plannedStudentsIds, ...rest } = createDto;
+    const {
+      attendedStudentsIds,
+      absentStudentsIds,
+      rescheduledStudentsIds,
+      plannedStudentsIds,
+      ...rest
+    } = createDto;
     const created = await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(ClassEntity);
       const saved = await repo.save(repo.create(rest as Partial<ClassEntity>));
-      await this.syncRoster(
+      await this.syncPlannedRoster(manager, saved.id, plannedStudentsIds);
+      await this.syncAttendance(
         manager,
         saved.id,
         attendedStudentsIds,
-        plannedStudentsIds,
+        absentStudentsIds,
+        rescheduledStudentsIds,
       );
-      return this.loadOne(repo, saved.id);
+      return this.loadOne(manager, saved.id);
     });
     await this.actionLog.record({
       actor,
@@ -176,19 +274,27 @@ export class ClassesService implements OnModuleInit {
   ): Promise<ClassWithRoster> {
     // Snapshot first — after the write the previous state is gone.
     const before = await this.findOne(id);
-    const { attendedStudentsIds, plannedStudentsIds, ...rest } = updateDto;
+    const {
+      attendedStudentsIds,
+      absentStudentsIds,
+      rescheduledStudentsIds,
+      plannedStudentsIds,
+      ...rest
+    } = updateDto;
     const updated = await this.dataSource.transaction(async (manager) => {
       const repo = manager.getRepository(ClassEntity);
       if (Object.keys(rest).length > 0) {
         await repo.update(id, rest);
       }
-      await this.syncRoster(
+      await this.syncPlannedRoster(manager, id, plannedStudentsIds);
+      await this.syncAttendance(
         manager,
         id,
         attendedStudentsIds,
-        plannedStudentsIds,
+        absentStudentsIds,
+        rescheduledStudentsIds,
       );
-      return this.loadOne(repo, id);
+      return this.loadOne(manager, id);
     });
     await this.actionLog.record({
       actor,
@@ -217,30 +323,67 @@ export class ClassesService implements OnModuleInit {
 
   async setAttendance(
     id: number,
-    attendedStudentsIds: number[],
+    entries: AttendanceEntryDto[],
   ): Promise<{ class: ClassWithRoster; createdDebits: Debit[] }> {
     // Reject a malformed body rather than coercing it to []. Treating "I
     // couldn't understand you" as "nobody attended" silently clears the roster
     // AND deletes every debit for the class — real money records — so this has
     // to fail loudly.
-    if (!Array.isArray(attendedStudentsIds)) {
+    if (!Array.isArray(entries)) {
       throw new BadRequestException(
-        'attendedStudentsIds must be an array of student ids',
+        'attendance must be an array of {studentId, status} entries',
       );
     }
-    const cleanAttendedIds = attendedStudentsIds
-      .map(Number)
-      .filter((v) => !isNaN(v));
+    const clean: { studentId: number; status: AttendanceStatus }[] = [];
+    const seen = new Set<number>();
+    for (const entry of entries) {
+      const studentId = Number((entry as { studentId?: unknown })?.studentId);
+      const status = (entry as { status?: unknown })?.status;
+      if (isNaN(studentId) || seen.has(studentId)) continue;
+      if (!ATTENDANCE_STATUSES.includes(status as AttendanceStatus)) continue;
+      seen.add(studentId);
+      clean.push({ studentId, status: status as AttendanceStatus });
+    }
 
     return this.dataSource.transaction(async (manager) => {
       const classRepo = manager.getRepository(ClassEntity);
       const debitRepo = manager.getRepository(Debit);
       const studentRepo = manager.getRepository(Student);
+      const attendanceRepo = manager.getRepository(ClassAttendance);
 
       const classEntity = await classRepo.findOne({ where: { id } });
       if (!classEntity) throw new NotFoundException('Class not found');
 
-      await this.syncRoster(manager, id, cleanAttendedIds, undefined);
+      // Full replace: an id missing from `clean` goes back to unmarked,
+      // exactly like the old attendedStudentsIds semantics.
+      const existingAttendance = await attendanceRepo.find({
+        where: { classId: id },
+      });
+      const existingByStudent = new Map(
+        existingAttendance.map((a) => [a.studentId, a]),
+      );
+      const rowsToRemove = existingAttendance.filter(
+        (a) => !clean.some((e) => e.studentId === a.studentId),
+      );
+      if (rowsToRemove.length) await attendanceRepo.remove(rowsToRemove);
+      const rowsToSave = clean
+        .filter((e) => existingByStudent.get(e.studentId)?.status !== e.status)
+        .map((e) =>
+          attendanceRepo.create({
+            classId: id,
+            studentId: e.studentId,
+            status: e.status,
+          }),
+        );
+      if (rowsToSave.length) await attendanceRepo.save(rowsToSave);
+
+      // Billable statuses: present and absent both consume a scheduled lesson
+      // and bill the student; rescheduled is an excused postponement — no
+      // debit, and it instead counts toward the student's outstanding
+      // make-up balance (StudentsService.findAllWithBalance).
+      const billableStudentIds = clean
+        .filter((e) => e.status !== AttendanceStatus.Rescheduled)
+        .map((e) => e.studentId);
 
       // Prepare group name for entitlement. groupId is SET NULL rather than
       // RESTRICT, so tolerate a group that's since been deleted rather than
@@ -260,21 +403,21 @@ export class ClassesService implements OnModuleInit {
       const existingDebits = await debitRepo.find({
         where: { classId: classEntity.id },
       });
-      const existingByStudentId = new Map(
+      const existingDebitByStudentId = new Map(
         existingDebits.map((d) => [d.studentId, d]),
       );
 
-      // A student un-marked after previously being marked present should have
-      // the debit that marking created removed, not left behind forever.
-      const toRemove = existingDebits.filter(
-        (d) => !cleanAttendedIds.includes(d.studentId),
+      // A student no longer billable (un-marked, or moved to rescheduled)
+      // has the debit that marking created removed, not left behind forever.
+      const debitsToRemove = existingDebits.filter(
+        (d) => !billableStudentIds.includes(d.studentId),
       );
-      if (toRemove.length > 0) {
-        await debitRepo.remove(toRemove);
+      if (debitsToRemove.length > 0) {
+        await debitRepo.remove(debitsToRemove);
       }
 
-      const studentIdsNeedingDebits = cleanAttendedIds.filter(
-        (sid) => !existingByStudentId.has(sid),
+      const studentIdsNeedingDebits = billableStudentIds.filter(
+        (sid) => !existingDebitByStudentId.has(sid),
       );
       const students = studentIdsNeedingDebits.length
         ? await studentRepo.find({ where: { id: In(studentIdsNeedingDebits) } })
@@ -305,7 +448,7 @@ export class ClassesService implements OnModuleInit {
         createdDebits.push(await debitRepo.save(debit));
       }
 
-      return { class: await this.loadOne(classRepo, id), createdDebits };
+      return { class: await this.loadOne(manager, id), createdDebits };
     });
   }
 

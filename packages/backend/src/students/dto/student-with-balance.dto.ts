@@ -65,4 +65,10 @@ export class StudentWithBalanceDto {
       'Total upcoming scheduled classes across the groups this student belongs to. 0 means nothing is on the calendar, so no prediction is possible.',
   })
   scheduledLessonsAhead?: number;
+
+  @ApiProperty({
+    description:
+      "Outstanding przełożone (excused/rescheduled) lessons owed to the student. Computed, not explicitly linked: every 'rescheduled' marking minus every time the student was marked present in a class belonging to a group they don't belong to (a make-up lesson elsewhere), clamped at 0.",
+  })
+  rescheduledLessonsOwed: number;
 }

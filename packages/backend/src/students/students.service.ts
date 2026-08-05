@@ -107,6 +107,29 @@ export class StudentsService extends BaseCrudService<Student> {
           ` WHERE gs."studentId" = student.id AND g.isActive = 1 LIMIT 1)`,
         'groupLessonLength',
       )
+      .addSelect(
+        // Outstanding przełożone (rescheduled) lessons: a computed balance,
+        // not an explicit link between a reschedule and its make-up (see
+        // AskUserQuestion decision in the attendance-refactor conversation).
+        // Owed = every 'rescheduled' marking, minus every time the student
+        // was marked 'present' in a class belonging to a group they aren't a
+        // member of — i.e. attended as a guest/make-up elsewhere. SQLite's
+        // 2+ arg max() is the scalar "largest of these values" form, not the
+        // single-column aggregate, so this clamps at 0 without a CASE.
+        `MAX(0,
+           COALESCE((SELECT COUNT(*) FROM class_attendance ca
+                      WHERE ca."studentId" = student.id AND ca."status" = 'rescheduled'), 0)
+           - COALESCE((SELECT COUNT(*) FROM class_attendance ca
+                        INNER JOIN class c ON c.id = ca."classId"
+                       WHERE ca."studentId" = student.id
+                         AND ca."status" = 'present'
+                         AND c."groupId" IS NOT NULL
+                         AND c."groupId" NOT IN (
+                           SELECT gs."groupId" FROM group_students gs WHERE gs."studentId" = student.id
+                         )), 0)
+         )`,
+        'rescheduledLessonsOwed',
+      )
       .from(Student, 'student');
     if (active !== undefined) {
       qb.where('student.active = :active', { active });
@@ -115,36 +138,50 @@ export class StudentsService extends BaseCrudService<Student> {
       StudentWithBalanceDto & {
         groupUnitCost: number | null;
         groupLessonLength: string | null;
+        rescheduledLessonsOwed: number;
       }
     >();
     const upcomingByStudent = await this.findUpcomingClassesByStudent();
 
-    return rows.map(({ groupUnitCost, groupLessonLength, ...row }) => {
-      const hourlyRate = groupUnitCost ?? null;
-      const lessonMinutes = hhmmToMinutes(groupLessonLength);
-      // Both null when we can't determine an actual per-lesson cost — a
-      // stale/naive fallback to the hourly rate would silently assume a
-      // 1-hour lesson, which is wrong for this school's typical multi-hour
-      // sessions.
-      const costPerLesson =
-        hourlyRate != null && lessonMinutes > 0
-          ? Math.round((lessonMinutes * hourlyRate) / 60)
-          : null;
-      const unitCost =
-        costPerLesson != null && row.discount
-          ? costPerLesson * (1 - Number(row.discount) / 100)
-          : costPerLesson;
-      const lessonsLeft =
-        unitCost && unitCost > 0 ? Math.floor(row.balance / unitCost) : null;
+    return rows.map(
+      ({
+        groupUnitCost,
+        groupLessonLength,
+        rescheduledLessonsOwed,
+        ...row
+      }) => {
+        const hourlyRate = groupUnitCost ?? null;
+        const lessonMinutes = hhmmToMinutes(groupLessonLength);
+        // Both null when we can't determine an actual per-lesson cost — a
+        // stale/naive fallback to the hourly rate would silently assume a
+        // 1-hour lesson, which is wrong for this school's typical multi-hour
+        // sessions.
+        const costPerLesson =
+          hourlyRate != null && lessonMinutes > 0
+            ? Math.round((lessonMinutes * hourlyRate) / 60)
+            : null;
+        const unitCost =
+          costPerLesson != null && row.discount
+            ? costPerLesson * (1 - Number(row.discount) / 100)
+            : costPerLesson;
+        const lessonsLeft =
+          unitCost && unitCost > 0 ? Math.floor(row.balance / unitCost) : null;
 
-      const forecast = forecastFundsRunOut(
-        row.balance,
-        Number(row.discount) || 0,
-        upcomingByStudent.get(row.id) ?? [],
-      );
+        const forecast = forecastFundsRunOut(
+          row.balance,
+          Number(row.discount) || 0,
+          upcomingByStudent.get(row.id) ?? [],
+        );
 
-      return { ...row, unitCost, lessonsLeft, ...forecast };
-    });
+        return {
+          ...row,
+          unitCost,
+          lessonsLeft,
+          rescheduledLessonsOwed: Number(rescheduledLessonsOwed) || 0,
+          ...forecast,
+        };
+      },
+    );
   }
 
   /**

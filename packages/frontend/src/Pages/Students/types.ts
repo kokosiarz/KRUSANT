@@ -47,4 +47,10 @@ export interface StudentWithBalance {
   daysUntilFundsRunOut?: number | null;
   scheduledLessonsCovered?: number;
   scheduledLessonsAhead?: number;
+  /**
+   * Outstanding przełożone (excused/rescheduled) lessons owed to the student.
+   * Computed: every rescheduled marking minus every make-up lesson attended
+   * in a group they don't belong to, clamped at 0.
+   */
+  rescheduledLessonsOwed?: number;
 }

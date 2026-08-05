@@ -1,6 +1,11 @@
 import api from '../client';
 
+export type AttendanceStatus = 'present' | 'absent' | 'rescheduled';
 
+export interface AttendanceEntry {
+  studentId: number;
+  status: AttendanceStatus;
+}
 
 export interface CreateClassRequest {
   groupId?: number;
@@ -10,6 +15,8 @@ export interface CreateClassRequest {
   roomId?: number;
   plannedStudentsIds?: number[];
   attendedStudentsIds?: number[];
+  absentStudentsIds?: number[];
+  rescheduledStudentsIds?: number[];
   cost: number;
   comment?: string;
 }
@@ -24,7 +31,12 @@ export interface Class {
   teacherId?: number;
   roomId?: number;
   plannedStudentsIds?: number[];
+  /** Marked present (obecność). */
   attendedStudentsIds?: number[];
+  /** Marked absent without excuse (nieobecność) — still billed. */
+  absentStudentsIds?: number[];
+  /** Excused/rescheduled (przełożone) — not billed. */
+  rescheduledStudentsIds?: number[];
   cost: number;
   comment?: string;
 }
@@ -53,7 +65,7 @@ export const classesApi = {
   deleteClass: async (id: number): Promise<void> => {
     return api.delete<void>(`/classes/${id}`);
   },
-  setAttendance: async (classId: number, attendedStudentsIds: number[]): Promise<Class> => {
-    return api.post<Class>(`/classes/${classId}/attendance`, attendedStudentsIds);
+  setAttendance: async (classId: number, entries: AttendanceEntry[]): Promise<Class> => {
+    return api.post<Class>(`/classes/${classId}/attendance`, entries);
   },
 };

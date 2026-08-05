@@ -22,6 +22,7 @@ import { ClassesService } from './classes.service';
 import { BatchUpsertClassDto } from './dto/batch-upsert-class.dto';
 import { CreateClassDto } from './dto/create-class.dto';
 import { UpdateClassDto } from './dto/update-class.dto';
+import { AttendanceEntryDto } from './dto/attendance-entry.dto';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '../auth/roles.enum';
 
@@ -89,7 +90,7 @@ export class ClassesController {
 
   @ApiOperation({ summary: 'Set attendance for a class' })
   @ApiParam({ name: 'id', description: 'Class ID' })
-  @ApiBody({ type: [Number] })
+  @ApiBody({ type: [AttendanceEntryDto] })
   @ApiResponse({
     status: 200,
     description: 'Attendance set, returns class and created debits',
@@ -98,9 +99,9 @@ export class ClassesController {
   @Post(':id/attendance')
   async setAttendance(
     @Param('id', ParseIntPipe) id: number,
-    @Body() attendedStudentsIds: number[],
+    @Body() entries: AttendanceEntryDto[],
   ) {
-    return await this.classesService.setAttendance(id, attendedStudentsIds);
+    return await this.classesService.setAttendance(id, entries);
   }
 
   @ApiOperation({

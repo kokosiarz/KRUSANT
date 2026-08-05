@@ -37,18 +37,14 @@ export class ClassEntity {
   @Column({ type: 'text', nullable: true })
   comment?: string;
 
-  // Attendance and the planned roster are real join tables rather than JSON
-  // arrays, so deleting a student cleans up after itself instead of leaving an
-  // orphaned id embedded in every class forever. The API still speaks
-  // attendedStudentsIds/plannedStudentsIds — see ClassesService.toResponse.
-  @ManyToMany(() => Student)
-  @JoinTable({
-    name: 'class_attended_students',
-    joinColumn: { name: 'classId' },
-    inverseJoinColumn: { name: 'studentId' },
-  })
-  attendedStudents: Student[];
-
+  // The planned roster is a real join table rather than a JSON array, so
+  // deleting a student cleans up after itself instead of leaving an orphaned
+  // id embedded in every class forever. The API still speaks
+  // plannedStudentsIds — see ClassesService.toResponse.
+  //
+  // Attendance itself (obecność/nieobecność/przełożone) is NOT a relation
+  // here — it needs a per-student status, which a plain @ManyToMany join
+  // table has no room for. See ClassAttendance (class-attendance.entity.ts).
   @ManyToMany(() => Student)
   @JoinTable({
     name: 'class_planned_students',
