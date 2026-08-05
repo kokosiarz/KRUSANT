@@ -17,6 +17,11 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
   const gold = theme.palette.primary.main;
 
   return {
+    position: 'relative',
+    // Clips the outgoing/incoming week during the swipe slide animation so it
+    // doesn't spill past the card edge while translated off-center.
+    overflowX: 'hidden',
+
     '& .fc': {
       fontFamily: theme.typography.fontFamily,
       fontSize: '0.875rem',
@@ -138,6 +143,18 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
       cursor: 'pointer',
     },
 
+    // A finished class fades rather than disappearing — still there to click
+    // into, but visually out of the way of what's still upcoming this week.
+    '& .fc-event-past': {
+      opacity: isLight ? 0.45 : 0.4,
+    },
+    '& tr.fc-list-event.fc-event-past': {
+      opacity: isLight ? 0.5 : 0.45,
+    },
+    '& tr.fc-list-event.fc-event-past:hover': {
+      opacity: 0.8,
+    },
+
     // Month cells are narrow and the custom eventContent doesn't wrap, so a
     // long group name ran straight over the cell border. Clip it with an
     // ellipsis instead; the full text is in the class dialog.
@@ -159,20 +176,28 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
 
     // ---- agenda (mobile) -------------------------------------------------
     // This view had no styling at all: it rendered in FullCalendar's defaults
-    // while everything around it followed the theme.
+    // while everything around it followed the theme. Increase vertical spacing
+    // between list rows so items are easier to hit on phones.
     '& .fc-list': {
       borderRadius: 12,
       overflow: 'hidden',
       borderColor: theme.palette.divider,
+    },
+    // FullCalendar renders the list as a table. Add padding and a hairline
+    // divider to each row's cells for clearer separation between events.
+    '& .fc-list .fc-list-table tr.fc-list-item td': {
+      padding: theme.spacing(1.25, 1.5),
+      borderBottom: `1px solid ${theme.palette.divider}`,
     },
     '& .fc-list-day-cushion': {
       background: surfaceTint,
       padding: theme.spacing(1, 1.5),
     },
     '& .fc-list-day-text, & .fc-list-day-side-text': {
-      fontWeight: 650,
+      fontWeight: 600,
+      color: theme.palette.text.secondary,
       fontSize: '0.8125rem',
-      color: theme.palette.text.primary,
+      // color: theme.palette.text.primary,
       textDecoration: 'none',
     },
     '& .fc-list-event-time': {
@@ -182,7 +207,7 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
     },
     '& .fc-list-event-title a': {
       color: theme.palette.text.primary,
-      fontWeight: 600,
+      fontWeight: 300,
       textDecoration: 'none',
     },
     '& .fc-list-event-dot': { borderColor: gold },

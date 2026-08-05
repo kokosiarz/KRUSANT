@@ -47,7 +47,7 @@ const EventContent: React.FC<EventContentProps> = ({ timeText, event }) => {
       >
         <Typography
           variant="caption"
-          sx={{ fontWeight: 'bold', display: 'block', lineHeight: 1.2 }}
+          sx={{ display: 'block', lineHeight: 1.2 }}
         >
           {timeText} {event.title}
         </Typography>

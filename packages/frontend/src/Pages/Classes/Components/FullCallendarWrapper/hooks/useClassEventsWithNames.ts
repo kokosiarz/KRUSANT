@@ -25,6 +25,16 @@ export function useClassEventsWithNames(classes: ClassItem[]): EventInput[] {
     queryFn: studentsApi.getStudents,
   });
 
+  // Date.now() is impure and can't be called during render — read it from
+  // state instead, refreshed periodically so a class fades out on its own if
+  // the calendar tab is left open past its end time.
+  const [now, setNow] = React.useState<number | null>(null);
+  React.useEffect(() => {
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   const groupNameMap = React.useMemo(() => {
     const map: Record<number, { name: string; color?: string }> = {};
     groups.forEach(g => {
@@ -57,12 +67,16 @@ export function useClassEventsWithNames(classes: ClassItem[]): EventInput[] {
     const groupName = groupInfo?.name || (c.groupId ? `Grupa ${c.groupId}` : '-');
     const roomName = c.roomId ? roomNameMap[c.roomId] || `Sala ${c.roomId}` : '-';
     const attendeeNames = (c.attendedStudentsIds ?? []).map(id => studentNameMap[id]).filter(Boolean);
+    // Fully elapsed classes fade out (see styles.tsx `.fc-event-past`) so the
+    // eye lands on what's upcoming instead of scanning past the whole week.
+    const isPast = now !== null && end.getTime() < now;
     return {
       id: c.id.toString(),
       title: `${groupName} • ${roomName}`,
       start,
       end,
       backgroundColor: color,
+      classNames: isPast ? ['fc-event-past'] : [],
       extendedProps: { attendeeNames },
     };
   });
