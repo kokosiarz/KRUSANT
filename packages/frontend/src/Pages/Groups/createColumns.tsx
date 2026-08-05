@@ -28,16 +28,21 @@ export function createColumns(
     // { id: 'id', label: 'ID', render: (group: Group) => group.id },
     { id: 'name', label: 'Nazwa', render: (group: Group) => (
       <span style={{ display: 'flex', alignItems: 'center' }}>
-        {group.colorHex && (
-          <span style={{
+        <span
+          title={group.colorHex ? undefined : 'Brak przypisanego koloru'}
+          style={{
             display: 'inline-block',
+            flexShrink: 0,
             width: 12,
             height: 12,
             borderRadius: '50%',
-            background: group.colorHex,
+            // Groups created before the colour step existed (or with it
+            // skipped) have no colorHex — fall back to a neutral dot instead
+            // of rendering nothing, so every row keeps its indicator.
+            background: group.colorHex || '#bdbdbd',
             marginRight: 8,
-          }} />
-        )}
+          }}
+        />
         {group.name}
       </span>
     ) },
