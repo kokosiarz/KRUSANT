@@ -1,9 +1,10 @@
 import React from 'react';
-import Drawer from '@mui/material/Drawer';
+import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -11,14 +12,17 @@ import ListItemText from '@mui/material/ListItemText';
 import PasskeySection from './PasskeySection';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import { ProfilePanelProps } from './types';
 import { useAuth } from '../../hooks/useAuth';
+import { useCloseOnBackButton } from '../../hooks/useCloseOnBackButton';
 
-const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onToggleTheme }) => {
+const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, onOpen, mode, onToggleTheme }) => {
     const { user, logout } = useAuth();
+    useCloseOnBackButton(open, onClose);
 
     const handleLogout = async () => {
         try {
@@ -30,10 +34,13 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
     };
 
     return (
-        <Drawer
+        <SwipeableDrawer
             anchor="right"
             open={open}
             onClose={onClose}
+            onOpen={onOpen ?? (() => {})}
+            disableSwipeToOpen
+            ModalProps={{ keepMounted: true }}
         >
             <Box
                 role="presentation"
@@ -42,6 +49,15 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
                     backgroundColor: 'background.paper',
                 }}
             >
+                <Box sx={{ p: 3, pb: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                        Profil
+                    </Typography>
+                    <IconButton onClick={onClose} aria-label="Zamknij panel profilu">
+                        <CloseIcon />
+                    </IconButton>
+                </Box>
+
                 {/* User Profile Section */}
                 <Box sx={{ p: 3, textAlign: 'center' }}>
                     <Avatar
@@ -109,7 +125,7 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, mode, onTogg
                     </ListItemButton>
                 </List>
             </Box>
-        </Drawer>
+        </SwipeableDrawer>
     );
 };
 

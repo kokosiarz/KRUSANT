@@ -25,10 +25,11 @@ const TopBar: React.FC<TopBarProps> = ({ mode, onToggleTheme }) => {
 
   return (
     <>
-      <Menu open={isMenuOpen} onClose={handleMenuClose} />
+      <Menu open={isMenuOpen} onClose={handleMenuClose} onOpen={handleMenuOpen} />
       <ProfilePanel
         open={isProfileOpen}
         onClose={handleProfileClose}
+        onOpen={handleProfileOpen}
         mode={mode}
         onToggleTheme={onToggleTheme}
       />

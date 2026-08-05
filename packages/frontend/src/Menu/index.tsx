@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Drawer from '@mui/material/Drawer';
+import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import List from '@mui/material/List';
@@ -22,16 +22,19 @@ import BadgeIcon from '@mui/icons-material/Badge';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useAuth } from '@hooks/useAuth';
+import { useCloseOnBackButton } from '@hooks/useCloseOnBackButton';
 
 export type MenuProps = {
   open: boolean;
   onClose: () => void;
+  onOpen?: () => void;
 };
 
-const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
+const Menu: React.FC<MenuProps> = ({ open, onClose, onOpen }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  useCloseOnBackButton(open, onClose);
   const roles = user?.roles?.map((role: string) => role.toLowerCase()) ?? [];
 
   type MenuItem = { label: string; path: string; roles?: string[]; icon?: React.ReactNode };
@@ -91,10 +94,13 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
   };
 
   return (
-    <Drawer
+    <SwipeableDrawer
       anchor="left"
       open={open}
       onClose={onClose}
+      onOpen={onOpen ?? (() => {})}
+      disableSwipeToOpen
+      ModalProps={{ keepMounted: true }}
     >
       <Box
         role="presentation"
@@ -153,7 +159,7 @@ const Menu: React.FC<MenuProps> = ({ open, onClose }) => {
           ))}
         </List>
       </Box>
-    </Drawer>
+    </SwipeableDrawer>
   );
 };
 
