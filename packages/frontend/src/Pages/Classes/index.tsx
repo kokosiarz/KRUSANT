@@ -16,6 +16,7 @@ import type { EventDropArg } from '@fullcalendar/core';
 import ClassCreationDialog from './Components/ClassCreateDialog';
 import FullCalendarWrapper from './Components/FullCallendarWrapper';
 import { isInside } from './utils';
+import { haptics } from '@/utils/haptics';
 
 const fetchClasses = async (): Promise<ClassItem[]> => {
   return classesApi.getClasses();
@@ -77,6 +78,9 @@ const Classes: React.FC = () => {
   // Persist a drag-to-reschedule: FullCalendar moves the event optimistically
   // in the UI regardless, so if the save fails we revert it and tell the user.
   const handleEventDrop = async (info: EventDropArg) => {
+    // Confirms the drop landed, at the moment it lands — before the round-trip,
+    // since that's when the gesture ends and the UI has already moved.
+    haptics.impact();
     try {
       await classesApi.updateClass(Number(info.event.id), {
         startTime: info.event.start?.toISOString(),
@@ -132,7 +136,11 @@ const Classes: React.FC = () => {
   // and nothing confirmed you had dragged far enough. While a drag is in
   // progress we show a hint bar that lights up once the pointer leaves the
   // calendar, so the gesture is visible and its threshold is obvious.
-  const onEventDragStart = () => setDragging(true);
+  // A tick as the class lifts off, so picking one up is felt as well as seen.
+  const onEventDragStart = () => {
+    haptics.tick();
+    setDragging(true);
+  };
 
   React.useEffect(() => {
     if (!dragging) return;
@@ -141,6 +149,12 @@ const Classes: React.FC = () => {
     window.addEventListener('mousemove', onMove);
     return () => window.removeEventListener('mousemove', onMove);
   }, [dragging]);
+
+  // Crossing out of the calendar arms the drag-to-delete. The hint bar already
+  // lights up; this makes the threshold felt without having to watch for it.
+  React.useEffect(() => {
+    if (dragging && overDropZone) haptics.tick();
+  }, [dragging, overDropZone]);
 
   const deleteTargetLabel = React.useMemo(() => {
     const target = classes.find((c) => String(c.id) === String(deleteTargetId));

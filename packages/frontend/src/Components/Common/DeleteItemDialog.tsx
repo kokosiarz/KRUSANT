@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -7,6 +7,7 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
+import { haptics } from '@/utils/haptics';
 
 export interface DeleteItemDialogProps {
   open: boolean;
@@ -24,7 +25,15 @@ const DeleteItemDialog: React.FC<DeleteItemDialogProps> = ({
   error,
   onCancel,
   onConfirm,
-}) => (
+}) => {
+  // Every destructive confirmation in the app comes through this dialog, so
+  // one buzz here covers all of them. It fires on the ask, not on the delete —
+  // the point is to catch the eye before the tap, not to celebrate after.
+  useEffect(() => {
+    if (open) haptics.warn();
+  }, [open]);
+
+  return (
   <Dialog
     open={open}
     onClose={onCancel}
@@ -55,6 +64,7 @@ const DeleteItemDialog: React.FC<DeleteItemDialogProps> = ({
       </Button>
     </DialogActions>
   </Dialog>
-);
+  );
+};
 
 export default DeleteItemDialog;
