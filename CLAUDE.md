@@ -224,9 +224,27 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
   edit/delete buttons were unreachable on a phone. The card branch shows every column as a
   label/value pair; `primaryColumnId` / `actionsColumnId` control the card heading and footer. Add
   columns normally — both layouts pick them up.
-- **The calendar switches to an agenda list (`listWeek`) on mobile** and disables drag-to-reschedule
-  there. A 7-day `timeGridWeek` gives each day ~25px, which shredded every event title. The view is
-  keyed on the breakpoint so FullCalendar remounts rather than keeping the desktop view.
+- **Mobile and desktop are two different calendars.** `FullCallendarWrapper/index.tsx` returns
+  `SwipeableCalendar` below `md` and a plain `FullCalendar` above it — not one component with
+  breakpoint props. A 7-day `timeGridWeek` gives each day ~25px, which shredded every event title, so
+  phones get an agenda list (`listWeek`) or a month grid, and drag-to-reschedule and
+  drag-out-to-delete stay desktop-only.
+  `SwipeableCalendar` is a **carousel**: the previous and next periods are mounted either side of the
+  current one and the whole track moves with the finger, so a swipe drags the next week in rather than
+  pushing the current one into a gap. Two things there are load-bearing:
+  - **Each pane is keyed by its date.** `initialDate` is only read at mount, so the keys are what let
+    a swipe shift the array by one, keep two of the three instances, and mount only the newly exposed
+    side. Change the key scheme and every swipe remounts three calendars.
+  - **The hand-over is one `flushSync`.** Moving the anchor re-keys the panes and resetting the track
+    by one pane cancels that out; if the two paint separately the calendar visibly jumps back a period
+    before correcting. Same reflow discipline as the Gotchas entry below.
+  It replaces FullCalendar's own toolbar with its own header, because each pane would otherwise render
+  a copy and slide it off with the content. `SwipeableCalendar.test.tsx` covers the stepping
+  arithmetic and swipe direction — mock `@fullcalendar/react` there rather than rendering three real
+  calendars under jsdom.
+- **Haptics (`utils/haptics.ts`) are Android-only, by omission not oversight.** iOS implements no
+  Vibration API in any browser, and the documented workarounds hinge on side effects of unrelated
+  elements. Never make a vibration the only feedback for an action.
 - **Page header actions go through `Components/Common/PageHeaderActions`.** Every page had its own
   flex row with a different gap (one also added `ml: 2` to a single button), so controls sat at
   different heights and spacings per screen. Keep header controls at the default size — the theme
