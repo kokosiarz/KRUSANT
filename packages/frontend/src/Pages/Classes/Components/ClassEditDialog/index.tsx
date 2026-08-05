@@ -170,11 +170,18 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
     ...(classDataFromDb?.rescheduledStudentsIds ?? []).map((studentId) => ({ studentId, status: 'rescheduled' as const })),
   ], [classDataFromDb]);
 
-  const presenceCheckerInitialEntries = useMemo<AttendanceEntry[]>(() => {
-    if (savedAttendanceEntries.length) return savedAttendanceEntries;
-    // Nothing marked yet — fall back to the planned roster, all defaulted to present.
-    return (classDataFromDb?.plannedStudentsIds ?? []).map((studentId) => ({ studentId, status: 'present' as const }));
-  }, [savedAttendanceEntries, classDataFromDb]);
+  // Who gets a status toggle: the planned roster (read from the form, so
+  // adding someone on the Właściwości tab shows up here right away) plus
+  // anyone already marked, in case they were marked but later dropped from
+  // the roster — otherwise their saved status would be invisible and
+  // silently wiped on the next save.
+  const presenceCheckerStudentIds = useMemo<number[]>(() => {
+    const ids = new Set<number>(
+      formClassData.plannedStudentsIds ?? classDataFromDb?.plannedStudentsIds ?? []
+    );
+    savedAttendanceEntries.forEach((e) => ids.add(e.studentId));
+    return [...ids];
+  }, [formClassData.plannedStudentsIds, classDataFromDb, savedAttendanceEntries]);
 
   const onAttandanceChecked = (entries: AttendanceEntry[]) => {
     if (!classId) return;
@@ -195,7 +202,7 @@ export const ClassEditDialog: React.FC<ClassEditDialogProps> = ({ open, onClose,
             <Tab icon={<SettingsIcon />} iconPosition="start" label="Właściwości" />
           </Tabs>
           <PresenceCheckerTab
-            initialEntries={presenceCheckerInitialEntries}
+            studentIds={presenceCheckerStudentIds}
             savedEntries={savedAttendanceEntries}
             onSave={onAttandanceChecked}
             active={tab === ETab.Attendance}

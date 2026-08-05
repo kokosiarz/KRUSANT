@@ -275,6 +275,16 @@ These each cost real debugging time. They are not hypothetical.
   `TextField`'s `inputProps`/`InputProps` became `slotProps={{ htmlInput, input, inputLabel }}`;
   `Autocomplete`'s `renderTags` became `renderValue`. A `TS2769`/`TS2322` on an MUI prop is almost always
   one of these.
+- **A Drawer's width goes on its paper slot, not on the content inside it.**
+  `slotProps={{ paper: { sx: { width } } }}`, not `<Box sx={{ width }}>` as the drawer's child. The paper
+  is shrink-to-fit, so a percentage width on the child resolves against a paper that stays wider than
+  the child — leaving a dead strip along the edge that dividers stop short of and text wraps before.
+  It looks like stray padding; it isn't. See `Menu/index.tsx` and `Components/ProfilePanel`.
+- **Animating "slide out, swap, slide in" needs a forced reflow between the swap and the slide back in.**
+  React batches the jump-to-far-edge and the animate-to-centre into one style recalculation, so the
+  browser never sees the far edge and animates from wherever the element already was — the new content
+  slides in from the side the old content just left. `flushSync` the jump, read layout
+  (`getBoundingClientRect()`), then `flushSync` the return. See `FullCallendarWrapper/index.tsx`.
 - **`@fullcalendar/*` is pinned to 6.1.x on purpose** — `daygrid`/`interaction`/`timegrid` only have 7.x
   as prereleases, peer-incompatible with stable core/react v7. Bump the whole family or none of it.
 - **Testing MUI X DataGrid under jsdom:** its toolbar renders CSS jsdom can't resolve, so any
