@@ -2,8 +2,10 @@ import DeleteItemDialog from '@/Components/Common/DeleteItemDialog';
 import React, { useState } from 'react';
 import ClassEditDialog from './Components/ClassEditDialog';
 import Box from '@mui/material/Box';
+import Fab from '@mui/material/Fab';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/Delete';
 import LoadingErrorHandler from '@components/Common/LoadingErrorHandler';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -91,6 +93,16 @@ const Classes: React.FC = () => {
     setEditDialogOpen(false);
     setDialogDate(undefined);
     setCreationDialogOpen(false);
+  };
+
+  // The desktop week/month grid opens creation via dateClick on an empty cell,
+  // but the mobile agenda view has no empty cells — only rows for classes that
+  // already exist — so there was no way to start one on a phone. This opens
+  // the same dialog with no date pre-filled; ClassCreationDialog defaults that
+  // to today.
+  const handleFabAdd = () => {
+    setDialogDate(undefined);
+    setCreationDialogOpen(true);
   };
 
   // FullCalendar mouse event handlers
@@ -192,6 +204,25 @@ const Classes: React.FC = () => {
           </Box>
         </LoadingErrorHandler>
       </Paper>
+
+      {/* Desktop creates a class by clicking an empty grid cell, which the
+          mobile agenda view has no equivalent of — this is that entry point,
+          shown only where the click affordance doesn't exist. */}
+      <Fab
+        color="primary"
+        aria-label="Dodaj zajęcia"
+        onClick={handleFabAdd}
+        sx={{
+          display: { xs: 'flex', md: 'flex' },
+          position: 'fixed',
+          right: 20,
+          bottom: 20,
+          zIndex: (t) => t.zIndex.speedDial,
+        }}
+      >
+        <AddIcon />
+      </Fab>
+
       {dragging && (
         <Box
           sx={{
