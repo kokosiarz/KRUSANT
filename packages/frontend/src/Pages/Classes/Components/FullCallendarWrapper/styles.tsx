@@ -200,15 +200,42 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
       // color: theme.palette.text.primary,
       textDecoration: 'none',
     },
+    // The agenda is a table, and a long attendee line used to drag the whole
+    // row out of shape: the names are nowrap, so the title cell's min-content
+    // width grew with them, and the auto table layout paid for that out of the
+    // time column — chopping "09:00 - 14:00" off on the left. Pinning the time
+    // and dot columns to their natural width (`width: 1%` is the shrink-to-fit
+    // idiom) and letting the title be the column that absorbs the slack keeps
+    // the overflow inside the title, where it ellipsizes instead of clipping
+    // something else.
     '& .fc-list-event-time': {
       color: theme.palette.text.secondary,
       fontVariantNumeric: 'tabular-nums',
       whiteSpace: 'nowrap',
+      width: '1%',
+    },
+    '& .fc-list-event-graphic': { width: '1%' },
+    // max-width:0 stops the cell's content from setting the column's width;
+    // width:100% then makes it take everything the other two don't need.
+    '& .fc-list-event-title': {
+      width: '100%',
+      maxWidth: 0,
+      overflow: 'hidden',
     },
     '& .fc-list-event-title a': {
       color: theme.palette.text.primary,
       fontWeight: 300,
       textDecoration: 'none',
+    },
+    // On a phone a single ellipsized line hides most of a class's roster, and
+    // there is width to spare here that the month grid doesn't have. Wrap to
+    // two lines instead, then clamp.
+    '& .fc-list-event-title .krusant-event-attendees': {
+      whiteSpace: 'normal',
+      display: '-webkit-box',
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: 'vertical',
+      overflow: 'hidden',
     },
     '& .fc-list-event-dot': { borderColor: gold },
     '& .fc-list-empty': {

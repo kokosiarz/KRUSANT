@@ -11,9 +11,15 @@ interface EventContentProps {
       attendeeNames?: string[];
     };
   };
+  /**
+   * The agenda list renders its own time column, so repeating the time in the
+   * content there would just eat the width the roster needs. The grids have no
+   * such column and do need it.
+   */
+  showTime?: boolean;
 }
 
-const EventContent: React.FC<EventContentProps> = ({ timeText, event }) => {
+const EventContent: React.FC<EventContentProps> = ({ timeText, event, showTime = true }) => {
   const attendeeNames = event.extendedProps?.attendeeNames ?? [];
 
   const tooltipContent = attendeeNames.length > 0
@@ -47,13 +53,22 @@ const EventContent: React.FC<EventContentProps> = ({ timeText, event }) => {
       >
         <Typography
           variant="caption"
-          sx={{ display: 'block', lineHeight: 1.2 }}
+          sx={{
+            display: 'block',
+            lineHeight: 1.2,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
         >
-          {timeText} {event.title}
+          {showTime ? `${timeText} ${event.title}` : event.title}
         </Typography>
         {attendeeNames.length > 0 && (
           <Typography
             variant="caption"
+            // Hook for the agenda list, which wraps this to two lines instead
+            // of ellipsizing it — see StyledCalendarWrapper in styles.tsx.
+            className="krusant-event-attendees"
             sx={{
               display: 'block',
               overflow: 'hidden',

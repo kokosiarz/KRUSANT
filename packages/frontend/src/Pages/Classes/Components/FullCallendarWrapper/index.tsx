@@ -239,7 +239,14 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                 eventDragStop={onEventDragStop}
                 eventDrop={onEventDrop}
                 nowIndicator={true}
-                eventContent={(arg) => <EventContent timeText={arg.timeText} event={arg.event} />}
+                eventContent={(arg) => (
+                    <EventContent
+                        timeText={arg.timeText}
+                        event={arg.event}
+                        // The agenda list has its own time column; the grids don't.
+                        showTime={!arg.view.type.startsWith('list')}
+                    />
+                )}
             />
             </Box>
         </StyledCalendarWrapper>
