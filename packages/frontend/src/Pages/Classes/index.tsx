@@ -1,5 +1,5 @@
 import DeleteItemDialog from '@/Components/Common/DeleteItemDialog';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import ClassEditDialog from './Components/ClassEditDialog';
 import Box from '@mui/material/Box';
 import Fab from '@mui/material/Fab';
@@ -14,9 +14,16 @@ import { Paper } from '@mui/material';
 import type { Class as ClassItem } from '@api/endpoints/classes';
 import type { EventDropArg } from '@fullcalendar/core';
 import ClassCreationDialog from './Components/ClassCreateDialog';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import PageHeaderActions from '@/Components/Common/PageHeaderActions';
 import FullCalendarWrapper from './Components/FullCallendarWrapper';
 import { isInside } from './utils';
 import { haptics } from '@/utils/haptics';
+import { useAuth } from '@hooks/useAuth';
+
+/** Remembered so a teacher who works from their own schedule isn't re-filtering every visit. */
+const SCOPE_KEY = 'krusant.classesOnlyMine';
 
 const fetchClasses = async (): Promise<ClassItem[]> => {
   return classesApi.getClasses();
@@ -40,6 +47,22 @@ const Classes: React.FC = () => {
   const [overDropZone, setOverDropZone] = useState(false);
 
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Only offered to teachers: an admin who doesn't teach has no classes of
+  // their own, so the filter would only ever empty the calendar for them.
+  const isTeacher = (user?.roles ?? []).some((role) => role.toLowerCase() === 'teacher');
+  const myTeacherId = user ? Number(user.id) : null;
+  // Defaults to everything, so the calendar doesn't silently show less than it
+  // did before; the choice sticks once made.
+  const [onlyMine, setOnlyMine] = useState<boolean>(
+    () => localStorage.getItem(SCOPE_KEY) === 'true'
+  );
+
+  const setScope = (mine: boolean) => {
+    localStorage.setItem(SCOPE_KEY, String(mine));
+    setOnlyMine(mine);
+  };
 
   // API calls
   const { data: classes = [], isLoading: loading, error, refetch } = useQuery<ClassItem[], Error>({
@@ -156,6 +179,15 @@ const Classes: React.FC = () => {
     if (dragging && overDropZone) haptics.tick();
   }, [dragging, overDropZone]);
 
+  const filteringToMine = isTeacher && onlyMine && myTeacherId !== null;
+  const visibleClasses = useMemo(
+    () =>
+      filteringToMine
+        ? classes.filter((c) => Number(c.teacherId) === myTeacherId)
+        : classes,
+    [classes, filteringToMine, myTeacherId]
+  );
+
   const deleteTargetLabel = React.useMemo(() => {
     const target = classes.find((c) => String(c.id) === String(deleteTargetId));
     if (!target) return deleteTargetId ? `zajęcia #${deleteTargetId}` : '';
@@ -171,6 +203,29 @@ const Classes: React.FC = () => {
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3 }, width: '100%' }}>
+      {isTeacher && (
+        <Box sx={{ mb: 1.5 }}>
+          <PageHeaderActions>
+            <ToggleButtonGroup
+              exclusive
+              value={onlyMine ? 'mine' : 'all'}
+              onChange={(_e, value: string | null) => value && setScope(value === 'mine')}
+              aria-label="Zakres zajęć"
+            >
+              <ToggleButton value="mine">Moje</ToggleButton>
+              <ToggleButton value="all">Wszystkie</ToggleButton>
+            </ToggleButtonGroup>
+          </PageHeaderActions>
+        </Box>
+      )}
+
+      {/* An empty calendar looks like a loading failure; say which it is. */}
+      {filteringToMine && classes.length > 0 && visibleClasses.length === 0 && (
+        <Alert severity="info" sx={{ mb: 1.5 }}>
+          Nie masz przypisanych żadnych zajęć. Przełącz na „Wszystkie”, aby
+          zobaczyć zajęcia innych nauczycieli.
+        </Alert>
+      )}
       {/* The height cap keeps the desktop week grid (22 hourly rows) inside
           the viewport instead of pushing the footer off-screen. On mobile the
           view is an agenda list with `height="auto"` — capping it there just
@@ -184,7 +239,7 @@ const Classes: React.FC = () => {
         <LoadingErrorHandler loading={loading} error={error ? error.message : null}>
           <Box sx={{ p: { xs: 1.5, sm: 3 } }} id='callendar-container'>
             <FullCalendarWrapper
-              classes={classes}
+              classes={visibleClasses}
               handleDateClick={handleDateClick}
               handleEventClick={handleEventClick}
               onEventDragStart={onEventDragStart}

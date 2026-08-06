@@ -127,6 +127,13 @@ Module-per-domain: `auth`, `classes`, `common`, `courses`, `debits`, `groups`, `
 replays through the same service methods that handle membership). `GET /history` lists it and
 `POST /history/:id/undo` reverses one — both admin-only.
 
+Those snapshots are also what the history page *shows*: `Pages/History/changeSummary.ts` diffs them
+into a field-by-field list, resolving ids to names (a snapshot says `teacherId: 7`, the reader needs
+"Piotr Nowak"), so the lookups are passed in and it stays a pure, tested function. It hides `id` /
+`createdAt` / `updatedAt` / `classIds` — the last because it's derived from `class.groupId` rather
+than written through the group, so showing it as a change of the group would misrepresent what
+happened.
+
 Three things keep undo safe, and none should be removed:
 - **Conflict check.** `afterUpdatedAt` stores the record's `updatedAt` right after the logged write.
   Undo requires it to still match; if someone edited the record since, it refuses with 409 rather
@@ -245,6 +252,12 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
 - **Haptics (`utils/haptics.ts`) are Android-only, by omission not oversight.** iOS implements no
   Vibration API in any browser, and the documented workarounds hinge on side effects of unrelated
   elements. Never make a vibration the only feedback for an action.
+- **Teachers can filter the calendar to their own classes** ("Moje"/"Wszystkie" on `/classes`,
+  matching `class.teacherId` against the signed-in user). The toggle is shown only to the `teacher`
+  role — an admin who doesn't teach owns no classes, so it could only ever empty their calendar — and
+  it defaults to "Wszystkie", so nobody's calendar silently shows less than it used to. The choice is
+  remembered under `krusant.classesOnlyMine`. Note `User.id` is a **string** while `class.teacherId`
+  is a number; compare with `Number(user.id)`.
 - **Page header actions go through `Components/Common/PageHeaderActions`.** Every page had its own
   flex row with a different gap (one also added `ml: 2` to a single button), so controls sat at
   different heights and spacings per screen. Keep header controls at the default size — the theme
