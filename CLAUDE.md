@@ -252,6 +252,10 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
 - **It's an installable PWA.** `vite-plugin-pwa` generates `sw.js` at build time; the manifest is
   hand-written in `public/manifest.json` (the plugin is set to `manifest: false` so branding stays
   readable). `src/pwa.ts` registers the worker and `Components/PwaPrompts` offers the install.
+  Every icon in `public/` is generated from the master in `assets/brand/` — don't hand-edit them;
+  that folder's README has the exact ImageMagick commands. It lives outside `public/` on purpose:
+  anything in there is not just copied into the build but swept into the service worker's precache by
+  `globPatterns`, so a 1.2 MB master would be downloaded by every install for nothing.
   Two rules worth keeping:
   - **`/api/*` is `NetworkOnly` and excluded from the navigation fallback.** Serving a cached balance,
     roster or attendance record would be worse than an honest offline error.
