@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import Box from '@mui/material/Box';
+import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
 
 /**
  * The action cluster in a page header (filter toggles + primary buttons).
@@ -10,30 +11,47 @@ import Box from '@mui/material/Box';
  * `.header-controls` CSS class, and SimpleCrudPage passed a bare button. The
  * result was buttons at different heights and spacings on every screen.
  *
- * Anything passed here gets one consistent row. Keep controls at the default
- * (medium) size — the theme sizes ToggleButton to match Button so they line up.
+ * **Sizing is enforced here, not per page.** The controls render small, to match
+ * the calendar's own toolbar — which is the one header in the app that isn't
+ * ours to restyle, so everything else meets it there. It's done with a nested
+ * theme rather than by asking each page to pass `size="small"`, because that is
+ * the kind of instruction a new page silently forgets and drifts on. Anything
+ * dropped in here comes out the right size, including controls added later.
+ *
+ * The layout is deliberately the same on a phone as on a desktop: the row wraps
+ * when it has to, and the controls keep their natural width rather than
+ * stretching edge to edge, so a header reads the same everywhere.
  */
-const PageHeaderActions: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <Box
-    sx={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 1.5,
-      flexWrap: 'wrap',
-      // On a phone these fill the row rather than right-aligning: previously
-      // each control wrapped onto its own right-aligned line, so the header ate
-      // most of the screen before any data appeared.
-      justifyContent: { xs: 'stretch', sm: 'flex-end' },
-      width: { xs: '100%', sm: 'auto' },
-      '& > *': { flex: { xs: '1 1 auto', sm: '0 0 auto' } },
-      '& .MuiToggleButtonGroup-root': { width: { xs: '100%', sm: 'auto' } },
-      '& .MuiToggleButtonGroup-root .MuiToggleButton-root': {
-        flex: { xs: 1, sm: '0 0 auto' },
-      },
-    }}
-  >
-    {children}
-  </Box>
-);
+const PageHeaderActions: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const outerTheme = useTheme();
+  const compactTheme = useMemo(
+    () =>
+      createTheme(outerTheme, {
+        components: {
+          MuiButton: { defaultProps: { size: 'small' } },
+          MuiToggleButton: { defaultProps: { size: 'small' } },
+          MuiToggleButtonGroup: { defaultProps: { size: 'small' } },
+          MuiIconButton: { defaultProps: { size: 'small' } },
+        },
+      }),
+    [outerTheme]
+  );
+
+  return (
+    <ThemeProvider theme={compactTheme}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
+        }}
+      >
+        {children}
+      </Box>
+    </ThemeProvider>
+  );
+};
 
 export default PageHeaderActions;

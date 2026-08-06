@@ -265,8 +265,12 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
   `class.teacherId` is a number; compare with `Number(user.id)`.
 - **Page header actions go through `Components/Common/PageHeaderActions`.** Every page had its own
   flex row with a different gap (one also added `ml: 2` to a single button), so controls sat at
-  different heights and spacings per screen. Keep header controls at the default size — the theme
-  matches ToggleButton's padding to Button's so the two line up.
+  different heights and spacings per screen. **Don't pass a `size` to anything inside it** — it
+  applies `size="small"` through a nested theme, so every header matches the calendar's own toolbar,
+  which is the one header in the app that isn't ours to restyle. Sizing lives there rather than at
+  each call site precisely because "remember to pass small" is what a new page silently forgets. The
+  row is identical on a phone and a desktop: it wraps when it must, and controls keep their natural
+  width instead of stretching edge to edge.
 - **It's an installable PWA.** `vite-plugin-pwa` generates `sw.js` at build time; the manifest is
   hand-written in `public/manifest.json` (the plugin is set to `manifest: false` so branding stays
   readable). `src/pwa.ts` registers the worker and `Components/PwaPrompts` offers the install.
