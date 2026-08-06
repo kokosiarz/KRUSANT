@@ -1,7 +1,12 @@
 # Brand assets
 
-`krusant-logo-1024.png` is the master artwork for the app mark: 1024×1024, gold
-emblem on transparency. Everything the app actually ships is generated from it.
+The app mark, and everything the app ships is generated from it.
+
+| file | what it is |
+| --- | --- |
+| `krusant-logo-1024.png` | raster master, 1024×1024, gold mark on transparency with a soft glow |
+| `krusant-logo.svg` | vector version, traced from the master and shipped as `favicon.svg` |
+| `generate-icons.sh` | regenerates every icon in `packages/frontend/public/` |
 
 **This folder is not part of any build.** It deliberately does not live in
 `packages/frontend/public/` — files there are copied into the build *and* swept
@@ -10,39 +15,52 @@ parking a 1.2 MB master there would make every install download it for nothing.
 
 ## Regenerating the icons
 
-Requires ImageMagick 7 (`magick`). Run from this directory:
+Requires ImageMagick 7. From the repo root:
 
 ```bash
-SRC=krusant-logo-1024.png
-OUT=../../packages/frontend/public
-BG='#0e1116'   # must match background_color in public/manifest.json
-
-# "any" icons — the mark composited onto the app background, matching the
-# opaque icons these replaced. A transparent icon reads as a floating smudge
-# on a light launcher background.
-magick "$SRC" -background "$BG" -alpha remove -alpha off -resize 512x512 "$OUT/icon-512.png"
-magick "$SRC" -background "$BG" -alpha remove -alpha off -resize 192x192 "$OUT/icon-192.png"
-magick "$SRC" -background "$BG" -alpha remove -alpha off -resize 180x180 "$OUT/apple-touch-icon.png"
-
-# Maskable — launchers crop to a circle of 80% diameter, so the artwork is
-# inset and the background bleeds to the edges.
-magick "$SRC" -resize 470x470 -background "$BG" -gravity center -extent 512x512 \
-  -alpha remove -alpha off "$OUT/icon-maskable-512.png"
-
-# Favicon: one .ico carrying 16/32/48.
-magick "$SRC" -background "$BG" -alpha remove -alpha off \
-  -define icon:auto-resize=48,32,16 "$OUT/favicon.ico"
+bash assets/brand/generate-icons.sh
 ```
 
-There is no SVG favicon. The mark is artwork rather than a glyph, so it does not
-survive being hand-traced into a handful of paths the way the old "k" did — the
-`.ico` covers the small sizes and `icon-192.png` everything above them. Both are
-declared in `packages/frontend/index.html`; the PWA sizes are listed in
-`packages/frontend/public/manifest.json`.
+Nothing in `packages/frontend/public/` should be edited by hand; that script is
+the only thing that writes those files. Three decisions in it are deliberate and
+will look like bugs if you don't know why:
+
+- **The master is cropped to the mark before anything else.** It carries ~120px
+  of soft glow on every side. Left in, that becomes dead margin and the mark
+  reads small in a launcher. The crop measures the *solid* mark by thresholding
+  alpha, so the glow doesn't count towards the bounds.
+- **The favicon and PWA icons are transparent; `apple-touch-icon` and the
+  maskable one are not.** iOS composites a transparent home-screen icon onto
+  black regardless, so that one bakes the brand background in rather than
+  leaving the result to the platform. Maskable icons are cropped by the launcher
+  to a circle of 80% diameter, which is also why that one keeps an inset while
+  everything else is full-bleed — full-bleed there would shave the ring off.
+- **The square padding is centred, not stretched.** The mark is 782×757, so
+  making it fill a square exactly would distort the ring visibly.
 
 ## Replacing the mark
 
-Drop the new master in as `krusant-logo-1024.png`, re-run the block above, and
-check the 16px result is still legible (`magick favicon.ico[2] -scale 64x64
-preview.png`) — fine detail turns to mush at that size and it is the one output
-nobody thinks to look at.
+Drop the new artwork in as `krusant-logo-1024.png`, re-run the script, and check
+the 16px favicon is still legible — fine detail turns to mush at that size and
+it's the one output nobody thinks to look at:
+
+```bash
+magick packages/frontend/public/favicon.ico[2] -scale 128x128 /tmp/preview.png
+```
+
+To redo `krusant-logo.svg`, trace the alpha channel rather than the colour —
+the mark is one flat gold, so its silhouette is all a tracer needs:
+
+```bash
+# black mark on white, with a margin so no shape touches the edge (a shape
+# running off the boundary traces as a stray sub-pixel sliver)
+BOX=$(magick krusant-logo-1024.png -alpha extract -threshold 50% -format "%@" info:)
+magick krusant-logo-1024.png -alpha extract -threshold 50% -crop "$BOX" +repage \
+  -negate -bordercolor white -border 2 mask.png
+potrace --svg mask.png -o traced.svg   # or Inkscape: Path > Trace Bitmap
+```
+
+Then set the path's `fill` to `#D0AA6E` with `fill-rule="evenodd"` (the ring
+interior and the gaps between segments are holes, not separate shapes) and give
+it a square `viewBox` centred on the mark. The committed SVG matches the raster
+master to within about one pixel everywhere.

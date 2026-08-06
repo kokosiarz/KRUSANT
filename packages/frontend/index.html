@@ -2,8 +2,9 @@
 <html lang="pl">
   <head>
     <meta charset="utf-8" />
-    <!-- The mark is artwork, not a glyph, so there's no SVG version of it —
-         .ico carries the 16/32/48 sizes, the PNG covers everything larger. -->
+    <!-- SVG first where it's supported, so the mark stays sharp at any size;
+         .ico is the fallback carrying 16/32/48. -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon.ico" sizes="48x48 32x32 16x16" />
     <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
