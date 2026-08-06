@@ -9,6 +9,13 @@ export interface HistoryEntry {
   entityId: number;
   operation: 'create' | 'update' | 'delete';
   label: string;
+  /**
+   * The record's API-level state either side of the write — what the history
+   * page diffs to show what actually changed. Null on the side that doesn't
+   * exist: `before` for a create, `after` for a delete.
+   */
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
   schemaVersion: number;
   undoneAt: string | null;
   /** False when the entry can't be reversed; `notUndoableReason` says why. */
