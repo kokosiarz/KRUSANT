@@ -67,6 +67,11 @@ export const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
                 height="auto"
                 slotMinTime="09:00:00"
                 slotMaxTime="22:00:00"
+                // Concurrent classes sit side by side instead of the later one
+                // being drawn over the earlier. FullCalendar's default overlaps
+                // them to save width, which buried the first class's group,
+                // room and attendee list under the second's box.
+                slotEventOverlap={false}
                 headerToolbar={{
                     left: 'prev,next today',
                     center: 'title',

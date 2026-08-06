@@ -51,15 +51,13 @@ const EventContent: React.FC<EventContentProps> = ({ timeText, event, showTime =
           cursor: 'pointer',
         }}
       >
+        {/* Deliberately allowed to wrap: a week-grid event is often tall and
+            narrow, and clipping this to one line hides the room. The month
+            grid, where cells are short, clamps it instead — see
+            `.fc-daygrid-event` in styles.tsx. */}
         <Typography
           variant="caption"
-          sx={{
-            display: 'block',
-            lineHeight: 1.2,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
+          sx={{ display: 'block', lineHeight: 1.2, overflowWrap: 'anywhere' }}
         >
           {showTime ? `${timeText} ${event.title}` : event.title}
         </Typography>

@@ -143,6 +143,14 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
       cursor: 'pointer',
     },
 
+    // A 30-minute class is about 23px tall in the week grid, but its content is
+    // two lines — the title and the attendee list. Without clipping, the text
+    // runs straight out of the block and over the slot underneath, which reads
+    // as two events overlapping.
+    '& .fc-timegrid-event, & .fc-timegrid-event .fc-event-main': {
+      overflow: 'hidden',
+    },
+
     // A finished class fades rather than disappearing — still there to click
     // into, but visually out of the way of what's still upcoming this week.
     '& .fc-event-past': {
