@@ -18,9 +18,13 @@ import { ThemeProvider, createTheme, useTheme } from '@mui/material/styles';
  * the kind of instruction a new page silently forgets and drifts on. Anything
  * dropped in here comes out the right size, including controls added later.
  *
- * The layout is deliberately the same on a phone as on a desktop: the row wraps
- * when it has to, and the controls keep their natural width rather than
- * stretching edge to edge, so a header reads the same everywhere.
+ * Controls keep their natural width rather than stretching edge to edge, and
+ * the row wraps when it has to. On a phone they spread across the row — the
+ * scope group at one end, the switches that narrow it at the other — matching
+ * the calendar's toolbar, which has the width to separate them and reads more
+ * clearly for it. On a desktop the header shares its row with the page title,
+ * so they stay clustered at the right instead of stranding a control halfway
+ * across the screen.
  */
 const PageHeaderActions: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const outerTheme = useTheme();
@@ -45,7 +49,8 @@ const PageHeaderActions: React.FC<{ children: React.ReactNode }> = ({ children }
           alignItems: 'center',
           gap: 1,
           flexWrap: 'wrap',
-          justifyContent: 'flex-end',
+          width: { xs: '100%', sm: 'auto' },
+          justifyContent: { xs: 'space-between', sm: 'flex-end' },
         }}
       >
         {children}

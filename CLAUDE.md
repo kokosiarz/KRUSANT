@@ -267,6 +267,8 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
   the calendar and Kursanci. It began on the calendar, where the desktop affordance (clicking an
   empty grid cell) has no equivalent in the phone's agenda. Filter controls stay in the header; the
   create action does not, so a long list doesn't scroll its own primary action off the screen.
+  It also renders a spacer in the flow, so **put it last in the page's content** — being fixed, it
+  would otherwise sit permanently over the final row with no way to scroll clear of it.
 - **Filters read the same on every page: an exclusive group, then independent switches beside it.**
   Kursanci is `[Wszyscy|Aktywni]` plus a separate `Moi`, mirroring the calendar's
   `[Tydzień|Miesiąc]` plus `Moje`. Anything that *narrows* whatever scope is selected belongs outside
