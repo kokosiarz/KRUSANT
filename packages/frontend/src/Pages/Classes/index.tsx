@@ -2,10 +2,8 @@ import DeleteItemDialog from '@/Components/Common/DeleteItemDialog';
 import React, { useMemo, useState } from 'react';
 import ClassEditDialog from './Components/ClassEditDialog';
 import Box from '@mui/material/Box';
-import Fab from '@mui/material/Fab';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import AddIcon from '@mui/icons-material/Add';
 import DeleteOutlineIcon from '@mui/icons-material/Delete';
 import LoadingErrorHandler from '@components/Common/LoadingErrorHandler';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +12,7 @@ import { Paper } from '@mui/material';
 import type { Class as ClassItem } from '@api/endpoints/classes';
 import type { EventDropArg } from '@fullcalendar/core';
 import ClassCreationDialog from './Components/ClassCreateDialog';
+import AddFab from '@/Components/Common/AddFab';
 import FullCalendarWrapper from './Components/FullCallendarWrapper';
 import { isInside } from './utils';
 import { haptics } from '@/utils/haptics';
@@ -260,22 +259,8 @@ const Classes: React.FC = () => {
       </Paper>
 
       {/* Desktop creates a class by clicking an empty grid cell, which the
-          mobile agenda view has no equivalent of — this is that entry point,
-          shown only where the click affordance doesn't exist. */}
-      <Fab
-        color="primary"
-        aria-label="Dodaj zajęcia"
-        onClick={handleFabAdd}
-        sx={{
-          display: { xs: 'flex', md: 'flex' },
-          position: 'fixed',
-          right: 20,
-          bottom: 20,
-          zIndex: (t) => t.zIndex.speedDial,
-        }}
-      >
-        <AddIcon />
-      </Fab>
+          mobile agenda view has no equivalent of — this is that entry point. */}
+      <AddFab onClick={handleFabAdd} label="Dodaj zajęcia" />
 
       {dragging && (
         <Box

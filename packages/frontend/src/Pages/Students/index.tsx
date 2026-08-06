@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import AddIcon from '@mui/icons-material/Add';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import CommonTable from '@/Components/Common/Table';
 import PageHeaderActions from '@/Components/Common/PageHeaderActions';
+import AddFab from '@/Components/Common/AddFab';
 import { studentsApi } from '../../api/endpoints/students';
 import { groupsApi } from '../../api/endpoints/groups';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -24,7 +23,13 @@ import { debitsApi } from '@api/endpoints/debits';
 
 export const Students: React.FC = () => {
   const { user } = useAuth();
-  const [filters, setFilters] = useState<string[]>(['active']);
+  // Two independent controls, mirroring the calendar's toolbar: an exclusive
+  // scope, plus "mine" as a separate switch that narrows whichever scope is on.
+  // They used to be one three-button group where "Wszyscy" cleared the others
+  // and the rest combined — the same states, but the grouping implied they were
+  // alternatives to each other.
+  const [scope, setScope] = useState<'all' | 'active'>('active');
+  const [onlyMine, setOnlyMine] = useState(false);
   const [formOpen, setFormOpen] = useState<boolean>(false);
   const [editingStudentId, setEditingStudentId] = useState<number | undefined>(undefined);
   const [deleteTarget, setDeleteTarget] = useState<StudentWithBalance | null>(null);
@@ -46,6 +51,7 @@ export const Students: React.FC = () => {
   });
 
   const { currency } = useSettings();
+  const isTeacher = (user?.roles ?? []).some((role) => role.toLowerCase() === 'teacher');
 
   // Students who belong to any group taught by the current user.
   const myStudentIds = useMemo(() => {
@@ -59,41 +65,10 @@ export const Students: React.FC = () => {
 
   const filteredStudents = useMemo(() => {
     let result = students;
-    // If 'all' is selected or no filters, show all students
-    if (filters.includes('all') || filters.length === 0) {
-      return students;
-    }
-    // Apply active filter
-    if (filters.includes('active')) {
-      result = result.filter(student => student.active);
-    }
-    if (filters.includes('mine')) {
-      result = result.filter(student => myStudentIds.has(student.id));
-    }
+    if (scope === 'active') result = result.filter((student) => student.active);
+    if (onlyMine) result = result.filter((student) => myStudentIds.has(student.id));
     return result;
-  }, [students, filters, myStudentIds]);
-
-  const handleFilterChange = (_event: React.MouseEvent<HTMLElement>, newFilters: string[]) => {
-    // If no filters selected, default to 'all'
-    if (newFilters.length === 0) {
-      setFilters(['all']);
-      return;
-    }
-    
-    // If 'all' was just added (not previously selected), clear other filters
-    if (newFilters.includes('all') && !filters.includes('all')) {
-      setFilters(['all']);
-      return;
-    }
-    
-    // If selecting a specific filter while 'all' is active, remove 'all'
-    if (newFilters.includes('all') && newFilters.length > 1) {
-      setFilters(newFilters.filter(f => f !== 'all'));
-      return;
-    }
-    
-    setFilters(newFilters);
-  };
+  }, [students, scope, onlyMine, myStudentIds]);
 
   const handleAddStudent = () => {
     setEditingStudentId(undefined);
@@ -167,9 +142,10 @@ export const Students: React.FC = () => {
   const headerButtons = (
     <PageHeaderActions>
       <ToggleButtonGroup
-        value={filters}
-        onChange={handleFilterChange}
-        aria-label="student filter"
+        exclusive
+        value={scope}
+        onChange={(_e, value: 'all' | 'active' | null) => value && setScope(value)}
+        aria-label="Zakres listy kursantów"
       >
         <ToggleButton value="all" aria-label="Wszyscy kursanci">
           Wszyscy
@@ -177,17 +153,21 @@ export const Students: React.FC = () => {
         <ToggleButton value="active" aria-label="Aktywni kursanci">
           Aktywni
         </ToggleButton>
-        <ToggleButton value="mine" aria-label="Moi kursanci">
+      </ToggleButtonGroup>
+      {/* Its own switch, not a third option in the group above — it narrows
+          whichever scope is selected rather than replacing it. Same shape as
+          "Moje" on the calendar. Hidden for anyone who doesn't teach, since
+          they have no groups and it could only ever empty the list. */}
+      {isTeacher && (
+        <ToggleButton
+          value="mine"
+          selected={onlyMine}
+          onChange={() => setOnlyMine((prev) => !prev)}
+          aria-label="Moi kursanci"
+        >
           Moi
         </ToggleButton>
-      </ToggleButtonGroup>
-      <Button
-        variant="outlined"
-        startIcon={<AddIcon />}
-        onClick={handleAddStudent}
-      >
-        Dodaj kursanta
-      </Button>
+      )}
     </PageHeaderActions>
   );
 
@@ -242,16 +222,20 @@ export const Students: React.FC = () => {
         <Alert severity="error">{error.message}</Alert>
       </Box>
     ) : (
-      <CommonTable
-        columns={columns}
-        rows={filteredStudents}
-        tableTitle="Kursanci"
-        dialogs={dialogs}
-        headerButtons={headerButtons}
-        getRowKey={(row: StudentWithBalance) => row.id}
-        getRowActive={(row: StudentWithBalance) => row.active}
-        emptyMessage="Nie znaleziono kursantów"
-      />
+      <>
+        <CommonTable
+          columns={columns}
+          rows={filteredStudents}
+          tableTitle="Kursanci"
+          dialogs={dialogs}
+          headerButtons={headerButtons}
+          getRowKey={(row: StudentWithBalance) => row.id}
+          getRowActive={(row: StudentWithBalance) => row.active}
+          emptyMessage="Nie znaleziono kursantów"
+        />
+        {/* Same entry point as the calendar's, in the same place. */}
+        <AddFab onClick={handleAddStudent} label="Dodaj kursanta" />
+      </>
     )
   );
 };

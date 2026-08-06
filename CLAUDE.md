@@ -263,6 +263,15 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
   empty their calendar — and it defaults to off, so nobody's calendar silently shows less than it used
   to. The choice is remembered under `krusant.classesOnlyMine`. Note `User.id` is a **string** while
   `class.teacherId` is a number; compare with `Number(user.id)`.
+- **"Add one" is a floating button, `Components/Common/AddFab`** — bottom-right, fixed, shared by
+  the calendar and Kursanci. It began on the calendar, where the desktop affordance (clicking an
+  empty grid cell) has no equivalent in the phone's agenda. Filter controls stay in the header; the
+  create action does not, so a long list doesn't scroll its own primary action off the screen.
+- **Filters read the same on every page: an exclusive group, then independent switches beside it.**
+  Kursanci is `[Wszyscy|Aktywni]` plus a separate `Moi`, mirroring the calendar's
+  `[Tydzień|Miesiąc]` plus `Moje`. Anything that *narrows* whatever scope is selected belongs outside
+  the group — putting it inside implies it's an alternative to the others, which is what Kursanci
+  used to imply while behaving otherwise.
 - **Page header actions go through `Components/Common/PageHeaderActions`.** Every page had its own
   flex row with a different gap (one also added `ml: 2` to a single button), so controls sat at
   different heights and spacings per screen. **Don't pass a `size` to anything inside it** — it
