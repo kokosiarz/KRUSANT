@@ -4,8 +4,18 @@ The app mark, and everything the app ships is generated from it.
 
 | file | what it is |
 | --- | --- |
-| `krusant-logo.svg` | **the master.** Square viewBox, cropped to the mark, one flat gold path |
+| `krusant-logo.svg` | **the master.** Square viewBox, cropped to the mark: a dark disc, then one flat gold path |
 | `generate-icons.sh` | regenerates every icon in `packages/frontend/public/` |
+
+The disc behind the mark is what makes the icon read as round — background inside
+the ring, transparent outside it. Its radius isn't arbitrary: the ring is a
+slight ellipse (outer radius 377.5 vertically, 391.5 horizontally, centred at
+`392.5, 380` in viewBox units) with a band at least 80 units thick, so `r="372"`
+is the largest circle that still sits *inside* the gold the whole way round. Much
+larger and a dark fringe shows outside the ring at the top and bottom; much
+smaller and a transparent gap opens between the disc and the ring's inner edge.
+Re-measure before changing it — those numbers came from sampling the rendered
+silhouette by angle, not from the artwork's source.
 
 The master used to be a 1024px PNG. The SVG replaced it once it was confirmed to
 match within about a pixel, and the raster was dropped — it's still in git
