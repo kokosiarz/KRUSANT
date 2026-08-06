@@ -16,13 +16,30 @@ import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import InstallMobileIcon from '@mui/icons-material/InstallMobile';
 import { ProfilePanelProps } from './types';
 import { useAuth } from '../../hooks/useAuth';
 import { useCloseOnBackButton } from '../../hooks/useCloseOnBackButton';
+import { usePwaInstall } from '../../hooks/usePwaInstall';
+import IosInstallDialog from '../PwaPrompts/IosInstallDialog';
 
 const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, onOpen, mode, onToggleTheme }) => {
     const { user, logout } = useAuth();
     useCloseOnBackButton(open, onClose);
+
+    // The install banner appears once and can be dismissed for 30 days. This is
+    // where someone who said "not now" comes back to it — the browser's install
+    // event is held in pwa.ts regardless of the banner, so it still works.
+    const { canInstall, installable, ios, promptInstall } = usePwaInstall();
+    const [showIosHelp, setShowIosHelp] = React.useState(false);
+
+    const handleInstall = async () => {
+        if (canInstall) {
+            await promptInstall();
+            return;
+        }
+        setShowIosHelp(true);
+    };
 
     const handleLogout = async () => {
         try {
@@ -103,6 +120,28 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, onOpen, mode
 
                 {/* Settings Section */}
                 <List sx={{ flexGrow: 1 }}>
+                    {/* Hidden once the app is installed, and on browsers that
+                        can't install at all — an entry that did nothing would
+                        be worse than none. */}
+                    {installable && (
+                        <>
+                            <ListItemButton onClick={handleInstall} sx={{ py: 2 }}>
+                                <ListItemIcon>
+                                    <InstallMobileIcon />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary="Zainstaluj aplikację"
+                                    secondary={
+                                        canInstall
+                                            ? 'Dodaj do ekranu głównego — bez paska przeglądarki'
+                                            : 'Zobacz, jak dodać do ekranu początkowego'
+                                    }
+                                />
+                            </ListItemButton>
+                            <Divider />
+                        </>
+                    )}
+
                     <ListItemButton
                         onClick={onToggleTheme}
                         sx={{ py: 2 }}
@@ -132,6 +171,8 @@ const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, onOpen, mode
                     </ListItemButton>
                 </List>
             </Box>
+
+            {ios && <IosInstallDialog open={showIosHelp} onClose={() => setShowIosHelp(false)} />}
         </SwipeableDrawer>
     );
 };

@@ -46,3 +46,66 @@ export function isIos(): boolean {
     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
   );
 }
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+/**
+ * The browser's install offer, held so it can be used later.
+ *
+ * `beforeinstallprompt` fires once, early, and the event is the *only* handle
+ * on the install dialog — miss it and there is no way to install from script
+ * for the rest of the page's life. So this listens at module load and keeps the
+ * event regardless of whether anything is currently offering to install: the
+ * banner can be dismissed, or never shown at all, and "Zainstaluj aplikację" in
+ * the profile panel still works. This used to be owned by the banner component,
+ * which stopped listening entirely once the offer had been dismissed — so
+ * changing your mind afterwards was impossible until the dismissal expired.
+ */
+let deferredPrompt: BeforeInstallPromptEvent | null = null;
+let installedThisSession = false;
+const installListeners = new Set<() => void>();
+
+const notifyInstallListeners = () => installListeners.forEach((listener) => listener());
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Suppress the browser's own mini-infobar so the offer appears in the app's
+    // language and styling instead.
+    e.preventDefault();
+    deferredPrompt = e as BeforeInstallPromptEvent;
+    notifyInstallListeners();
+  });
+  window.addEventListener('appinstalled', () => {
+    installedThisSession = true;
+    deferredPrompt = null;
+    notifyInstallListeners();
+  });
+}
+
+export function subscribeToInstallState(listener: () => void): () => void {
+  installListeners.add(listener);
+  return () => installListeners.delete(listener);
+}
+
+/** True when the browser has offered an install we can still trigger. */
+export const canPromptInstall = (): boolean => deferredPrompt !== null;
+
+export const wasInstalledThisSession = (): boolean => installedThisSession;
+
+/**
+ * Opens the browser's install dialog. The event is single-use — the browser
+ * fires a fresh one on a later load if the app is still installable — so it is
+ * discarded either way and callers must re-check `canPromptInstall`.
+ */
+export async function promptInstall(): Promise<'accepted' | 'dismissed' | 'unavailable'> {
+  const event = deferredPrompt;
+  if (!event) return 'unavailable';
+  await event.prompt();
+  const { outcome } = await event.userChoice;
+  deferredPrompt = null;
+  notifyInstallListeners();
+  return outcome;
+}

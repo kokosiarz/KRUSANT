@@ -2,10 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
 import Paper from '@mui/material/Paper';
 import Snackbar from '@mui/material/Snackbar';
 import Stack from '@mui/material/Stack';
@@ -13,17 +9,13 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import InstallMobileIcon from '@mui/icons-material/InstallMobile';
-import IosShareIcon from '@mui/icons-material/IosShare';
-import { applyPendingUpdate, initPwa, isIos, isStandalone } from '@/pwa';
+import { applyPendingUpdate, initPwa } from '@/pwa';
+import { usePwaInstall } from '@hooks/usePwaInstall';
+import IosInstallDialog from './IosInstallDialog';
 
-const DISMISSED_KEY = 'krusant.installPromptDismissedAt';
+export const DISMISSED_KEY = 'krusant.installPromptDismissedAt';
 /** How long a "not now" is respected before we offer again. */
 const DISMISS_DAYS = 30;
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
 
 const recentlyDismissed = () => {
   const raw = localStorage.getItem(DISMISSED_KEY);
@@ -36,66 +28,35 @@ const recentlyDismissed = () => {
 /**
  * Offers to install the app, and offers to reload when a new version is ready.
  *
- * Two paths, because they genuinely differ: Chromium fires
- * `beforeinstallprompt` and lets us trigger the real install dialog, while iOS
- * never has — there the only route is the Share sheet, so we show instructions
- * rather than a button that would do nothing.
+ * Only the *banner* respects the dismissal — the install event itself is
+ * captured in `pwa.ts` from the moment the app loads, so declining here doesn't
+ * take the option away. The profile panel offers it permanently, which is where
+ * someone who said "not now" goes when they change their mind.
  */
 const PwaPrompts: React.FC = () => {
-  const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const { canInstall, justInstalled, installable, ios, promptInstall } = usePwaInstall();
   const [showIosHelp, setShowIosHelp] = useState(false);
-  const [iosEligible, setIosEligible] = useState(false);
   const [updateReady, setUpdateReady] = useState(false);
-  const [installed, setInstalled] = useState(false);
+  const [dismissed, setDismissed] = useState(recentlyDismissed);
+  const [installedNoticeClosed, setInstalledNoticeClosed] = useState(false);
 
   useEffect(() => {
     initPwa(() => setUpdateReady(true));
   }, []);
 
-  useEffect(() => {
-    // Already installed, or told us to stop asking — say nothing.
-    if (isStandalone() || recentlyDismissed()) return;
-
-    const onBeforeInstall = (e: Event) => {
-      // Suppressing the browser's own mini-infobar so the offer appears in the
-      // app's own language and styling instead.
-      e.preventDefault();
-      setInstallEvent(e as BeforeInstallPromptEvent);
-    };
-    const onInstalled = () => {
-      setInstalled(true);
-      setInstallEvent(null);
-    };
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstall);
-    window.addEventListener('appinstalled', onInstalled);
-
-    // iOS gets the instructions banner, since no event will ever arrive.
-    if (isIos()) setIosEligible(true);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
-      window.removeEventListener('appinstalled', onInstalled);
-    };
-  }, []);
-
   const dismiss = () => {
     localStorage.setItem(DISMISSED_KEY, String(Date.now()));
-    setInstallEvent(null);
-    setIosEligible(false);
+    setDismissed(true);
   };
 
   const install = async () => {
-    if (!installEvent) return;
-    await installEvent.prompt();
-    const { outcome } = await installEvent.userChoice;
+    const outcome = await promptInstall();
     // A declined native prompt counts as "not now" — re-offering on the next
     // page load would be nagging.
-    if (outcome === 'dismissed') localStorage.setItem(DISMISSED_KEY, String(Date.now()));
-    setInstallEvent(null);
+    if (outcome === 'dismissed') dismiss();
   };
 
-  const offering = !!installEvent || iosEligible;
+  const offering = installable && !dismissed;
 
   return (
     <>
@@ -152,14 +113,18 @@ const PwaPrompts: React.FC = () => {
                   <Button
                     variant="contained"
                     size="small"
-                    onClick={() => (installEvent ? void install() : setShowIosHelp(true))}
+                    onClick={() => (canInstall ? void install() : setShowIosHelp(true))}
                   >
-                    {installEvent ? 'Zainstaluj' : 'Jak zainstalować?'}
+                    {canInstall ? 'Zainstaluj' : 'Jak zainstalować?'}
                   </Button>
                   <Button size="small" onClick={dismiss}>
                     Nie teraz
                   </Button>
                 </Stack>
+                {/* Says where it went, so "not now" isn't a dead end. */}
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 1 }}>
+                  Później znajdziesz tę opcję w panelu profilu.
+                </Typography>
               </Box>
               <IconButton size="small" onClick={dismiss} aria-label="Zamknij">
                 <CloseIcon fontSize="small" />
@@ -169,35 +134,14 @@ const PwaPrompts: React.FC = () => {
         </Box>
       )}
 
-      <Dialog open={showIosHelp} onClose={() => setShowIosHelp(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Instalacja na iPhone / iPad</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-            Safari nie pozwala zainstalować aplikacji jednym przyciskiem — trzeba
-            zrobić to z menu udostępniania.
-          </Typography>
-          <Stack spacing={1.5}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              <IosShareIcon fontSize="small" color="primary" />
-              <Typography variant="body2">
-                1. Dotknij ikony <strong>Udostępnij</strong> na dole ekranu.
-              </Typography>
-            </Stack>
-            <Typography variant="body2">
-              2. Wybierz <strong>Do ekranu początkowego</strong>.
-            </Typography>
-            <Typography variant="body2">
-              3. Potwierdź przyciskiem <strong>Dodaj</strong>.
-            </Typography>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowIosHelp(false)}>Zamknij</Button>
-        </DialogActions>
-      </Dialog>
+      {ios && <IosInstallDialog open={showIosHelp} onClose={() => setShowIosHelp(false)} />}
 
-      <Snackbar open={installed} autoHideDuration={5000} onClose={() => setInstalled(false)}>
-        <Alert severity="success" onClose={() => setInstalled(false)}>
+      <Snackbar
+        open={justInstalled && !installedNoticeClosed}
+        autoHideDuration={5000}
+        onClose={() => setInstalledNoticeClosed(true)}
+      >
+        <Alert severity="success" onClose={() => setInstalledNoticeClosed(true)}>
           KRUSANT został zainstalowany.
         </Alert>
       </Snackbar>

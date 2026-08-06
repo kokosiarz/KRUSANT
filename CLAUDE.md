@@ -263,9 +263,16 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
     roster or attendance record would be worse than an honest offline error.
   - **`registerType: 'prompt'`, never `autoUpdate`.** A new version must not swap itself in under
     someone mid-edit; the worker waits and the user presses "Odśwież".
-  iOS never fires `beforeinstallprompt`, so `PwaPrompts` detects it and shows Share-sheet
-  instructions instead of a button that cannot work. A dismissal is remembered for 30 days under
-  `krusant.installPromptDismissedAt`.
+  iOS never fires `beforeinstallprompt`, so it gets Share-sheet instructions (`IosInstallDialog`)
+  instead of a button that cannot work.
+  **The install event is captured in `pwa.ts` at module load, not by the banner.** It fires once,
+  early, and is the only handle on the install dialog for the life of the page — so it's held in a
+  module-level store (`canPromptInstall` / `promptInstall` / `subscribeToInstallState`, read through
+  the `usePwaInstall` hook) regardless of whether anything is currently offering to install. Only the
+  *banner* respects the 30-day dismissal under `krusant.installPromptDismissedAt`; the permanent entry
+  in the profile panel is where someone who pressed "Nie teraz" goes when they change their mind.
+  Moving the listener back into the banner would break that — it's what the tests in `pwa.test.ts`
+  pin down.
 - **Colour mode is persisted** in `localStorage` under `krusant.colorMode`, defaulting to the OS
   preference. It used to be plain component state, so every reload snapped back to dark.
 - **FullCalendar knows nothing about the MUI theme** — it's dressed to match by hand in
