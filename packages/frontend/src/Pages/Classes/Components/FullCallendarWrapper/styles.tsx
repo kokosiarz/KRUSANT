@@ -117,6 +117,16 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
     },
     '& .fc-button-primary:not(:disabled).fc-button-active': { color: gold },
 
+    // The "Moje" filter is a FullCalendar custom button, which has no built-in
+    // notion of being switched on — so being on is painted here, borrowing the
+    // look of an active view button. Driven by the data attribute the wrapper
+    // sets, since the button element itself carries no state.
+    '&[data-only-mine="true"] .fc-onlyMine-button': {
+      backgroundColor: alpha(gold, isLight ? 0.12 : 0.2),
+      borderColor: alpha(gold, 0.5),
+      color: gold,
+    },
+
     // Prev/next read as one segmented control.
     '& .fc-button-group': { gap: 0 },
     '& .fc-button-group .fc-button:not(:last-of-type)': {

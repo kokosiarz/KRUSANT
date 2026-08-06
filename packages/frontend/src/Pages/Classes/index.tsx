@@ -14,9 +14,6 @@ import { Paper } from '@mui/material';
 import type { Class as ClassItem } from '@api/endpoints/classes';
 import type { EventDropArg } from '@fullcalendar/core';
 import ClassCreationDialog from './Components/ClassCreateDialog';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import PageHeaderActions from '@/Components/Common/PageHeaderActions';
 import FullCalendarWrapper from './Components/FullCallendarWrapper';
 import { isInside } from './utils';
 import { haptics } from '@/utils/haptics';
@@ -203,22 +200,6 @@ const Classes: React.FC = () => {
 
   return (
     <Box sx={{ p: { xs: 1.5, sm: 3 }, width: '100%' }}>
-      {isTeacher && (
-        <Box sx={{ mb: 1.5 }}>
-          <PageHeaderActions>
-            <ToggleButtonGroup
-              exclusive
-              value={onlyMine ? 'mine' : 'all'}
-              onChange={(_e, value: string | null) => value && setScope(value === 'mine')}
-              aria-label="Zakres zajęć"
-            >
-              <ToggleButton value="mine">Moje</ToggleButton>
-              <ToggleButton value="all">Wszystkie</ToggleButton>
-            </ToggleButtonGroup>
-          </PageHeaderActions>
-        </Box>
-      )}
-
       {/* An empty calendar looks like a loading failure; say which it is. */}
       {filteringToMine && classes.length > 0 && visibleClasses.length === 0 && (
         <Alert severity="info" sx={{ mb: 1.5 }}>
@@ -240,6 +221,10 @@ const Classes: React.FC = () => {
           <Box sx={{ p: { xs: 1.5, sm: 3 } }} id='callendar-container'>
             <FullCalendarWrapper
               classes={visibleClasses}
+              // Lives in the calendar's own toolbar, beside the view switcher.
+              scopeFilter={
+                isTeacher ? { onlyMine, onChange: setScope } : undefined
+              }
               handleDateClick={handleDateClick}
               handleEventClick={handleEventClick}
               onEventDragStart={onEventDragStart}

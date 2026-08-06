@@ -252,12 +252,17 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
 - **Haptics (`utils/haptics.ts`) are Android-only, by omission not oversight.** iOS implements no
   Vibration API in any browser, and the documented workarounds hinge on side effects of unrelated
   elements. Never make a vibration the only feedback for an action.
-- **Teachers can filter the calendar to their own classes** ("Moje"/"Wszystkie" on `/classes`,
-  matching `class.teacherId` against the signed-in user). The toggle is shown only to the `teacher`
-  role — an admin who doesn't teach owns no classes, so it could only ever empty their calendar — and
-  it defaults to "Wszystkie", so nobody's calendar silently shows less than it used to. The choice is
-  remembered under `krusant.classesOnlyMine`. Note `User.id` is a **string** while `class.teacherId`
-  is a number; compare with `Number(user.id)`.
+- **Teachers can filter the calendar to their own classes** — a single "Moje" button that is on or
+  off, matching `class.teacherId` against the signed-in user. It lives *inside the calendar's toolbar*
+  beside the view switcher, not in a row above it: a filter this occasional doesn't earn its own row
+  of height on a phone. That costs a little plumbing, since the two layouts have different toolbars —
+  desktop passes it through FullCalendar's `customButtons`, whose buttons have no notion of being
+  pressed, so the on-state is painted from `styles.tsx` via a `data-only-mine` attribute on the
+  wrapper; mobile renders a plain MUI `ToggleButton` in `SwipeableCalendar`'s own header.
+  Shown only to the `teacher` role — an admin who doesn't teach owns no classes, so it could only ever
+  empty their calendar — and it defaults to off, so nobody's calendar silently shows less than it used
+  to. The choice is remembered under `krusant.classesOnlyMine`. Note `User.id` is a **string** while
+  `class.teacherId` is a number; compare with `Number(user.id)`.
 - **Page header actions go through `Components/Common/PageHeaderActions`.** Every page had its own
   flex row with a different gap (one also added `ml: 2` to a single button), so controls sat at
   different heights and spacings per screen. Keep header controls at the default size — the theme

@@ -17,6 +17,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import EventContent from './EventContent';
 import { StyledCalendarWrapper } from './styles';
+import type { ScopeFilter } from './index';
 import { haptics } from '@/utils/haptics';
 
 export type MobileView = 'listWeek' | 'dayGridMonth';
@@ -49,6 +50,8 @@ const keyOf = (date: Date, view: MobileView) =>
 
 interface SwipeableCalendarProps {
   events: EventInput[];
+  /** Rendered beside the view switcher; a row of its own costs too much height here. */
+  scopeFilter?: ScopeFilter;
   handleEventClick?: (arg: EventClickArg) => void;
   handleDateClick?: (arg: DateClickArg) => void;
 }
@@ -73,6 +76,7 @@ interface SwipeableCalendarProps {
  */
 const SwipeableCalendar: React.FC<SwipeableCalendarProps> = ({
   events,
+  scopeFilter,
   handleEventClick,
   handleDateClick,
 }) => {
@@ -256,11 +260,26 @@ const SwipeableCalendar: React.FC<SwipeableCalendarProps> = ({
             <ToggleButton value="listWeek">Tydzień</ToggleButton>
             <ToggleButton value="dayGridMonth">Miesiąc</ToggleButton>
           </ToggleButtonGroup>
-          {/* Swiping makes it easy to drift a long way from now, and there is
-              no other way back short of swiping all the way. */}
-          <Button size="small" onClick={goToday}>
-            Dziś
-          </Button>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            {/* One button that's either on or off, rather than a Moje/Wszystkie
+                pair — half the width, and "off" plainly means everything. */}
+            {scopeFilter && (
+              <ToggleButton
+                size="small"
+                value="mine"
+                selected={scopeFilter.onlyMine}
+                onChange={() => scopeFilter.onChange(!scopeFilter.onlyMine)}
+                aria-label="Pokaż tylko moje zajęcia"
+              >
+                Moje
+              </ToggleButton>
+            )}
+            {/* Swiping makes it easy to drift a long way from now, and there is
+                no other way back short of swiping all the way. */}
+            <Button size="small" onClick={goToday}>
+              Dziś
+            </Button>
+          </Stack>
         </Stack>
       </Stack>
 
