@@ -200,6 +200,24 @@ export const StyledCalendarWrapper = styled('div')(({ theme }) => {
       // color: theme.palette.text.primary,
       textDecoration: 'none',
     },
+
+    // Today, in the agenda. The grids get this for free — FullCalendar tints
+    // the whole column from `--fc-today-bg-color` — but a list has no column,
+    // and the `.fc-list-day-cushion` rule above would paint over any default
+    // anyway. So the day's header band and its rows are tinted by hand, keeping
+    // the same relationship the desktop has: a stronger header, subtler cells.
+    '& .fc-list-day.fc-day-today .fc-list-day-cushion': {
+      background: alpha(gold, isLight ? 0.12 : 0.18),
+    },
+    '& .fc-list-day.fc-day-today .fc-list-day-text, & .fc-list-day.fc-day-today .fc-list-day-side-text': {
+      color: gold,
+    },
+    // Scoped to `.fc-list-event`, which only exists in the agenda — the same
+    // class on a grid event would repaint the event itself, over its group
+    // colour. The class comes from useClassEventsWithNames.
+    '& .fc-list-event.krusant-event-today td': {
+      backgroundColor: alpha(gold, isLight ? 0.06 : 0.1),
+    },
     // The agenda is a table, and a long attendee line used to drag the whole
     // row out of shape: the names are nowrap, so the title cell's min-content
     // width grew with them, and the auto table layout paid for that out of the

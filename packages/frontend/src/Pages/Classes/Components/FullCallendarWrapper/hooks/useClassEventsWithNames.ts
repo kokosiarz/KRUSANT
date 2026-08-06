@@ -10,6 +10,12 @@ import { EventInput } from '@fullcalendar/core';
 import type { Class as ClassItem } from '../../../../../api/endpoints/classes';
 import { HHmmToMinutes } from '@/utils/HHmmToMinutes';
 
+/** Same calendar day in local time — not the same 24 hours. */
+const isSameLocalDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate();
+
 export function useClassEventsWithNames(classes: ClassItem[]): EventInput[] {
   const theme = useTheme();
   const { data: groups = [] } = useQuery({
@@ -70,13 +76,21 @@ export function useClassEventsWithNames(classes: ClassItem[]): EventInput[] {
     // Fully elapsed classes fade out (see styles.tsx `.fc-event-past`) so the
     // eye lands on what's upcoming instead of scanning past the whole week.
     const isPast = now !== null && end.getTime() < now;
+    // The grids light up the whole of today's column on their own, but the
+    // agenda has no column to light — so today's rows are marked here and
+    // tinted in styles.tsx, giving the phone the same "today" cue.
+    const isToday = now !== null && isSameLocalDay(start, new Date(now));
+    const classNames = [
+      ...(isPast ? ['fc-event-past'] : []),
+      ...(isToday ? ['krusant-event-today'] : []),
+    ];
     return {
       id: c.id.toString(),
       title: `${groupName} • ${roomName}`,
       start,
       end,
       backgroundColor: color,
-      classNames: isPast ? ['fc-event-past'] : [],
+      classNames,
       extendedProps: { attendeeNames },
     };
   });
