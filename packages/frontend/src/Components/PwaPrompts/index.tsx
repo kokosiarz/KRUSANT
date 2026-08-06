@@ -37,6 +37,8 @@ const PwaPrompts: React.FC = () => {
   const { canInstall, justInstalled, installable, ios, promptInstall } = usePwaInstall();
   const [showIosHelp, setShowIosHelp] = useState(false);
   const [updateReady, setUpdateReady] = useState(false);
+  const [updateNoticeDismissed, setUpdateNoticeDismissed] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [dismissed, setDismissed] = useState(recentlyDismissed);
   const [installedNoticeClosed, setInstalledNoticeClosed] = useState(false);
 
@@ -146,13 +148,28 @@ const PwaPrompts: React.FC = () => {
         </Alert>
       </Snackbar>
 
-      {/* Never swaps versions under someone mid-edit — they choose when. */}
-      <Snackbar open={updateReady} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+      {/* Never swaps versions under someone mid-edit — they choose when.
+          Dismissible, because it used to have no way out: if the update had
+          already been applied elsewhere there was nothing left to activate,
+          so the button did nothing and the notice sat there for good. */}
+      <Snackbar
+        open={updateReady && !updateNoticeDismissed}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
         <Alert
           severity="info"
+          onClose={() => setUpdateNoticeDismissed(true)}
           action={
-            <Button color="inherit" size="small" onClick={() => void applyPendingUpdate()}>
-              Odśwież
+            <Button
+              color="inherit"
+              size="small"
+              disabled={refreshing}
+              onClick={() => {
+                setRefreshing(true);
+                void applyPendingUpdate();
+              }}
+            >
+              {refreshing ? 'Odświeżam…' : 'Odśwież'}
             </Button>
           }
         >

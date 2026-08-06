@@ -8,21 +8,46 @@ import { registerSW } from 'virtual:pwa-register';
  * mid-edit. The worker waits, and PwaPrompts offers a reload instead.
  */
 let applyUpdate: ((reload?: boolean) => Promise<void>) | null = null;
+let registered = false;
+let onUpdateAvailableCallback: (() => void) | null = null;
 
 export function initPwa(onUpdateAvailable: () => void): void {
   // Registering from an insecure origin throws; local dev over plain http is
   // the normal case for that, and it isn't worth an error in the console.
   if (!('serviceWorker' in navigator)) return;
 
+  // Always take the latest callback, but register exactly once. A second
+  // registerSW() builds a second Workbox instance with its own listeners, and
+  // the update handle we keep would point at that one — whose `waiting` is
+  // empty, because the waiting event fired on the first. The refresh button
+  // then silently does nothing.
+  onUpdateAvailableCallback = onUpdateAvailable;
+  if (registered) return;
+  registered = true;
+
   applyUpdate = registerSW({
     immediate: true,
-    onNeedRefresh: onUpdateAvailable,
+    onNeedRefresh: () => onUpdateAvailableCallback?.(),
   });
 }
 
-/** Activates the waiting worker and reloads. */
+/**
+ * Activates the waiting worker and reloads.
+ *
+ * The plugin's update function only posts SKIP_WAITING; the reload comes from
+ * the service worker's `controlling` event firing afterwards. That event never
+ * arrives if there is no worker waiting to take over — which happens once the
+ * update has already been applied in another tab, leaving this tab showing a
+ * notice whose button appears to do nothing. So the reload is guaranteed here
+ * instead: if the worker took over, the page is gone long before the timer.
+ */
 export async function applyPendingUpdate(): Promise<void> {
-  await applyUpdate?.(true);
+  try {
+    await applyUpdate?.(true);
+  } catch {
+    // Fall through — reloading is still the right move.
+  }
+  window.setTimeout(() => window.location.reload(), 1500);
 }
 
 /** True when running as an installed app rather than a browser tab. */

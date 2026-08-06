@@ -275,7 +275,13 @@ the backend. Path aliases must stay in sync between `vite.config.ts` and `tsconf
   - **`/api/*` is `NetworkOnly` and excluded from the navigation fallback.** Serving a cached balance,
     roster or attendance record would be worse than an honest offline error.
   - **`registerType: 'prompt'`, never `autoUpdate`.** A new version must not swap itself in under
-    someone mid-edit; the worker waits and the user presses "Odśwież".
+    someone mid-edit; the worker waits and the user presses "Odśwież". That button needs the
+    belt-and-braces in `applyPendingUpdate`: the plugin's update function *only* posts SKIP_WAITING,
+    and the reload comes from the worker's `controlling` event — which never fires when nothing is
+    waiting, e.g. once another tab has already applied the update. Left alone that shows a permanent
+    notice whose button does nothing, so the reload is forced on a timer and the notice is
+    dismissible. `initPwa` also registers exactly once: a second `registerSW()` builds a second
+    Workbox whose `waiting` is empty, and the handle we keep would point at that one.
   iOS never fires `beforeinstallprompt`, so it gets Share-sheet instructions (`IosInstallDialog`)
   instead of a button that cannot work.
   **The install event is captured in `pwa.ts` at module load, not by the banner.** It fires once,
